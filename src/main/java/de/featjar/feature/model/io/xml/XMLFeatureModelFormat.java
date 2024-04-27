@@ -131,7 +131,7 @@ public class XMLFeatureModelFormat extends AXMLFeatureModelFormat<IFeatureModel,
     public IFeatureModel parseDocument(Document document) throws ParseException {
         if (featureModel == null) featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
         nameToIdentifierMap = Maps.empty();
-        final Element featureModelElement = getDocumentElement(document, FEATURE_MODEL);
+        final Element featureModelElement = getDocumentElement(document, FEATURE_MODEL, EXT_FEATURE_MODEL);
         parseFeatureTree(getElement(featureModelElement, STRUCT));
         Result<Element> element = getElementResult(featureModelElement, CONSTRAINTS);
         if (element.isPresent()) parseConstraints(element.get());
