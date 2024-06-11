@@ -141,10 +141,15 @@ public class FeatureTree extends ARootedTree<IFeatureTree> implements IMutableFe
     }
 
     @Override
-    public List<IFeatureTree> getGroupFeatures() {
+    public List<IFeatureTree> getGroupSiblings() {
         return parent.getChildren().stream()
                 .filter(t -> t.getGroupID() == groupID)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<IFeatureTree> getGroupChildren(int groupID) {
+        return getChildren().stream().filter(t -> t.getGroupID() == groupID).collect(Collectors.toList());
     }
 
     @Override
