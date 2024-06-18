@@ -25,7 +25,7 @@ import de.featjar.base.data.identifier.IIdentifier;
 import de.featjar.feature.model.mixins.IHasCommonAttributes;
 import de.featjar.feature.model.mixins.IHasConstraints;
 import de.featjar.feature.model.mixins.IHasFeatureTree;
-import de.featjar.formula.structure.IFormula;
+import de.featjar.formula.structure.formula.IFormula;
 import java.util.Collection;
 
 /**
@@ -51,6 +51,12 @@ public interface IFeatureModel extends IFeatureModelElement, IHasCommonAttribute
     // every plugin defines a feature model (uvl) that restricts what its extensions can and cannot do (replacing
     // extensions.xml)
 
+	void activateFeature(IIdentifier featureId);
+	void deactivateFeature(IIdentifier featureId);
+	boolean isFeatureActive(IIdentifier featureId);
+	IConstraint addConstraint(IFormula formula);
+    boolean removeConstraint(IConstraint constraint);
+	
     IFeatureModel clone();
 
     Collection<IFeature> getFeatures();
