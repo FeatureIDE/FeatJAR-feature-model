@@ -38,6 +38,8 @@ import java.util.List;
 public interface IFeatureTree extends IRootedTree<IFeatureTree>, IAttributable, IHasFeatureTree {
 
     IFeature getFeature();
+    void setMandatory(boolean mandatory);
+
 
     List<Group> getGroups();
 
@@ -60,12 +62,22 @@ public interface IFeatureTree extends IRootedTree<IFeatureTree>, IAttributable, 
     default IMutableFeatureTree mutate() {
         return (IMutableFeatureTree) this;
     }
+    
+    int getGroupID();
+    
 
-    static interface IMutableFeatureTree extends IFeatureTree, IMutatableAttributable {
+     interface IMutableFeatureTree extends IFeatureTree, IMutatableAttributable {
 
-        default IFeatureTree addFeatureBelow(IFeature newFeature) {
-            return addFeatureBelow(newFeature, getChildrenCount(), 0);
+    	default IFeatureTree addFeatureBelow(IFeature newFeature) { //ananya
+            FeatureTree newTree = new FeatureTree(newFeature);
+            addChild(newTree);
+            return newTree;
         }
+    	
+    	
+    /*    default IFeatureTree addFeatureBelow(IFeature newFeature) {
+            return addFeatureBelow(newFeature, getChildrenCount(), 0);
+        }*/
 
         default IFeatureTree addFeatureBelow(IFeature newFeature, int index) {
             return addFeatureBelow(newFeature, index, 0);
@@ -136,5 +148,7 @@ public interface IFeatureTree extends IRootedTree<IFeatureTree>, IAttributable, 
         }
     }
 
-    int getGroupID();
+
+    
+    
 }

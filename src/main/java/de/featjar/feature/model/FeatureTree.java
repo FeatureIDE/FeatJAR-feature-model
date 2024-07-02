@@ -35,7 +35,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class FeatureTree extends ARootedTree<IFeatureTree> implements IMutableFeatureTree {
+public class FeatureTree extends ARootedTree<IFeatureTree> implements IFeatureTree.IMutableFeatureTree {
 
     public static final class Group {
         private Range groupRange;
@@ -280,5 +280,21 @@ public class FeatureTree extends ARootedTree<IFeatureTree> implements IMutableFe
             attributeValues = new LinkedHashMap<>();
         }
         return (S) attributeValues.remove(attribute);
+    }
+
+    @Override
+    public IFeatureTree addFeatureBelow(IFeature newFeature) {
+        FeatureTree newTree = new FeatureTree(newFeature);
+        addChild(newTree);
+        return newTree;
+    }
+
+    @Override
+    public void setMandatory(boolean mandatory) {
+        if (mandatory) {
+            setMandatory();
+        } else {
+            setOptional();
+        }
     }
 }

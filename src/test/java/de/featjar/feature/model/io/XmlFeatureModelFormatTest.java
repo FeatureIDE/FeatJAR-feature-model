@@ -15,14 +15,14 @@ import de.featjar.base.io.IO;
 import de.featjar.base.io.format.ParseException;
 import de.featjar.feature.model.IFeatureModel;
 
-public class DimacsFeatureModelFormatTest {
+public class XmlFeatureModelFormatTest {
 
     @Test
     public void testSerialization() throws IOException, ParseException {
         // Constructing the path relative to the project root
-        Path inputFilePath = Paths.get("src/test/java/formats/DIMACS/faulty_07.dimacs");
+        Path inputFilePath = Paths.get("src/test/java/testFeatureModels/basic.xml");
         
-        DimacsFeatureModelFormat format = new DimacsFeatureModelFormat();
+        XmlFeatureModelFormat format = new XmlFeatureModelFormat();
         Result<IFeatureModel> fm = IO.load(inputFilePath, format);
         IFeatureModel featureModel = fm.orElseThrow();
         
@@ -34,13 +34,13 @@ public class DimacsFeatureModelFormatTest {
         String inputString = Files.readString(inputFilePath);
 
         // Log the input and output strings for debugging
-        System.out.println("Input DIMACS:\n" + inputString);
-        System.out.println("Output DIMACS:\n" + outputString);
+        System.out.println("Input XML:\n" + inputString);
+        System.out.println("Output XML:\n" + outputString);
 
         // Normalize line endings for comparison
         inputString = inputString.replace("\r\n", "\n").trim();
         outputString = outputString.replace("\r\n", "\n").trim();
 
-        assertEquals(inputString, outputString, "The input and output DIMACS strings should be equal");
+        assertEquals(inputString, outputString, "The input and output XML strings should be equal");
     }
 }

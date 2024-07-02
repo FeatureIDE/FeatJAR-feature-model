@@ -52,7 +52,7 @@ public class FeatureModel implements IMutableFeatureModel, IMutatableAttributabl
                 .map(e -> e.getValue().clone(this))
                 .forEach(c -> constraints.put(c.getIdentifier(), c));
 
-        attributeValues = otherFeatureModel.cloneAttributes();
+        attributeValues = new LinkedHashMap<>(otherFeatureModel.attributeValues);
     }
 
     @Override
@@ -121,8 +121,6 @@ public class FeatureModel implements IMutableFeatureModel, IMutatableAttributabl
             removeAttributeValue(attribute);
             return;
         }
-        checkType(attribute, value);
-        validate(attribute, value);
         attributeValues.put(attribute, value);
     }
 
