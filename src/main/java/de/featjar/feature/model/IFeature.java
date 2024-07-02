@@ -110,5 +110,9 @@ public interface IFeature extends IFeatureModelElement, IHasCommonAttributes {
         default void setVisible() {
             setHidden(false);
         }
+        
+        
+        
+        
     }
 }

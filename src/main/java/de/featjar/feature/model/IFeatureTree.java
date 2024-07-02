@@ -43,6 +43,7 @@ public interface IFeatureTree extends IRootedTree<IFeatureTree>, IAttributable, 
         }
         
 
+       
         default IFeatureTree addFeatureBelow(IFeature newFeature, int index) {
             return addFeatureBelow(newFeature, index, 0);
         }
@@ -57,6 +58,13 @@ public interface IFeatureTree extends IRootedTree<IFeatureTree>, IAttributable, 
         default IFeatureTree addFeatureAbove(IFeature newFeature) {
             FeatureTree newTree = new FeatureTree(newFeature);
             Result<IFeatureTree> parent = getParent();
+            
+         // Check if attempting to move a node above itself
+            if (this.getFeature().equals(newFeature)) {
+                throw new IllegalArgumentException("Cannot move a node above itself.");
+            }
+            
+            
             if (parent.isPresent()) {
                 parent.get().replaceChild(this, newTree);
                 newTree.setGroupID(this.getGroupID());
@@ -82,47 +90,11 @@ public interface IFeatureTree extends IRootedTree<IFeatureTree>, IAttributable, 
             }
         }
         
-        default void moveNode(IFeatureTree newParent) throws IllegalArgumentException {
-            if (this == newParent || isDescendant(newParent, this)) {
-                throw new IllegalArgumentException("Cannot move a node below itself or one of its own descendants.");
-            }
-
-            Result<IFeatureTree> parent = getParent();
-            if (parent.isPresent()) {
-                parent.get().removeChild(this);
-                this.setParent(newParent);
-                newParent.addChild(this);
-            } else {
-            	// TODO handle root
-            }
-        }
         
-        default boolean isDescendant(IFeatureTree source, IFeatureTree target) {
-            if (source == target) {
-                return true;
-            }
-            for (IFeatureTree child : target.getChildren()) {
-                if (isDescendant(child, source)) {
-                    return true;
-                }
-            }
-            return false;
-        }
+        
+        
 
-        // TODO adapt this to IFeatureTree
-        default void swapGrandchildren(FeatureTreeNode root, FeatureTreeNode gc1, FeatureTreeNode gc2) throws IllegalArgumentException {
-            FeatureTreeNode parent1 = findParent(root, gc1);
-            FeatureTreeNode parent2 = findParent(root, gc2);
-
-            if (parent1 == null || parent2 == null) {
-                throw new IllegalArgumentException("One or both of the nodes are not found.");
-            }
-
-            int index1 = parent1.children.indexOf(gc1);
-            int index2 = parent2.children.indexOf(gc2);
-            parent1.children.set(index1, gc2);
-            parent2.children.set(index2, gc1);
-        }
+        
 
         Result<IFeatureTree> getParent();
 
@@ -235,10 +207,8 @@ public interface IFeatureTree extends IRootedTree<IFeatureTree>, IAttributable, 
 
     int getGroupID();
 
-<<<<<<< HEAD
-    boolean isRoot();
-=======
+
+
     boolean isRoot(); //sarthak
 
->>>>>>> 588014115fc8bc4d4d369b84f621b4cea3acfcf2
 }

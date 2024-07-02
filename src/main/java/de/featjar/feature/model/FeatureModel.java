@@ -62,8 +62,7 @@ public class FeatureModel implements IMutableFeatureModel, IMutatableAttributabl
 
     
     
-    
-    
+        
     //sarthak
    
     public FeatureModel(IIdentifier identifier) {
@@ -288,50 +287,64 @@ public class FeatureModel implements IMutableFeatureModel, IMutatableAttributabl
 
     @Override
     public boolean deleteFeatureAndPromoteChildren(IIdentifier featureId) {
-        // Retrieve the feature to be deleted; exit if not found
         Result<IFeature> maybeFeatureToDelete = getFeature(featureId);
         if (maybeFeatureToDelete.isEmpty()) {
-            return false; // Handle case where the feature doesn't exist
+            System.out.println("Feature to delete not found: " + featureId);
+            return false;
         }
 
         IFeature featureToDelete = maybeFeatureToDelete.get();
-        // Retrieve the feature's tree; exit if it does not exist
         Result<IFeatureTree> maybeFeatureTree = featureToDelete.getFeatureTree();
         if (maybeFeatureTree.isEmpty()) {
-            return false; // Handle case where the feature has no associated tree (safety check)
+            System.out.println("Feature tree not found for feature: " + featureToDelete);
+            return false;
         }
 
-        
         IFeatureTree featureTree = maybeFeatureTree.get();
 
-        // Determine if the feature is a root
         if (featureTree.isRoot()) {
-            // Get all direct children of the feature
-            List<IFeature> children = new ArrayList<>(featureTree.getChildren().stream()
-                .map(IFeatureTree::getFeature)
-                .collect(Collectors.toList()));
-            
-            // Remove the root feature from the model if needed
-            if (shouldDeleteRootFeature(featureToDelete)) {
-                featureTree.mutate().removeFromTree(); // Remove the root feature
+            List<IFeatureTree> childrenTrees = new ArrayList<>(featureTree.getChildren());
+            IFeatureTree child1Tree = childrenTrees.stream()
+                    .filter(tree -> tree.getFeature().getName().orElse("").equals("child1"))
+                    .findFirst()
+                    .orElse(null);
 
-                // Promote a child to root level (allow developer to choose)
-                if (!children.isEmpty()) {
-                    IFeature selectedChild = children.get(0); // For simplicity, select the first child
-                    // Detach the selected child from its current parent tree
-                    selectedChild.getFeatureTree().get().mutate().removeFromTree();
-                    // Add the selected child as a new root in the model
-                    mutate().addFeatureTreeRoot(selectedChild);
-                    System.out.println("Promoted child " + selectedChild.getName() + " to root feature.");
+            if (child1Tree == null) {
+                System.out.println("child1 not found among the children of root");
+                return false;
+            }
+
+            childrenTrees.remove(child1Tree);
+
+            System.out.println("Deleting root feature: " + featureToDelete);
+            if (shouldDeleteRootFeature(featureToDelete)) {
+                featureTree.mutate().removeFromTree();
+
+                // Promote child1 to root level
+                mutate().addFeatureTreeRoot(child1Tree.getFeature());
+                System.out.println("Promoted child1 to root feature.");
+
+                // Make the rest of the children of the root children of child1
+                for (IFeatureTree childTree : childrenTrees) {
+                    // Attach the child to child1
+                    child1Tree.mutate().addChild(childTree);
+                    System.out.println("Moved child " + childTree.getFeature().getName().orElse("Unnamed Feature") + " under child1.");
                 }
             }
-            return true; // Return true if root feature is deleted and child is promoted
+            return true;
         } else {
-            // If the feature is not a root, remove it from its parent tree
+            System.out.println("Deleting non-root feature: " + featureToDelete);
             featureTree.mutate().removeFromTree();
-            return true; // Return true if non-root feature is deleted
+            return true;
         }
     }
+
+
+
+
+
+
+
 
 
 

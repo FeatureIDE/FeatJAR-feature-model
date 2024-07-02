@@ -126,9 +126,10 @@ public class FeatureTree extends ARootedTree<IFeatureTree> implements IMutableFe
             return Collections.emptyList(); // Handle case where parent is null
         }
         return parent.getChildren().stream()
-                .filter(t -> t.getGroupID() == groupID)
+                .filter(t -> t.getGroupID() == this.groupID)
                 .collect(Collectors.toList());
     }
+
 
     @Override
     public List<Group> getGroups() {
@@ -294,7 +295,9 @@ public class FeatureTree extends ARootedTree<IFeatureTree> implements IMutableFe
         if (child == null || getChildren().contains(child)) {
             return; // Avoid adding null or duplicate children
         }
+        // Add child and set its parent to this node
         super.addChild(child);
+        child.setParent(this); // Ensuring that the child's parent is updated
     }
 
     @Override
@@ -302,16 +305,24 @@ public class FeatureTree extends ARootedTree<IFeatureTree> implements IMutableFe
         if (child == null || !getChildren().contains(child)) {
             return; // Avoid removing null or non-existent children
         }
+        // Remove child and set its parent to null
         super.removeChild(child);
-    }
-
-    @Override
-    public List<IFeatureTree> getChildren() {
-        return (List<IFeatureTree>) super.getChildren();
+        child.setParent(null);
     }
 
     @Override
     public void setParent(IFeatureTree parent) {
         this.parent = parent;
     }
+
+
+    @Override
+    public List<IFeatureTree> getChildren() {
+        return (List<IFeatureTree>) super.getChildren();
+    }
+
+    
+    
+    
+    
 }
