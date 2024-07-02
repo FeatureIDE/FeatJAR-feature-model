@@ -20,15 +20,15 @@ public class XmlFeatureModelFormatTest {
     @Test
     public void testSerialization() throws IOException, ParseException {
         // Constructing the path relative to the project root
-        Path inputFilePath = Paths.get("src/test/java/testFeatureModels/basic.xml");
-        
+        Path inputFilePath = Paths.get("src/test/java/testFeatureModels/simple.xml");
+
         XmlFeatureModelFormat format = new XmlFeatureModelFormat();
         Result<IFeatureModel> fm = IO.load(inputFilePath, format);
         IFeatureModel featureModel = fm.orElseThrow();
-        
+
         // Assert that the feature model has features
         assertFalse(featureModel.getFeatures().isEmpty(), "Feature model should have features");
-        
+
         String outputString = IO.print(featureModel, format);
 
         String inputString = Files.readString(inputFilePath);

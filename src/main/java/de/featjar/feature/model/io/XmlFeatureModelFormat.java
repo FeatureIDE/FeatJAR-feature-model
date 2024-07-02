@@ -98,7 +98,7 @@ public class XmlFeatureModelFormat implements IFormat<IFeatureModel> {
 
         for (IFeatureTree child : tree.getChildren()) {
             Element featureElement = doc.createElement("feature");
-            featureElement.setAttribute("name", ((IHasCommonAttributes) child).getName().get());
+            featureElement.setAttribute("name", child.getFeature().getName().get());
             andElement.appendChild(featureElement);
         }
     }
@@ -194,7 +194,8 @@ public class XmlFeatureModelFormat implements IFormat<IFeatureModel> {
             for (int j = 0; j < featureNodes.getLength(); j++) {
                 Element featureElement = (Element) featureNodes.item(j);
                 String featureName = featureElement.getAttribute("name");
-                featureModel.addFeature(featureName);
+                IFeature childFeature = featureModel.addFeature(featureName);
+                rootTree.addChild(featureModel.addFeatureTreeRoot(childFeature));
             }
         }
     }
@@ -220,8 +221,15 @@ public class XmlFeatureModelFormat implements IFormat<IFeatureModel> {
                 literals.add(new Literal(new Variable(varName), true));
             }
             return new And(literals.toArray(new Literal[0]));
+        } else {
+            NodeList varNodes = parent.getElementsByTagName("var");
+            if (varNodes.getLength() > 0) {
+                Element varElement = (Element) varNodes.item(0);
+                String varName = varElement.getTextContent();
+                return new Literal(new Variable(varName), true);
+            }
         }
-        return null; // Adjust according to your formula handling logic
+        return null;
     }
 
     @Override

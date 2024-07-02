@@ -146,9 +146,6 @@ public interface IFeatureTree extends IRootedTree<IFeatureTree>, IAttributable, 
         default void setOr() {
             setGroupRange(Range.atLeast(1));
         }
-    }
-
-
-    
+    }   
     
 }

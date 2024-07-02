@@ -34,6 +34,7 @@ import de.featjar.feature.model.*;
  */
 public interface IHasCommonAttributes extends IAttributable {
 	
+	
     default Result<String> getName() {
         return getAttributeValue(Attributes.NAME);
     }
