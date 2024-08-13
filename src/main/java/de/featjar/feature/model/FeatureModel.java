@@ -163,12 +163,36 @@ public class FeatureModel implements IMutableFeatureModel, IMutatableAttributabl
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        return getIdentifier().equals(((FeatureModel) o).getIdentifier());
+        FeatureModel that = (FeatureModel) o;
+
+        if (featureTreeRoots.size() != that.featureTreeRoots.size()) return false;
+        for (int i = 0; i < featureTreeRoots.size(); i++) {
+            boolean eq = featureTreeRoots.get(i).equalsNode(that.featureTreeRoots.get(i));
+            if (!eq) return false;
+        }
+
+        List<IFeature> featuresList = new ArrayList<>(features.values());
+        List<IFeature> thatFeaturesList = new ArrayList<>(that.features.values());
+        if (thatFeaturesList.size() != featuresList.size()) return false;
+        for (int i = 0; i < featuresList.size(); i++) {
+            boolean eq = featuresList.get(i).equals(thatFeaturesList.get(i));
+            if (!eq) return false;
+        }
+
+        List<IConstraint> constraintsList = new ArrayList<>(constraints.values());
+        List<IConstraint> thatConstraintsList = new ArrayList<>(that.constraints.values());
+        if (thatConstraintsList.size() != constraintsList.size()) return false;
+        for (int i = 0; i < constraintsList.size(); i++) {
+            boolean eq = constraintsList.get(i).equals(thatConstraintsList.get(i));
+            if (!eq) return false;
+        }
+
+        return Objects.equals(attributeValues, that.attributeValues);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getIdentifier());
+        return Objects.hash(featureTreeRoots, constraints.values(), attributeValues, features.values());
     }
 
     @Override

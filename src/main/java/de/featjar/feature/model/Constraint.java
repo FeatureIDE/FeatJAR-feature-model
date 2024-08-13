@@ -25,6 +25,7 @@ import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.IConstraint.IMutableConstraint;
 import de.featjar.formula.structure.IFormula;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 
 public class Constraint extends AFeatureModelElement implements IMutableConstraint {
     protected IFormula formula;
@@ -74,6 +75,20 @@ public class Constraint extends AFeatureModelElement implements IMutableConstrai
         containedFeaturesCache.clear();
         containedFeaturesCache.addAll(IConstraint.getReferencedFeatures(formula, featureModel));
         Constraint.this.formula = formula;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Constraint that = (Constraint) o;
+        return Objects.equals(formula, that.formula);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), formula);
     }
 
     @Override

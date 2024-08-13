@@ -81,13 +81,16 @@ public class FeatureTree extends ARootedTree<IFeatureTree> implements IMutableFe
         }
 
         @Override
-        public int hashCode() {
-            return System.identityHashCode(this);
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Group group = (Group) o;
+            return Objects.equals(groupRange, group.groupRange);
         }
 
         @Override
-        public boolean equals(Object obj) {
-            return this == obj;
+        public int hashCode() {
+            return Objects.hashCode(groupRange);
         }
 
         @Override
