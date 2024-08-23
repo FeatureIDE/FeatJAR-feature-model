@@ -35,6 +35,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Implementation of a {@link IFeatureTree feature tree}.
+ */
 public class FeatureTree extends ARootedTree<IFeatureTree> implements IMutableFeatureTree {
 
     public static final class Group {

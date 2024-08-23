@@ -41,6 +41,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Implementation of a {@link IFeatureModel feature model}.
+ */
 public class FeatureModel implements IMutableFeatureModel, IMutatableAttributable {
 
     protected final IIdentifier identifier;

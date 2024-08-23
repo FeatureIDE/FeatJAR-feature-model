@@ -24,6 +24,9 @@ import de.featjar.base.data.Result;
 import de.featjar.feature.model.IFeature.IMutableFeature;
 import java.util.Objects;
 
+/**
+ * Implementation of a {@link IFeature}.
+ */
 public class Feature extends AFeatureModelElement implements IMutableFeature {
     protected Class<?> type;
 

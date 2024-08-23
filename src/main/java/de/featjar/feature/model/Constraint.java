@@ -27,6 +27,9 @@ import de.featjar.formula.structure.IFormula;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 
+/**
+ * Implementation of a {@link IConstraint}.
+ */
 public class Constraint extends AFeatureModelElement implements IMutableConstraint {
     protected IFormula formula;
     protected final LinkedHashSet<IFeature> containedFeaturesCache = Sets.empty();
