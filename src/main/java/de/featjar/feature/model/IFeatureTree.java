@@ -43,7 +43,9 @@ public interface IFeatureTree extends IRootedTree<IFeatureTree>, IAttributable, 
 
     Group getGroup();
 
-    List<IFeatureTree> getGroupFeatures();
+    List<IFeatureTree> getGroupSiblings();
+
+    List<IFeatureTree> getGroupChildren(int groupID);
 
     int getFeatureRangeLowerBound();
 
@@ -124,7 +126,7 @@ public interface IFeatureTree extends IRootedTree<IFeatureTree>, IAttributable, 
         void setGroupRange(Range groupRange);
 
         default void setAnd() {
-            setGroupRange(Range.open());
+            setGroupRange(Range.of(0, Range.OPEN));
         }
 
         default void setAlternative() {

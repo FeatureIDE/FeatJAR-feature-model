@@ -22,7 +22,11 @@ package de.featjar.feature.model;
 
 import de.featjar.base.data.Result;
 import de.featjar.feature.model.IFeature.IMutableFeature;
+import java.util.Objects;
 
+/**
+ * Implementation of a {@link IFeature}.
+ */
 public class Feature extends AFeatureModelElement implements IMutableFeature {
     protected Class<?> type;
 
@@ -72,6 +76,20 @@ public class Feature extends AFeatureModelElement implements IMutableFeature {
     @Override
     public void setName(String name) {
         attributeValues.put(Attributes.NAME, name);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Feature feature = (Feature) o;
+        return Objects.equals(type, feature.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), type);
     }
 
     @Override
