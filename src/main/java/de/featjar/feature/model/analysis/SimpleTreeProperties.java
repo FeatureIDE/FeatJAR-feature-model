@@ -8,7 +8,6 @@ import de.featjar.feature.model.*;
 
 public class SimpleTreeProperties {
 
-    // todo
     public int topFeatures(IFeatureTree tree) {
 
         return tree.getRoot().getChildrenCount(); // do groups count as features?
