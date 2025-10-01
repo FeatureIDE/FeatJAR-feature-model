@@ -6,6 +6,8 @@ import de.featjar.base.tree.Trees;
 import de.featjar.base.tree.visitor.TreeDepthCounter;
 import de.featjar.feature.model.*;
 
+import java.util.List;
+
 public class SimpleTreeProperties {
 
     public int topFeatures(IFeatureTree tree) {
@@ -13,9 +15,33 @@ public class SimpleTreeProperties {
         return tree.getRoot().getChildrenCount(); // do groups count as features?
     }
 
-    public int leafFeatures(IFeatureTree tree) {
-        return 0;
+    /*
+
+    public int leafFeaturesRecursive(IFeatureTree currentNode) {
+
+        List<? extends IFeatureTree> children = currentNode.getChildren();
+        if (children.isEmpty()) {
+            return 1;
+        }
+
+        int result = 0;
+        for (IFeatureTree child : children) {
+            result += leafFeaturesRecursive(child);
+        }
+        return result;
     }
+
+    public int leafFeaturesStarter(IFeatureTree tree) {
+        return this.leafFeaturesRecursive(tree.getRoot());
+    }
+
+     */
+
+    public int leafFeaturesCounter(IFeatureTree tree) {
+        Result<Integer> traverseResult = Trees.traverse(tree, new TreeLeafCounter());
+        return traverseResult.get();
+    }
+
 
     public int treeDepth(IFeatureTree tree) {
         TreeDepthCounter visitor = new TreeDepthCounter();
@@ -40,8 +66,9 @@ public class SimpleTreeProperties {
         System.out.println(traverseResult.get());
          */
 
-        int depth = treeDepth(rootTree);
-        System.out.println(depth);
+        // int depth = treeDepth(rootTree);
+        int leafCount = leafFeaturesCounter(rootTree);
+        System.out.println(leafCount);
 
 
     }
