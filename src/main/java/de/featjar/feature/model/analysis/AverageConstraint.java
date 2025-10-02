@@ -20,26 +20,4 @@
  */
 package de.featjar.feature.model.analysis;
 
-import de.featjar.base.data.Result;
-import de.featjar.base.tree.structure.ITree;
-import de.featjar.base.tree.visitor.ITreeVisitor;
-import java.util.List;
-
-public class ConstraintPropertiesFeatureShare implements ITreeVisitor<ITree<?>, Integer> {
-
-    @Override
-    public TraversalAction firstVisit(List<ITree<?>> path) {
-
-        return TraversalAction.CONTINUE;
-    }
-
-    @Override
-    public Result<Integer> getResult() {
-        return Result.of(0);
-    }
-
-    @Override
-    public void reset() {
-        ;
-    }
-}
+public class AverageConstraint {}

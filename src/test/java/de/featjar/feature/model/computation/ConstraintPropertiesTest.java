@@ -27,6 +27,7 @@ import de.featjar.feature.model.FeatureModel;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.*;
 import de.featjar.formula.structure.predicate.Literal;
+import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 
 public class ConstraintPropertiesTest {
@@ -34,20 +35,62 @@ public class ConstraintPropertiesTest {
     // FeatureJAR.log();
 
     @Test
-    public void AtomsTest() {
-        FeatureModel featureModel = new FeatureModel();
-        Literal literal1 = new Literal("o");
-        literal1.setPositive(true);
-        IFormula tree1 = new And(
-                new Literal("a"), new Literal("b"), new Literal("x"), new Or(literal1, new Literal(false, "i")));
-        IFormula tree2 = new And(new Literal("a"), new Or(literal1, new Literal(false, "i")));
-        featureModel.addConstraint(tree1);
-        featureModel.addConstraint(tree2);
+    public void atomsTest() {
+        FeatureModel featureModel = createFeatureModel();
         int compuational = Computations.of(featureModel)
                 .map(ComputeConstraintProperties::new)
                 .set(ComputeConstraintProperties.COUNTVARIABLES, Boolean.FALSE)
                 .compute();
-        tree1.print();
         assertEquals(0, compuational);
+    }
+
+    @Test
+    public void featureDensityTest() {
+        FeatureModel featureModel = createFeatureModel();
+        float computational =
+                Computations.of(featureModel).map(ComputeFeatureDensity::new).compute();
+        assertEquals((float) 5 / (float) 6, computational);
+    }
+
+    @Test
+    public void operatorDensityTest() {
+        FeatureModel featureModel = createFeatureModel();
+        HashMap<String, Integer> computational = Computations.of(featureModel)
+                .map(ComputeOperatorDistribution::new)
+                .compute();
+        System.out.println(computational);
+        assertEquals(3, computational.get("And"));
+        assertEquals(2, computational.get("Or"));
+    }
+
+    @Test
+    public void AverageConstraint() {
+        FeatureModel featureModel = createFeatureModel();
+        float computational =
+                Computations.of(featureModel).map(ComputeAverageConstraint::new).compute();
+        System.out.println(computational);
+        assertEquals((float) 8 / (float) 2, computational);
+    }
+
+    public FeatureModel createFeatureModel() {
+        FeatureModel featureModel = new FeatureModel();
+        featureModel.addFeature("o");
+        featureModel.addFeature("b");
+        featureModel.addFeature("x");
+        featureModel.addFeature("a");
+        featureModel.addFeature("i");
+        featureModel.addFeature("k");
+        Literal literal1 = new Literal("o");
+        literal1.setPositive(true);
+        IFormula tree1 = new And(
+                new And(),
+                new Literal("a"),
+                new Literal("b"),
+                new Literal("x"),
+                new Or(literal1, new Literal(false, "i")));
+        IFormula tree2 = new And(new Literal("a"), new Or(literal1, new Literal(false, "i")));
+        featureModel.addConstraint(tree1);
+        featureModel.addConstraint(tree2);
+        return featureModel;
     }
 }
