@@ -143,16 +143,4 @@ public class SimpleTreePropertiesTest extends Common {
         assertEquals(7, groupCounts.get("AndGroup"));
         assertEquals(1, groupCounts.get("OrGroup"));
     }
-
-    // temp test regarding and groups
-    // why does every regular feature without a .mutate().toXGroup() call become an AndGroup of presumably one?
-    @Test
-    void minimalAndGroupTest() {
-        FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
-        IFeatureTree tree =
-                featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
-        HashMap<String, Integer> groupCounts =
-                simpleTreeProperties.groupDistribution(tree).get();
-        System.out.println(groupCounts);
-    }
 }
