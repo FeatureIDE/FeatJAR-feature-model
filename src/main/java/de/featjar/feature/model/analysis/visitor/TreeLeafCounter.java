@@ -19,7 +19,7 @@
  * See <https://github.com/FeatureIDE/FeatJAR-base> for further information.
  */
 
-package de.featjar.feature.model.analysis;
+package de.featjar.feature.model.analysis.visitor;
 
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.structure.ITree;

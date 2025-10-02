@@ -5,79 +5,78 @@ import de.featjar.base.data.identifier.Identifiers;
 import de.featjar.base.tree.Trees;
 import de.featjar.base.tree.visitor.TreeDepthCounter;
 import de.featjar.feature.model.*;
+import de.featjar.feature.model.analysis.visitor.TreeAvgChildrenCounter;
+import de.featjar.feature.model.analysis.visitor.TreeLeafCounter;
 
 import java.util.List;
 
 public class SimpleTreeProperties {
 
-    public int topFeatures(IFeatureTree tree) {
-
-        return tree.getRoot().getChildrenCount(); // do groups count as features?
-    }
-
-    /*
-
-    public int leafFeaturesRecursive(IFeatureTree currentNode) {
-
-        List<? extends IFeatureTree> children = currentNode.getChildren();
-        if (children.isEmpty()) {
-            return 1;
-        }
-
-        int result = 0;
-        for (IFeatureTree child : children) {
-            result += leafFeaturesRecursive(child);
-        }
-        return result;
-    }
-
-    public int leafFeaturesStarter(IFeatureTree tree) {
-        return this.leafFeaturesRecursive(tree.getRoot());
-    }
-
+    /**
+     * Automatically finds the root of the given subtree.
+     * @param tree: feature tree (whose root will be found automatically)
+     * @return number of features directly below the root of this tree.
      */
-
-    public int leafFeaturesCounter(IFeatureTree tree) {
-        Result<Integer> traverseResult = Trees.traverse(tree, new TreeLeafCounter());
-        return traverseResult.get();
+    public Result<Integer> topFeatures(IFeatureTree tree) {
+        int childrenCount = tree.getRoot().getChildrenCount();
+        return Result.of(childrenCount);
     }
 
+    /**
+     * @param tree: feature tree
+     * @return the number of features that have no child features
+     */
+    public Result<Integer> leafFeaturesCounter(IFeatureTree tree) {
+        return Trees.traverse(tree, new TreeLeafCounter());
+    }
 
-    public int treeDepth(IFeatureTree tree) {
+    /**
+     * @param tree: feature tree
+     * @return tree depth, meaning the longest path from this subtree's root to its most distant leaf node
+     */
+    public Result<Integer> treeDepth(IFeatureTree tree) {
         TreeDepthCounter visitor = new TreeDepthCounter();
-        Result<Integer> result = Trees.traverse(tree.getRoot(),visitor);
-        return result.get();
+        return Trees.traverse(tree,visitor);
     }
 
-    public void testMethode() {
+    /**
+     * @param tree: feature tree
+     * @return average number of children that each node in the tree has, rounded to integer.
+     */
+    public Result<Integer> avgNumberOfChildren(IFeatureTree tree) {
+        TreeAvgChildrenCounter visitor = new TreeAvgChildrenCounter();
+        return Trees.traverse(tree,visitor);
+    }
+
+    // work in progress
+    public void groupDistribution() {
+        // build a sample tree
         FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
-        //rootTree.mutate().toAndGroup();
+        rootTree.mutate().toAlternativeGroup();
+
         IFeature childFeature1 = featureModel.mutate().addFeature("Test1");
         IFeatureTree childTree1 = rootTree.mutate().addFeatureBelow(childFeature1);
-
         IFeature childFeature2 = featureModel.mutate().addFeature("Test2");
         IFeatureTree childTree2 = childTree1.mutate().addFeatureBelow(childFeature2);
+        IFeature childFeature3 = featureModel.mutate().addFeature("Test3");
+        IFeatureTree childTree3 = childTree1.mutate().addFeatureBelow(childFeature3);
 
-        /*
-        TreePrinter visitor = new TreePrinter();
-        Result<String> traverseResult = Trees.traverse(rootTree, visitor);
-        System.out.println(traverseResult.get());
-         */
-
-        // int depth = treeDepth(rootTree);
-        int leafCount = leafFeaturesCounter(rootTree);
-        System.out.println(leafCount);
-
+        // check subtree for groups
+        List<FeatureTree.Group> children = rootTree.getChildrenGroups();
+        for (FeatureTree.Group child : children) {
+            boolean isAnd = child.isAlternative();
+            System.out.println(isAnd);
+        }
 
     }
 
     public static void main(String[] args){
-
+        // still have to make all the functions return Results, not ints
+        // still have to write docs
         SimpleTreeProperties simpleTreeProperties = new SimpleTreeProperties();
-        simpleTreeProperties.testMethode();
+        simpleTreeProperties.groupDistribution();
 
     }
-
 }
