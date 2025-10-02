@@ -34,16 +34,7 @@ import java.util.List;
  * @author Sebastian Krieter
  */
 public class TreeLeafCounter implements ITreeVisitor<ITree<?>, Integer> {
-    private Class<? extends ITree<?>> terminalClass = null;
     private int leafCount = 0;
-
-    public Class<? extends ITree<?>> getTerminalClass() {
-        return terminalClass;
-    }
-
-    public void setTerminalClass(Class<? extends ITree<?>> terminalClass) {
-        this.terminalClass = terminalClass;
-    }
 
     @Override
     public TraversalAction firstVisit(List<ITree<?>> path) {

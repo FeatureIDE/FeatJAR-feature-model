@@ -36,16 +36,7 @@ import java.util.List;
  * @author Sebastian Krieter
  */
 public class FeatureTreeGroupCounter implements ITreeVisitor<ITree<IFeatureTree>, HashMap<String, Integer>> {
-    private Class<? extends ITree<IFeatureTree>> terminalClass = null;
     int altCounter = 0, orCounter = 0, andCounter = 0;
-
-    public Class<? extends ITree<IFeatureTree>> getTerminalClass() {
-        return terminalClass;
-    }
-
-    public void setTerminalClass(Class<? extends ITree<IFeatureTree>> terminalClass) {
-        this.terminalClass = terminalClass;
-    }
 
     @Override
     public TraversalAction firstVisit(List<ITree<IFeatureTree>> path) {

@@ -34,27 +34,14 @@ import java.util.List;
  * @author Sebastian Krieter
  */
 public class TreeAvgChildrenCounter implements ITreeVisitor<ITree<?>, Float> {
-    private Class<? extends ITree<?>> terminalClass = null;
     private int nodeCount = 0;
     private int childCount = 0;
-
-    public Class<? extends ITree<?>> getTerminalClass() {
-        return terminalClass;
-    }
-
-    public void setTerminalClass(Class<? extends ITree<?>> terminalClass) {
-        this.terminalClass = terminalClass;
-    }
 
     @Override
     public TraversalAction firstVisit(List<ITree<?>> path) {
         final ITree<?> node = ITreeVisitor.getCurrentNode(path);
-
-
         nodeCount++;
         childCount += node.getChildrenCount();
-
-
         return TraversalAction.CONTINUE;
     }
 
@@ -66,7 +53,6 @@ public class TreeAvgChildrenCounter implements ITreeVisitor<ITree<?>, Float> {
 
     @Override
     public Result<Float> getResult() {
-        // currently uses int because float and double are illegal inputs for Result.of()
         float result = 0;
         if (nodeCount > 0) {
             result = (float) childCount /nodeCount;
