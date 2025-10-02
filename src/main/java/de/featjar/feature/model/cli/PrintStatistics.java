@@ -28,6 +28,7 @@ import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
 import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.io.FeatureModelFormats;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +45,8 @@ public class PrintStatistics extends ACommand {
         XML,
         CSV,
         YAML,
-        JSON
+        JSON,
+        TXT
     }
 
     enum AnalysesScope {
@@ -53,6 +55,7 @@ public class PrintStatistics extends ACommand {
         CONSTRAINT_RELATED
     }
 
+    // options as command line arguments
     public static final Option<FileTypes> FILE_TYPE =
             Option.newEnumOption("type", FileTypes.class).setDescription("Specifies file type");
 
@@ -63,15 +66,11 @@ public class PrintStatistics extends ACommand {
             Option.newFlag("pretty").setDescription("Pretty prints the numbers");
 
     private HashMap<String, Integer> data;
-    private FileTypes type;
 
     @Override
     public int run(OptionList optionParser) {
 
         // -----------------INPUT--------------------------------------------------
-
-        // temporary dummy model
-        // Path path = Paths.get("../formula/src/testFixtures/resources/Automotive02_V1/model.xml");
 
         Path path = optionParser.getResult(INPUT_OPTION).orElseThrow();
         Result<IFeatureModel> load = IO.load(path, FeatureModelFormats.getInstance());
@@ -79,13 +78,30 @@ public class PrintStatistics extends ACommand {
 
         // -----------------COLLECTING STATS--------------------------------------
 
-        data = collectStats(model);
+        if (optionParser.getResult(ANALYSES_SCOPE).isPresent()) {
+            data = collectStats(model, optionParser.get(ANALYSES_SCOPE));
+        } else {
+            data = collectStats(model, AnalysesScope.ALL);
+        }
 
         // -----------------WRITING TO FILE---------------------------------------
 
-        if (optionParser.getResult(OUTPUT_OPTION).isPresent()) {
-            Path outputPath = optionParser.getResult(OUTPUT_OPTION).get();
-            // writeTo(outputPath);
+        // output path & file type specified
+        if (optionParser.getResult(OUTPUT_OPTION).isPresent()
+                && optionParser.getResult(FILE_TYPE).isPresent()) {
+
+            try {
+                writeTo(
+                        optionParser.getResult(OUTPUT_OPTION).get(),
+                        optionParser.getResult(FILE_TYPE).get());
+            } catch (IOException e) {
+                FeatJAR.log().error(e);
+            }
+
+            // output path specified, but no file type
+        } else if (optionParser.getResult(OUTPUT_OPTION).isPresent()) {
+
+            FeatJAR.log().warning("Output path provided, but no file type specified.");
         }
 
         // ----------------PRINTING IN CONSOLE------------------------------------
@@ -100,11 +116,11 @@ public class PrintStatistics extends ACommand {
     }
 
     // temporary for format type output
-    private void writeTo(Path path) {
+    private void writeTo(Path path, FileTypes type) throws IOException {
         switch (type) {
             case XML:
                 // TODO future Story Card: Write to XML
-                // IO.save(new (), path, new XMLFeatureModelFormat());
+                // Example: IO.save(new (), path, new XMLFeatureModelFormat());
                 break;
             case CSV:
                 // TODO future Story Card: Write to CSV
@@ -115,12 +131,24 @@ public class PrintStatistics extends ACommand {
             case JSON:
                 // TODO future Story Card: Write to JSON
                 break;
+            case TXT:
+                // TODO future Story Card: Write to TXT
         }
     }
 
-    private HashMap<String, Integer> collectStats(IFeatureModel model) {
+    private HashMap<String, Integer> collectStats(IFeatureModel model, AnalysesScope scope) {
 
         HashMap<String, Integer> data = new HashMap<String, Integer>();
+
+        if (scope == AnalysesScope.ALL || scope == AnalysesScope.CONSTRAINT_RELATED) {
+
+            // For Example model.getConstraintInfo()
+
+        } else if ((scope == AnalysesScope.ALL || scope == AnalysesScope.TREE_RELATED)) {
+
+            // For Example model.getTreeDepth()
+
+        }
 
         // dummy values, will be handled by functions of other teams
         data.put("numOfTopFeatures", 3);
@@ -136,12 +164,16 @@ public class PrintStatistics extends ACommand {
     }
 
     public void printStatsPretty() {
+        FeatJAR.log().message("STATISTICS ABOUT THE FEATURE MODEL:\n" + buildPrettyStats());
+    }
+
+    private StringBuilder buildPrettyStats() {
         StringBuilder outputString = new StringBuilder();
 
         for (Map.Entry<?, ?> entry : data.entrySet()) {
             outputString.append(String.format("%-30s : %s%n", entry.getKey(), entry.getValue()));
         }
-        FeatJAR.log().message("STATISTICS ABOUT THE FEATURE MODEL:\n" + outputString);
+        return outputString;
     }
 
     public void printStats() {
