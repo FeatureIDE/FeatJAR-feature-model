@@ -1,14 +1,14 @@
 package de.featjar.feature.model.analysis;
 
 import de.featjar.base.data.Result;
-import de.featjar.base.data.identifier.Identifiers;
 import de.featjar.base.tree.Trees;
 import de.featjar.base.tree.visitor.TreeDepthCounter;
 import de.featjar.feature.model.*;
+import de.featjar.feature.model.analysis.visitor.FeatureTreeGroupCounter;
 import de.featjar.feature.model.analysis.visitor.TreeAvgChildrenCounter;
 import de.featjar.feature.model.analysis.visitor.TreeLeafCounter;
 
-import java.util.List;
+import java.util.HashMap;
 
 public class SimpleTreeProperties {
 
@@ -43,40 +43,18 @@ public class SimpleTreeProperties {
      * @param tree: feature tree
      * @return average number of children that each node in the tree has, rounded to integer.
      */
-    public Result<Integer> avgNumberOfChildren(IFeatureTree tree) {
+    public Result<Float> avgNumberOfChildren(IFeatureTree tree) {
         TreeAvgChildrenCounter visitor = new TreeAvgChildrenCounter();
         return Trees.traverse(tree,visitor);
     }
 
-    // work in progress
-    public void groupDistribution() {
-        // build a sample tree
-        FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
-        IFeatureTree rootTree =
-                featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
-        rootTree.mutate().toAlternativeGroup();
-
-        IFeature childFeature1 = featureModel.mutate().addFeature("Test1");
-        IFeatureTree childTree1 = rootTree.mutate().addFeatureBelow(childFeature1);
-        IFeature childFeature2 = featureModel.mutate().addFeature("Test2");
-        IFeatureTree childTree2 = childTree1.mutate().addFeatureBelow(childFeature2);
-        IFeature childFeature3 = featureModel.mutate().addFeature("Test3");
-        IFeatureTree childTree3 = childTree1.mutate().addFeatureBelow(childFeature3);
-
-        // check subtree for groups
-        List<FeatureTree.Group> children = rootTree.getChildrenGroups();
-        for (FeatureTree.Group child : children) {
-            boolean isAnd = child.isAlternative();
-            System.out.println(isAnd);
-        }
-
+    /** Counts the number of different groups in this tree.
+     * @param tree: feature tree
+     * @return hashmap with the String keys "AlternativeGroup", "OrGroup" and "AndGroup" to get the respective counts
+     */
+    public Result<HashMap<String, Integer>> groupDistribution(IFeatureTree tree) {
+        FeatureTreeGroupCounter visitor = new FeatureTreeGroupCounter();
+        return Trees.traverse(tree,visitor);
     }
 
-    public static void main(String[] args){
-        // still have to make all the functions return Results, not ints
-        // still have to write docs
-        SimpleTreeProperties simpleTreeProperties = new SimpleTreeProperties();
-        simpleTreeProperties.groupDistribution();
-
-    }
 }
