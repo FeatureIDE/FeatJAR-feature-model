@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Test;
 public class SimpleTreePropertiesTest extends Common {
     SimpleTreeProperties simpleTreeProperties = new SimpleTreeProperties();
     IFeatureTree smallTree = generateSmallTree();
-    IFeatureTree featureTestTree = generateFeatureTestTree();
     IFeatureTree mediumTree = generateMediumTree();
 
     /**
@@ -57,47 +56,13 @@ public class SimpleTreePropertiesTest extends Common {
         return rootTree;
     }
 
-    // stolen from a predefined test
-    private IFeatureTree generateFeatureTestTree() {
-        FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
-
-        // features
-        IFeatureTree rootTree =
-                featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
-        rootTree.mutate().toAndGroup();
-
-        IFeature childFeature1 = featureModel.mutate().addFeature("Test1");
-        IFeatureTree childTree1 = rootTree.mutate().addFeatureBelow(childFeature1);
-
-        IFeature childFeature2 = featureModel.mutate().addFeature("Test2");
-        IFeatureTree childTree2 = rootTree.mutate().addFeatureBelow(childFeature2);
-
-        IFeature childFeature3 = featureModel.mutate().addFeature("Test3");
-        IFeatureTree childTree3 = childTree1.mutate().addFeatureBelow(childFeature3);
-        childTree1.mutate().toAlternativeGroup();
-
-        IFeature childFeature4 = featureModel.mutate().addFeature("Test4");
-        childTree1.mutate().addFeatureBelow(childFeature4);
-
-        IFeature childFeature5 = featureModel.mutate().addFeature("Test5");
-        childTree2.mutate().addFeatureBelow(childFeature5);
-        childTree2.mutate().toOrGroup();
-
-        IFeature childFeature6 = featureModel.mutate().addFeature("Test6");
-        childTree2.mutate().addFeatureBelow(childFeature6);
-
-        IFeature childFeature7 = featureModel.mutate().addFeature("Test7");
-        IFeatureTree childTree7 = rootTree.mutate().addFeatureBelow(childFeature7);
-        childTree7.mutate().makeMandatory();
-
-        IFeature childFeature8 = featureModel.mutate().addFeature("Test8");
-        childTree3.mutate().addFeatureBelow(childFeature8);
-
-        return rootTree;
-    }
-
+    /**
+     * Resulting tree has three nodes under the root. API is mandatory and below it is an or-group with the features
+     * Get, Put, Delete. OS is also mandatory and below it is an alternative group with the features Windows, Linux.
+     * Transactions is an optional feature below the root.
+     * @return a medium-sized feature tree for testing purposes.
+     */
     private IFeatureTree generateMediumTree() {
-        // why does every regular feature without a .mutate().toXGroup() call become an AndGroup of presumably one?
         FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
         IFeatureTree treeRoot =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("ConfigDB"));
@@ -105,7 +70,6 @@ public class SimpleTreePropertiesTest extends Common {
         IFeature featureAPI = featureModel.mutate().addFeature("API");
         IFeatureTree treeAPI = treeRoot.mutate().addFeatureBelow(featureAPI);
         treeAPI.isMandatory();
-
         IFeature featureGet = featureModel.mutate().addFeature("Get");
         treeAPI.mutate().addFeatureBelow(featureGet);
         IFeature featurePut = featureModel.mutate().addFeature("Put");
@@ -114,19 +78,18 @@ public class SimpleTreePropertiesTest extends Common {
         treeAPI.mutate().addFeatureBelow(featureDelete);
         treeAPI.mutate().toOrGroup();
 
-        IFeature featureTransactions = featureModel.mutate().addFeature("Transactions");
-        IFeatureTree treeTransactions = treeRoot.mutate().addFeatureBelow(featureTransactions);
-        treeTransactions.isOptional();
-
         IFeature featureOS = featureModel.mutate().addFeature("OS");
         IFeatureTree treeOS = treeRoot.mutate().addFeatureBelow(featureOS);
         treeOS.isMandatory();
-
         IFeature featureWindows = featureModel.mutate().addFeature("Windows");
         treeOS.mutate().addFeatureBelow(featureWindows);
         IFeature featureLinux = featureModel.mutate().addFeature("Linux");
         treeOS.mutate().addFeatureBelow(featureLinux);
         treeOS.mutate().toAlternativeGroup();
+
+        IFeature featureTransactions = featureModel.mutate().addFeature("Transactions");
+        IFeatureTree treeTransactions = treeRoot.mutate().addFeatureBelow(featureTransactions);
+        treeTransactions.isOptional();
 
         return treeRoot;
     }
@@ -182,20 +145,7 @@ public class SimpleTreePropertiesTest extends Common {
     }
 
     // temp test regarding and groups
-    @Test
-    void mediumTest() {
-        IFeatureTree tree = featureTestTree;
-        HashMap<String, Integer> groupCounts =
-                simpleTreeProperties.groupDistribution(tree).get();
-        System.out.println(groupCounts);
-
-        IFeatureTree tree2 = generateMediumTree();
-        HashMap<String, Integer> groupCounts2 =
-                simpleTreeProperties.groupDistribution(tree2).get();
-        System.out.println(groupCounts2);
-    }
-
-    // temp test regarding and groups
+    // why does every regular feature without a .mutate().toXGroup() call become an AndGroup of presumably one?
     @Test
     void minimalAndGroupTest() {
         FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
