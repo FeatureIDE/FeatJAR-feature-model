@@ -24,7 +24,10 @@ package de.featjar.feature.model.analysis.visitor;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.structure.ITree;
 import de.featjar.base.tree.visitor.ITreeVisitor;
+import de.featjar.feature.model.FeatureTree;
+import de.featjar.feature.model.IFeatureTree;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -32,38 +35,48 @@ import java.util.List;
  *
  * @author Sebastian Krieter
  */
-public class FeatureTreeGroupCounter implements ITreeVisitor<ITree<?>, Integer> {
-    private Class<? extends ITree<?>> terminalClass = null;
-    private int andGroupCount = 0;
-    private int orGroupCount = 0;
-    private int altGroupCount = 0;
-    private int leafCount = 0;
+public class FeatureTreeGroupCounter implements ITreeVisitor<ITree<IFeatureTree>, HashMap<String, Integer>> {
+    private Class<? extends ITree<IFeatureTree>> terminalClass = null;
+    int altCounter = 0, orCounter = 0, andCounter = 0;
 
-    public Class<? extends ITree<?>> getTerminalClass() {
+    public Class<? extends ITree<IFeatureTree>> getTerminalClass() {
         return terminalClass;
     }
 
-    public void setTerminalClass(Class<? extends ITree<?>> terminalClass) {
+    public void setTerminalClass(Class<? extends ITree<IFeatureTree>> terminalClass) {
         this.terminalClass = terminalClass;
     }
 
     @Override
-    public TraversalAction firstVisit(List<ITree<?>> path) {
-        final ITree<?> node = ITreeVisitor.getCurrentNode(path);
+    public TraversalAction firstVisit(List<ITree<IFeatureTree>> path) {
+        final IFeatureTree tree = (IFeatureTree) ITreeVisitor.getCurrentNode(path);
 
-
+        for (FeatureTree.Group group : tree.getChildrenGroups()) {
+            if (group.isAlternative()) {
+                altCounter++;
+            } else if (group.isOr()) {
+                orCounter++;
+            } else if (group.isAnd()) {
+                andCounter++;
+            }
+        }
 
         return TraversalAction.CONTINUE;
-
     }
 
     @Override
     public void reset() {
-        leafCount = 0;
+        altCounter = 0;
+        orCounter = 0;
+        andCounter = 0;
     }
 
     @Override
-    public Result<Integer> getResult() {
-        return Result.of(leafCount);
+    public Result<HashMap<String, Integer>> getResult() {
+        HashMap<String, Integer> countedGroups = new HashMap<>();
+        countedGroups.put("AlternativeGroup", altCounter);
+        countedGroups.put("OrGroup", orCounter);
+        countedGroups.put("AndGroup", andCounter);
+        return Result.of(countedGroups);
     }
 }
