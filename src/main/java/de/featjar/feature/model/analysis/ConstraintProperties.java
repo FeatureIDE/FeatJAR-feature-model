@@ -23,16 +23,26 @@ package de.featjar.feature.model.analysis;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.structure.ITree;
 import de.featjar.base.tree.visitor.ITreeVisitor;
-import de.featjar.formula.structure.ATerminalExpression;
+import de.featjar.formula.structure.term.value.Constant;
+import de.featjar.formula.structure.term.value.Variable;
 import java.util.List;
 
 public class ConstraintProperties implements ITreeVisitor<ITree<?>, Integer> {
     private int atomsCount = 0;
+    private boolean countVariables = true;
+    private boolean countConstants = true;
+
+    public ConstraintProperties(boolean countVariables, boolean countConstants) {
+        this.countConstants = countConstants;
+        this.countVariables = countVariables;
+    }
 
     @Override
     public TraversalAction firstVisit(List<ITree<?>> path) {
         final ITree<?> node = ITreeVisitor.getCurrentNode(path);
-        if (node instanceof ATerminalExpression) {
+        if (countConstants && node instanceof Constant) {
+            atomsCount++;
+        } else if (countVariables && node instanceof Variable) {
             atomsCount++;
         }
         return TraversalAction.CONTINUE;

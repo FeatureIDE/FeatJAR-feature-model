@@ -21,22 +21,39 @@
 package de.featjar.feature.model.computation;
 
 import de.featjar.base.computation.*;
-import de.featjar.base.computation.AComputation;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
+import de.featjar.feature.model.FeatureModel;
+import de.featjar.feature.model.IConstraint;
 import de.featjar.feature.model.analysis.ConstraintProperties;
-import de.featjar.formula.structure.IFormula;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 public class ComputeConstraintProperties extends AComputation<Integer> {
-    protected static final Dependency<IFormula> tree = Dependency.newDependency(IFormula.class);
+    protected static final Dependency<FeatureModel> FEATUREMODEL = Dependency.newDependency(FeatureModel.class);
+    protected static final Dependency<Boolean> COUNTCONSTANTS = Dependency.newDependency(Boolean.class);
+    protected static final Dependency<Boolean> COUNTVARIABLES = Dependency.newDependency(Boolean.class);
 
-    public ComputeConstraintProperties(IComputation<IFormula> iformula) {
-        super(iformula);
+    public ComputeConstraintProperties(IComputation<FeatureModel> featureModel) {
+        super(featureModel, Computations.of(Boolean.TRUE), Computations.of(Boolean.TRUE));
     }
 
     @Override
     public Result<Integer> compute(List<Object> dependencyList, Progress progress) {
-        return Trees.traverse(tree.get(dependencyList), new ConstraintProperties());
+        Collection<IConstraint> Constraints = FEATUREMODEL.get(dependencyList).getConstraints();
+        int atomsSum = 0;
+
+        Iterator<IConstraint> constraintIterator = Constraints.iterator();
+        while (constraintIterator.hasNext()) {
+            atomsSum = atomsSum
+                    + Trees.traverse(
+                                    constraintIterator.next().getFormula(),
+                                    new ConstraintProperties(
+                                            COUNTVARIABLES.get(dependencyList), COUNTCONSTANTS.get(dependencyList)))
+                            .orElse(0);
+        }
+
+        return Result.of(atomsSum);
     }
 }
