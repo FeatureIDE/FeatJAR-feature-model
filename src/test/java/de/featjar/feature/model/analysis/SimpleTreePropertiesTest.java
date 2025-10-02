@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import de.featjar.Common;
 import de.featjar.base.data.identifier.Identifiers;
 import de.featjar.feature.model.FeatureModel;
-import de.featjar.feature.model.FeatureTree;
 import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureTree;
 import java.util.HashMap;
@@ -34,9 +33,12 @@ import org.junit.jupiter.api.Test;
 public class SimpleTreePropertiesTest extends Common {
     SimpleTreeProperties simpleTreeProperties = new SimpleTreeProperties();
     IFeatureTree smallTree = generateSmallTree();
+    IFeatureTree featureTestTree = generateFeatureTestTree();
+    IFeatureTree mediumTree = generateMediumTree();
 
     /**
-     * Creates a tree with a root node that has 1 child, and this child has 2 more children
+     * Creates a tree with a root node that has 1 child, and this child has 2 more children. The root starts
+     * an alternative group
      * @return a small feature tree for testing purposes
      */
     private IFeatureTree generateSmallTree() {
@@ -45,16 +47,17 @@ public class SimpleTreePropertiesTest extends Common {
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().toAlternativeGroup();
 
-        IFeature childFeature1 = featureModel.mutate().addFeature("Test1");
+        IFeature childFeature1 = featureModel.mutate().addFeature("Root's Child (in AltGroup)");
         IFeatureTree childTree1 = rootTree.mutate().addFeatureBelow(childFeature1);
-        IFeature childFeature2 = featureModel.mutate().addFeature("Test2");
+        IFeature childFeature2 = featureModel.mutate().addFeature("1st Child of Root's Child");
         childTree1.mutate().addFeatureBelow(childFeature2);
-        IFeature childFeature3 = featureModel.mutate().addFeature("Test3");
+        IFeature childFeature3 = featureModel.mutate().addFeature("2nd Child of Root's Child");
         childTree1.mutate().addFeatureBelow(childFeature3);
 
         return rootTree;
     }
 
+    // stolen from a predefined test
     private IFeatureTree generateFeatureTestTree() {
         FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
 
@@ -77,7 +80,7 @@ public class SimpleTreePropertiesTest extends Common {
         childTree1.mutate().addFeatureBelow(childFeature4);
 
         IFeature childFeature5 = featureModel.mutate().addFeature("Test5");
-        IFeatureTree childTree5 = childTree2.mutate().addFeatureBelow(childFeature5);
+        childTree2.mutate().addFeatureBelow(childFeature5);
         childTree2.mutate().toOrGroup();
 
         IFeature childFeature6 = featureModel.mutate().addFeature("Test6");
@@ -102,19 +105,13 @@ public class SimpleTreePropertiesTest extends Common {
         IFeature featureAPI = featureModel.mutate().addFeature("API");
         IFeatureTree treeAPI = treeRoot.mutate().addFeatureBelow(featureAPI);
         treeAPI.isMandatory();
-        // treeRoot.addChild(treeAPI);
 
         IFeature featureGet = featureModel.mutate().addFeature("Get");
-        IFeatureTree treeGet = treeAPI.mutate().addFeatureBelow(featureGet);
-        // treeAPI.addChild(treeGet);
-
+        treeAPI.mutate().addFeatureBelow(featureGet);
         IFeature featurePut = featureModel.mutate().addFeature("Put");
-        IFeatureTree treePut = treeAPI.mutate().addFeatureBelow(featurePut);
-        // treeAPI.addChild(treePut);
-
+        treeAPI.mutate().addFeatureBelow(featurePut);
         IFeature featureDelete = featureModel.mutate().addFeature("Delete");
-        IFeatureTree treeDelete = treeAPI.mutate().addFeatureBelow(featureDelete);
-        // treeAPI.addChild(treeDelete);
+        treeAPI.mutate().addFeatureBelow(featureDelete);
         treeAPI.mutate().toOrGroup();
 
         IFeature featureTransactions = featureModel.mutate().addFeature("Transactions");
@@ -124,16 +121,12 @@ public class SimpleTreePropertiesTest extends Common {
         IFeature featureOS = featureModel.mutate().addFeature("OS");
         IFeatureTree treeOS = treeRoot.mutate().addFeatureBelow(featureOS);
         treeOS.isMandatory();
-        // treeRoot.addChild(treeOS);
 
         IFeature featureWindows = featureModel.mutate().addFeature("Windows");
-        IFeatureTree treeWindows = treeOS.mutate().addFeatureBelow(featureWindows);
-        // treeOS.addChild(treeWindows);
-
+        treeOS.mutate().addFeatureBelow(featureWindows);
         IFeature featureLinux = featureModel.mutate().addFeature("Linux");
-        IFeatureTree treeLinux = treeOS.mutate().addFeatureBelow(featureLinux);
+        treeOS.mutate().addFeatureBelow(featureLinux);
         treeOS.mutate().toAlternativeGroup();
-        // treeOS.addChild(treeLinux);
 
         return treeRoot;
     }
@@ -142,17 +135,26 @@ public class SimpleTreePropertiesTest extends Common {
     void testTopFeatures() {
         int rootChildren = simpleTreeProperties.topFeatures(smallTree).get();
         assertEquals(1, rootChildren);
+
+        rootChildren = simpleTreeProperties.topFeatures(mediumTree).get();
+        assertEquals(3, rootChildren);
     }
 
     @Test
     void testLeafFeaturesCounter() {
         int leaves = simpleTreeProperties.leafFeaturesCounter(smallTree).get();
         assertEquals(2, leaves);
+
+        leaves = simpleTreeProperties.leafFeaturesCounter(mediumTree).get();
+        assertEquals(6, leaves);
     }
 
     @Test
     void testTreeDepth() {
         int depth = simpleTreeProperties.treeDepth(smallTree).get();
+        assertEquals(3, depth);
+
+        depth = simpleTreeProperties.treeDepth(mediumTree).get();
         assertEquals(3, depth);
     }
 
@@ -160,6 +162,9 @@ public class SimpleTreePropertiesTest extends Common {
     void testAvgNumberOfChildren() {
         float average = simpleTreeProperties.avgNumberOfChildren(smallTree).get();
         assertEquals(0.75, average);
+
+        average = simpleTreeProperties.avgNumberOfChildren(mediumTree).get();
+        assertTrue(0.888 < average && average < 0.889);
     }
 
     @Test
@@ -169,29 +174,17 @@ public class SimpleTreePropertiesTest extends Common {
         assertEquals(1, groupCounts.get("AlternativeGroup"));
         assertEquals(3, groupCounts.get("AndGroup"));
         assertEquals(0, groupCounts.get("OrGroup"));
+
+        groupCounts = simpleTreeProperties.groupDistribution(mediumTree).get();
+        assertEquals(1, groupCounts.get("AlternativeGroup"));
+        assertEquals(7, groupCounts.get("AndGroup"));
+        assertEquals(1, groupCounts.get("OrGroup"));
     }
 
-    @Test
-    // to be deleted. This is to find out why everything in our tests has an and group
-    void smallTest() {
-        FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
-        IFeatureTree rootTree =
-                featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
-
-        HashMap<String, Integer> groupCounts =
-                simpleTreeProperties.groupDistribution(rootTree).get();
-        System.out.println(groupCounts);
-
-        for (FeatureTree.Group group : rootTree.getChildrenGroups()) {
-            System.out.println(group.isAnd());
-        }
-        System.out.println();
-    }
-
+    // temp test regarding and groups
     @Test
     void mediumTest() {
-        // IFeatureTree tree = generateMediumTree();
-        IFeatureTree tree = generateFeatureTestTree();
+        IFeatureTree tree = featureTestTree;
         HashMap<String, Integer> groupCounts =
                 simpleTreeProperties.groupDistribution(tree).get();
         System.out.println(groupCounts);
@@ -200,5 +193,16 @@ public class SimpleTreePropertiesTest extends Common {
         HashMap<String, Integer> groupCounts2 =
                 simpleTreeProperties.groupDistribution(tree2).get();
         System.out.println(groupCounts2);
+    }
+
+    // temp test regarding and groups
+    @Test
+    void minimalAndGroupTest() {
+        FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFeatureTree tree =
+                featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
+        HashMap<String, Integer> groupCounts =
+                simpleTreeProperties.groupDistribution(tree).get();
+        System.out.println(groupCounts);
     }
 }
