@@ -32,11 +32,20 @@ import org.junit.jupiter.api.Test;
 
 public class SimpleTreePropertiesTest extends Common {
     SimpleTreeProperties simpleTreeProperties = new SimpleTreeProperties();
+    IFeatureTree minimalTree = generateMinimalTree();
     IFeatureTree smallTree = generateSmallTree();
     IFeatureTree mediumTree = generateMediumTree();
 
     /**
-     * Creates a tree with a root node that has 1 child, and this child has 2 more children. The root starts
+     * @return bare-bones feature tree with just a root node to test edge cases.
+     */
+    private IFeatureTree generateMinimalTree() {
+        FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        return featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
+    }
+
+    /**
+     * Creates a feature tree with a root node that has 1 child, and this child has 2 more children. The root starts
      * an alternative group
      * @return a small feature tree for testing purposes
      */
@@ -57,7 +66,7 @@ public class SimpleTreePropertiesTest extends Common {
     }
 
     /**
-     * Resulting tree has three nodes under the root. API is mandatory and below it is an or-group with the features
+     * Feature tree with three nodes under the root. API is mandatory and below it is an or-group with the features
      * Get, Put, Delete. OS is also mandatory and below it is an alternative group with the features Windows, Linux.
      * Transactions is an optional feature below the root.
      * @return a medium-sized feature tree for testing purposes.
@@ -96,7 +105,12 @@ public class SimpleTreePropertiesTest extends Common {
 
     @Test
     void testTopFeatures() {
-        int rootChildren = simpleTreeProperties.topFeatures(smallTree).get();
+        int rootChildren;
+
+        rootChildren = simpleTreeProperties.topFeatures(minimalTree).get();
+        assertEquals(0, rootChildren);
+
+        rootChildren = simpleTreeProperties.topFeatures(smallTree).get();
         assertEquals(1, rootChildren);
 
         rootChildren = simpleTreeProperties.topFeatures(mediumTree).get();
@@ -105,7 +119,12 @@ public class SimpleTreePropertiesTest extends Common {
 
     @Test
     void testLeafFeaturesCounter() {
-        int leaves = simpleTreeProperties.leafFeaturesCounter(smallTree).get();
+        int leaves;
+
+        leaves = simpleTreeProperties.leafFeaturesCounter(minimalTree).get();
+        assertEquals(1, leaves);
+
+        leaves = simpleTreeProperties.leafFeaturesCounter(smallTree).get();
         assertEquals(2, leaves);
 
         leaves = simpleTreeProperties.leafFeaturesCounter(mediumTree).get();
@@ -114,7 +133,12 @@ public class SimpleTreePropertiesTest extends Common {
 
     @Test
     void testTreeDepth() {
-        int depth = simpleTreeProperties.treeDepth(smallTree).get();
+        int depth;
+
+        depth = simpleTreeProperties.treeDepth(minimalTree).get();
+        assertEquals(1, depth);
+
+        depth = simpleTreeProperties.treeDepth(smallTree).get();
         assertEquals(3, depth);
 
         depth = simpleTreeProperties.treeDepth(mediumTree).get();
@@ -123,7 +147,12 @@ public class SimpleTreePropertiesTest extends Common {
 
     @Test
     void testAvgNumberOfChildren() {
-        float average = simpleTreeProperties.avgNumberOfChildren(smallTree).get();
+        float average;
+
+        average = simpleTreeProperties.avgNumberOfChildren(minimalTree).get();
+        assertEquals(0.0, average);
+
+        average = simpleTreeProperties.avgNumberOfChildren(smallTree).get();
         assertEquals(0.75, average);
 
         average = simpleTreeProperties.avgNumberOfChildren(mediumTree).get();
@@ -132,8 +161,14 @@ public class SimpleTreePropertiesTest extends Common {
 
     @Test
     void testGroupDistribution() {
-        HashMap<String, Integer> groupCounts =
-                simpleTreeProperties.groupDistribution(smallTree).get();
+        HashMap<String, Integer> groupCounts;
+
+        groupCounts = simpleTreeProperties.groupDistribution(minimalTree).get();
+        assertEquals(0, groupCounts.get("AlternativeGroup"));
+        assertEquals(1, groupCounts.get("AndGroup"));
+        assertEquals(0, groupCounts.get("OrGroup"));
+
+        groupCounts = simpleTreeProperties.groupDistribution(smallTree).get();
         assertEquals(1, groupCounts.get("AlternativeGroup"));
         assertEquals(3, groupCounts.get("AndGroup"));
         assertEquals(0, groupCounts.get("OrGroup"));
