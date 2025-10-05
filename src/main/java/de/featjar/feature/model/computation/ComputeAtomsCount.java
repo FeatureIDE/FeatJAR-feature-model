@@ -20,22 +20,26 @@
  */
 package de.featjar.feature.model.computation;
 
-import de.featjar.base.computation.*;
+import de.featjar.base.computation.AComputation;
+import de.featjar.base.computation.Computations;
+import de.featjar.base.computation.Dependency;
+import de.featjar.base.computation.IComputation;
+import de.featjar.base.computation.Progress;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IConstraint;
-import de.featjar.feature.model.analysis.ConstraintProperties;
+import de.featjar.feature.model.analysis.AtomsCount;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-public class ComputeConstraintProperties extends AComputation<Integer> {
+public class ComputeAtomsCount extends AComputation<Integer> {
     protected static final Dependency<FeatureModel> FEATUREMODEL = Dependency.newDependency(FeatureModel.class);
     protected static final Dependency<Boolean> COUNTCONSTANTS = Dependency.newDependency(Boolean.class);
     protected static final Dependency<Boolean> COUNTVARIABLES = Dependency.newDependency(Boolean.class);
 
-    public ComputeConstraintProperties(IComputation<FeatureModel> featureModel) {
+    public ComputeAtomsCount(IComputation<FeatureModel> featureModel) {
         super(featureModel, Computations.of(Boolean.TRUE), Computations.of(Boolean.TRUE));
     }
 
@@ -49,7 +53,7 @@ public class ComputeConstraintProperties extends AComputation<Integer> {
             atomsSum = atomsSum
                     + Trees.traverse(
                                     constraintIterator.next().getFormula(),
-                                    new ConstraintProperties(
+                                    new AtomsCount(
                                             COUNTVARIABLES.get(dependencyList), COUNTCONSTANTS.get(dependencyList)))
                             .orElse(0);
         }

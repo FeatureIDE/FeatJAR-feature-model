@@ -27,18 +27,24 @@ import de.featjar.formula.structure.connective.IConnective;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Counts the the absolute occurrence of different operators in a tree.
+ *
+ * @author Mohammad Khair Almekkawi
+ * @author Florian Beese
+ */
 public class OperatorDistribution implements ITreeVisitor<ITree<?>, HashMap<String, Integer>> {
-    HashMap<String, Integer> operatorCountMap = new HashMap<String, Integer>();
+    HashMap<String, Integer> operatorCount = new HashMap<String, Integer>();
 
     @Override
     public TraversalAction firstVisit(List<ITree<?>> path) {
         final ITree<?> node = ITreeVisitor.getCurrentNode(path);
         if (node instanceof IConnective) {
             String nodeKey = node.getClass().getSimpleName();
-            if (!operatorCountMap.containsKey(nodeKey)) {
-                operatorCountMap.put(nodeKey, 1);
+            if (!operatorCount.containsKey(nodeKey)) {
+                operatorCount.put(nodeKey, 1);
             } else {
-                operatorCountMap.replace(nodeKey, operatorCountMap.get(nodeKey) + 1);
+                operatorCount.replace(nodeKey, operatorCount.get(nodeKey) + 1);
             }
         }
         return TraversalAction.CONTINUE;
@@ -46,11 +52,11 @@ public class OperatorDistribution implements ITreeVisitor<ITree<?>, HashMap<Stri
 
     @Override
     public Result<HashMap<String, Integer>> getResult() {
-        return Result.of(operatorCountMap);
+        return Result.of(operatorCount);
     }
 
     @Override
     public void reset() {
-        operatorCountMap.clear();
+        operatorCount.clear();
     }
 }

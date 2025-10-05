@@ -45,22 +45,22 @@ public class ComputeOperatorDistribution extends AComputation<HashMap<String, In
     public Result<HashMap<String, Integer>> compute(List<Object> dependencyList, Progress progress) {
         FeatureModel featureModel = FEATUREMODEL.get(dependencyList);
         Collection<IConstraint> Constraints = featureModel.getConstraints();
-        HashMap<String, Integer> operatorCountMap = new HashMap<String, Integer>();
+        HashMap<String, Integer> operatorCount = new HashMap<String, Integer>();
         Iterator<IConstraint> constraintIterator = Constraints.iterator();
 
         while (constraintIterator.hasNext()) {
-            HashMap<String, Integer> currentOperatorCountMap = Trees.traverse(
+            HashMap<String, Integer> currentOperatorCount = Trees.traverse(
                             constraintIterator.next().getFormula(), new OperatorDistribution())
                     .orElse(new HashMap<String, Integer>());
-            currentOperatorCountMap.forEach((key, value) -> {
-                if (operatorCountMap.containsKey(key)) {
-                    operatorCountMap.replace(key, operatorCountMap.get(key) + value);
+            currentOperatorCount.forEach((key, value) -> {
+                if (operatorCount.containsKey(key)) {
+                    operatorCount.replace(key, operatorCount.get(key) + value);
                 } else {
-                    operatorCountMap.put(key, value);
+                    operatorCount.put(key, value);
                 }
             });
         }
 
-        return Result.of(operatorCountMap);
+        return Result.of(operatorCount);
     }
 }

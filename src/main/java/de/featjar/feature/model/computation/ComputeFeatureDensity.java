@@ -54,9 +54,6 @@ public class ComputeFeatureDensity extends AComputation<Float> {
             unionSet.addAll(Trees.traverse(constraintIterator.next().getFormula(), new FeatureDensity())
                     .orElse(Collections.emptySet()));
         }
-
-        System.out.println(
-                "" + unionSet.size() + FEATUREMODEL.get(dependencyList).getNumberOfFeatures());
         return Result.of((float) unionSet.size()
                 / (float) FEATUREMODEL.get(dependencyList).getNumberOfFeatures());
     }

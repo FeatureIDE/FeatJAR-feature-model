@@ -43,25 +43,25 @@ public class ConstraintPropertiesTest {
     @Test
     public void atomsTest() {
         FeatureModel featureModel = createFeatureModel();
-        IComputation<Integer> compuational = Computations.of(featureModel).map(ComputeConstraintProperties::new);
+        IComputation<Integer> compuational = Computations.of(featureModel).map(ComputeAtomsCount::new);
 
         assertEquals(21, compuational.compute());
         assertEquals(
                 3,
                 compuational
-                        .set(ComputeConstraintProperties.COUNTVARIABLES, Boolean.FALSE)
+                        .set(ComputeAtomsCount.COUNTVARIABLES, Boolean.FALSE)
                         .compute());
         assertEquals(
                 18,
                 compuational
-                        .set(ComputeConstraintProperties.COUNTCONSTANTS, Boolean.FALSE)
-                        .set(ComputeConstraintProperties.COUNTVARIABLES, Boolean.TRUE)
+                        .set(ComputeAtomsCount.COUNTCONSTANTS, Boolean.FALSE)
+                        .set(ComputeAtomsCount.COUNTVARIABLES, Boolean.TRUE)
                         .compute());
         assertEquals(
                 0,
                 compuational
-                        .set(ComputeConstraintProperties.COUNTCONSTANTS, Boolean.FALSE)
-                        .set(ComputeConstraintProperties.COUNTVARIABLES, Boolean.FALSE)
+                        .set(ComputeAtomsCount.COUNTCONSTANTS, Boolean.FALSE)
+                        .set(ComputeAtomsCount.COUNTVARIABLES, Boolean.FALSE)
                         .compute());
     }
 

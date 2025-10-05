@@ -29,7 +29,7 @@ import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IConstraint;
-import de.featjar.feature.model.analysis.ConstraintProperties;
+import de.featjar.feature.model.analysis.AtomsCount;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -54,11 +54,10 @@ public class ComputeAverageConstraint extends AComputation<Float> {
             atomsSum = atomsSum
                     + Trees.traverse(
                                     constraintIterator.next().getFormula(),
-                                    new ConstraintProperties(
+                                    new AtomsCount(
                                             COUNTVARIABLES.get(dependencyList), COUNTCONSTANTS.get(dependencyList)))
                             .orElse(0);
         }
-        System.out.println(atomsSum + " " + featureModel.getConstraints().size());
         return Result.of(
                 (float) atomsSum / (float) featureModel.getConstraints().size());
     }
