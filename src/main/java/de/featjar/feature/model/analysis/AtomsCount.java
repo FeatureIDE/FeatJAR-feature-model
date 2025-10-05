@@ -27,12 +27,19 @@ import de.featjar.formula.structure.term.value.Constant;
 import de.featjar.formula.structure.term.value.Variable;
 import java.util.List;
 
-public class ConstraintProperties implements ITreeVisitor<ITree<?>, Integer> {
+/**
+ * Counts the number of used variables and constants in a tree.
+ * By default, both are counted, but it can be set to count only one of the two.
+ *
+ * @author Mohammad Khair Almekkawi
+ * @author Florian Beese
+ */
+public class AtomsCount implements ITreeVisitor<ITree<?>, Integer> {
     private int atomsCount = 0;
     private boolean countVariables = true;
     private boolean countConstants = true;
 
-    public ConstraintProperties(boolean countVariables, boolean countConstants) {
+    public AtomsCount(boolean countVariables, boolean countConstants) {
         this.countConstants = countConstants;
         this.countVariables = countVariables;
     }

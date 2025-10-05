@@ -28,6 +28,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Enumerates the names of all distinct variables occurring in a tree.
+ *
+ * @author Mohammad Khair Almekkawi
+ * @author Florian Beese
+ */
 public class FeatureDensity implements ITreeVisitor<ITree<?>, Set<String>> {
     private Set<String> containedFeatures;
 
