@@ -25,10 +25,14 @@ import static de.featjar.formula.structure.Expressions.integerAdd;
 import static de.featjar.formula.structure.Expressions.variable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import de.featjar.base.computation.*;
+import de.featjar.base.computation.Computations;
+import de.featjar.base.computation.IComputation;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.formula.structure.IFormula;
-import de.featjar.formula.structure.connective.*;
+import de.featjar.formula.structure.connective.And;
+import de.featjar.formula.structure.connective.Implies;
+import de.featjar.formula.structure.connective.Not;
+import de.featjar.formula.structure.connective.Or;
 import de.featjar.formula.structure.predicate.Equals;
 import de.featjar.formula.structure.predicate.Literal;
 import de.featjar.formula.structure.term.ITerm;
@@ -37,8 +41,6 @@ import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 
 public class ConstraintPropertiesTest {
-    // FeatJAR.();
-    // FeatureJAR.log();
 
     @Test
     public void atomsTest() {
@@ -79,7 +81,6 @@ public class ConstraintPropertiesTest {
         HashMap<String, Integer> computational = Computations.of(featureModel)
                 .map(ComputeOperatorDistribution::new)
                 .compute();
-        System.out.println(computational);
         assertEquals(4, computational.get("And"));
         assertEquals(3, computational.get("Or"));
         assertEquals(2, computational.get("Not"));
@@ -91,7 +92,6 @@ public class ConstraintPropertiesTest {
         FeatureModel featureModel = createFeatureModel();
         float computational =
                 Computations.of(featureModel).map(ComputeAverageConstraint::new).compute();
-        System.out.println(computational);
         assertEquals(21.0 / 3.0, computational);
     }
 
