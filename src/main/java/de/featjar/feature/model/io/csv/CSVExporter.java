@@ -44,7 +44,7 @@ public class CSVExporter {
         return String.format("%.2f", (float) numerator / denominator);
     }
 
-    private String roundAndCastToString (float number) {
+    private String roundAndCastToString (double number) {
         return String.format("%.2f", number);
     }
 
@@ -61,7 +61,7 @@ public class CSVExporter {
         int andGroups = groupDistribution.get("AndGroup");
         int allGroups = alternativeGroups + orGroups + andGroups;
 
-        float avgNumberOfChildren = simpleTreeProperties.avgNumberOfChildren(tree).get();
+        double avgNumberOfChildren = simpleTreeProperties.avgNumberOfChildren(tree).get();
 
         // linked map to preserve order for now, not sure if needed
         // todo: decide whether to make this a variable <String, Object> map, or a ready-to-write <String, String> map
