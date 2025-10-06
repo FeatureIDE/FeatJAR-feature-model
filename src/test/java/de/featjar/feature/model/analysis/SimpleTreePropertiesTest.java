@@ -147,7 +147,7 @@ public class SimpleTreePropertiesTest extends Common {
 
     @Test
     void testAvgNumberOfChildren() {
-        float average;
+        double average;
 
         average = simpleTreeProperties.avgNumberOfChildren(minimalTree).get();
         assertEquals(0.0, average);
