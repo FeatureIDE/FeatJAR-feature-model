@@ -45,14 +45,13 @@ import java.util.List;
  * */
 public class ComputeAtomsCount extends AComputation<Integer> {
     protected static final Dependency<FeatureModel> FEATUREMODEL = Dependency.newDependency(FeatureModel.class);
-    //COUNTCONSTANTS decide if Atoms of type constants should be counted
+    // COUNTCONSTANTS decide if Atoms of type constants should be counted
     protected static final Dependency<Boolean> COUNTCONSTANTS = Dependency.newDependency(Boolean.class);
-    //COUNTVARIABLES decide if Atoms of type variable should be counted
+    // COUNTVARIABLES decide if Atoms of type variable should be counted
     protected static final Dependency<Boolean> COUNTVARIABLES = Dependency.newDependency(Boolean.class);
-    //COUNTBOOLEAN decide if Atoms of type True or False should be counted
+    // COUNTBOOLEAN decide if Atoms of type True or False should be counted
     protected static final Dependency<Boolean> COUNTBOOLEAN = Dependency.newDependency(Boolean.class);
 
-    
     public ComputeAtomsCount(IComputation<FeatureModel> featureModel) {
         super(
                 featureModel,

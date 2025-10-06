@@ -27,7 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import de.featjar.base.computation.Computations;
 import de.featjar.base.computation.IComputation;
+import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.FeatureModel;
+import de.featjar.feature.model.analysis.AtomsCount;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.And;
 import de.featjar.formula.structure.connective.Implies;
@@ -48,6 +50,8 @@ public class ConstraintPropertiesTest {
         FeatureModel featureModel = createFeatureModel();
         IComputation<Integer> compuational = Computations.of(featureModel).map(ComputeAtomsCount::new);
 
+        Trees.traverse(
+                featureModel.getConstraints().iterator().next().getFormula(), new AtomsCount(false, false, false));
         assertEquals(23, compuational.compute());
         assertEquals(
                 3,
@@ -76,7 +80,7 @@ public class ConstraintPropertiesTest {
         FeatureModel featureModel = createFeatureModel();
         float computational =
                 Computations.of(featureModel).map(ComputeFeatureDensity::new).compute();
-        assertEquals((float) 6 / (float) 7, computational);
+        assertEquals((float) 5 / (float) 7, computational);
     }
     // operator((and,4), (or, 3), (not, 2), (implies, 3))
     @Test
@@ -125,13 +129,11 @@ public class ConstraintPropertiesTest {
         literalB.setPositive(false);
 
         // define terms
-        ITerm termAdd = integerAdd(constant(42L), variable("varA", Long.class));
+        ITerm termAdd = integerAdd(constant(42L), variable("a", Long.class));
         ITerm termAddLiteral = integerAdd(constant(42L), new Constant(2L));
         // ITerm termAddLiteral1 = integerAdd(constant(42L), new Constant(literalA, literalA.getClass()));
 
-        // operator((and,4), (or, 3), (not, 2), (implies, 3))
         // define formulas
-        // 8 literal, 5 operator((and,2), (or, 1), (not, 1), (implies, 1)), Features(a,b,i,k,o)
         IFormula formula1 = new And(
                 literalA,
                 new Or(literalA, literalB, literalI),
@@ -139,12 +141,10 @@ public class ConstraintPropertiesTest {
                 new Implies(literalK, literalO),
                 new And(literalB),
                 True.INSTANCE);
-        // 9 literal, 7 operator((and,2), (or, 2), (not, 1), (implies, 2)), Features(a,b,i,k,o)
+
         IFormula formula2 = new Or(new Implies(formula1, literalO));
-        // 1 literal, 0 operator, 3 constants
         IFormula formula3 = new Equals(termAdd, termAddLiteral);
 
-        // add full formulas as constraints
         featureModel.addConstraint(formula1);
         featureModel.addConstraint(formula2);
         featureModel.addConstraint(formula3);
