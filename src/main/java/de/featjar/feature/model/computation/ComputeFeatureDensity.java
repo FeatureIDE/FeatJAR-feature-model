@@ -36,6 +36,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Call the visitor FeatureDensity on all constraints of a feature model to get the density of the used features in the constraints.
+ * For further information on its methods see {@link IComputation}
+ *
+ * @author Mohammad Khair Almekkawi
+ * @author Florian Beese
+ * */
 public class ComputeFeatureDensity extends AComputation<Float> {
     protected static final Dependency<FeatureModel> FEATUREMODEL = Dependency.newDependency(FeatureModel.class);
 

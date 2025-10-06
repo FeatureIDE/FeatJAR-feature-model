@@ -35,6 +35,7 @@ import de.featjar.formula.structure.connective.Not;
 import de.featjar.formula.structure.connective.Or;
 import de.featjar.formula.structure.predicate.Equals;
 import de.featjar.formula.structure.predicate.Literal;
+import de.featjar.formula.structure.predicate.True;
 import de.featjar.formula.structure.term.ITerm;
 import de.featjar.formula.structure.term.value.Constant;
 import java.util.HashMap;
@@ -47,23 +48,26 @@ public class ConstraintPropertiesTest {
         FeatureModel featureModel = createFeatureModel();
         IComputation<Integer> compuational = Computations.of(featureModel).map(ComputeAtomsCount::new);
 
-        assertEquals(21, compuational.compute());
+        assertEquals(23, compuational.compute());
         assertEquals(
                 3,
                 compuational
                         .set(ComputeAtomsCount.COUNTVARIABLES, Boolean.FALSE)
+                        .set(ComputeAtomsCount.COUNTBOOLEAN, Boolean.FALSE)
                         .compute());
         assertEquals(
                 18,
                 compuational
                         .set(ComputeAtomsCount.COUNTCONSTANTS, Boolean.FALSE)
                         .set(ComputeAtomsCount.COUNTVARIABLES, Boolean.TRUE)
+                        .set(ComputeAtomsCount.COUNTBOOLEAN, Boolean.FALSE)
                         .compute());
         assertEquals(
                 0,
                 compuational
                         .set(ComputeAtomsCount.COUNTCONSTANTS, Boolean.FALSE)
                         .set(ComputeAtomsCount.COUNTVARIABLES, Boolean.FALSE)
+                        .set(ComputeAtomsCount.COUNTBOOLEAN, Boolean.FALSE)
                         .compute());
     }
 
@@ -72,7 +76,7 @@ public class ConstraintPropertiesTest {
         FeatureModel featureModel = createFeatureModel();
         float computational =
                 Computations.of(featureModel).map(ComputeFeatureDensity::new).compute();
-        assertEquals((float) 6.0 / (float) 7.0, computational);
+        assertEquals((float) 6 / (float) 7, computational);
     }
     // operator((and,4), (or, 3), (not, 2), (implies, 3))
     @Test
@@ -92,7 +96,7 @@ public class ConstraintPropertiesTest {
         FeatureModel featureModel = createFeatureModel();
         float computational =
                 Computations.of(featureModel).map(ComputeAverageConstraint::new).compute();
-        assertEquals(21.0 / 3.0, computational);
+        assertEquals((float) 23 / (float) 3, computational);
     }
 
     public FeatureModel createFeatureModel() {
@@ -133,7 +137,8 @@ public class ConstraintPropertiesTest {
                 new Or(literalA, literalB, literalI),
                 new Not(literalB),
                 new Implies(literalK, literalO),
-                new And(literalB));
+                new And(literalB),
+                True.INSTANCE);
         // 9 literal, 7 operator((and,2), (or, 2), (not, 1), (implies, 2)), Features(a,b,i,k,o)
         IFormula formula2 = new Or(new Implies(formula1, literalO));
         // 1 literal, 0 operator, 3 constants

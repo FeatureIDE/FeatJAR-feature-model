@@ -23,6 +23,8 @@ package de.featjar.feature.model.analysis;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.structure.ITree;
 import de.featjar.base.tree.visitor.ITreeVisitor;
+import de.featjar.formula.structure.predicate.False;
+import de.featjar.formula.structure.predicate.True;
 import de.featjar.formula.structure.term.value.Constant;
 import de.featjar.formula.structure.term.value.Variable;
 import java.util.List;
@@ -30,6 +32,7 @@ import java.util.List;
 /**
  * Counts the number of used variables and constants in a tree.
  * By default, both are counted, but it can be set to count only one of the two.
+ * For further information on its methods see {@link ITreeVisitor}
  *
  * @author Mohammad Khair Almekkawi
  * @author Florian Beese
@@ -38,10 +41,12 @@ public class AtomsCount implements ITreeVisitor<ITree<?>, Integer> {
     private int atomsCount = 0;
     private boolean countVariables = true;
     private boolean countConstants = true;
+    private boolean countBoolean = true;
 
-    public AtomsCount(boolean countVariables, boolean countConstants) {
+    public AtomsCount(boolean countVariables, boolean countConstants, boolean countBoolean) {
         this.countConstants = countConstants;
         this.countVariables = countVariables;
+        this.countBoolean = countBoolean;
     }
 
     @Override
@@ -50,6 +55,8 @@ public class AtomsCount implements ITreeVisitor<ITree<?>, Integer> {
         if (countConstants && node instanceof Constant) {
             atomsCount++;
         } else if (countVariables && node instanceof Variable) {
+            atomsCount++;
+        } else if (countBoolean && (node instanceof True || node instanceof False)) {
             atomsCount++;
         }
         return TraversalAction.CONTINUE;

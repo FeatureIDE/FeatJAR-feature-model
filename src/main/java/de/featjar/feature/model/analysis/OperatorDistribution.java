@@ -29,6 +29,7 @@ import java.util.List;
 
 /**
  * Counts the the absolute occurrence of different operators in a tree.
+ * For further information on its methods see {@link ITreeVisitor}
  *
  * @author Mohammad Khair Almekkawi
  * @author Florian Beese

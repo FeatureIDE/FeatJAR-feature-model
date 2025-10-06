@@ -30,6 +30,7 @@ import java.util.Set;
 
 /**
  * Enumerates the names of all distinct variables occurring in a tree.
+ * For further information on its methods see {@link ITreeVisitor}
  *
  * @author Mohammad Khair Almekkawi
  * @author Florian Beese

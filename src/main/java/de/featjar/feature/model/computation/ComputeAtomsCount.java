@@ -34,13 +34,27 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Call the visitor AtomsCount on all constraints of a feature model to count the terminal expressions.
+ * It is possible to set the three variables COUNTCONSTANTS, COUNTVARIABLES and COUNTBOOLEAN in order
+ * to set what should be counted
+ * For further information on its methods see {@link IComputation}
+ *
+ * @author Mohammad Khair Almekkawi
+ * @author Florian Beese
+ * */
 public class ComputeAtomsCount extends AComputation<Integer> {
     protected static final Dependency<FeatureModel> FEATUREMODEL = Dependency.newDependency(FeatureModel.class);
     protected static final Dependency<Boolean> COUNTCONSTANTS = Dependency.newDependency(Boolean.class);
     protected static final Dependency<Boolean> COUNTVARIABLES = Dependency.newDependency(Boolean.class);
+    protected static final Dependency<Boolean> COUNTBOOLEAN = Dependency.newDependency(Boolean.class);
 
     public ComputeAtomsCount(IComputation<FeatureModel> featureModel) {
-        super(featureModel, Computations.of(Boolean.TRUE), Computations.of(Boolean.TRUE));
+        super(
+                featureModel,
+                Computations.of(Boolean.TRUE),
+                Computations.of(Boolean.TRUE),
+                Computations.of(Boolean.TRUE));
     }
 
     @Override
@@ -54,7 +68,9 @@ public class ComputeAtomsCount extends AComputation<Integer> {
                     + Trees.traverse(
                                     constraintIterator.next().getFormula(),
                                     new AtomsCount(
-                                            COUNTVARIABLES.get(dependencyList), COUNTCONSTANTS.get(dependencyList)))
+                                            COUNTVARIABLES.get(dependencyList),
+                                            COUNTCONSTANTS.get(dependencyList),
+                                            COUNTBOOLEAN.get(dependencyList)))
                             .orElse(0);
         }
 
