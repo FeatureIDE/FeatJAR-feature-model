@@ -43,6 +43,12 @@ public class AtomsCount implements ITreeVisitor<ITree<?>, Integer> {
     private boolean countConstants = true;
     private boolean countBoolean = true;
 
+    /**
+     * 
+     * @param countVariables decide if Atoms of type variable should be counted
+     * @param countConstants decide if Atoms of type constants should be counted
+     * @param countBoolean decide if Atoms of type True or False should be counted
+     */
     public AtomsCount(boolean countVariables, boolean countConstants, boolean countBoolean) {
         this.countConstants = countConstants;
         this.countVariables = countVariables;
