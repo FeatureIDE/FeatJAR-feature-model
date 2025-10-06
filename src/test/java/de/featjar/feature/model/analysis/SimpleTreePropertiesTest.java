@@ -23,6 +23,7 @@ package de.featjar.feature.model.analysis;
 import static org.junit.jupiter.api.Assertions.*;
 
 import de.featjar.Common;
+import de.featjar.base.computation.Computations;
 import de.featjar.base.data.identifier.Identifiers;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IFeature;
@@ -31,7 +32,6 @@ import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 
 public class SimpleTreePropertiesTest extends Common {
-    SimpleTreeProperties simpleTreeProperties = new SimpleTreeProperties();
     IFeatureTree minimalTree = generateMinimalTree();
     IFeatureTree smallTree = generateSmallTree();
     IFeatureTree mediumTree = generateMediumTree();
@@ -107,13 +107,16 @@ public class SimpleTreePropertiesTest extends Common {
     void testTopFeatures() {
         int rootChildren;
 
-        rootChildren = simpleTreeProperties.topFeatures(minimalTree).get();
+        rootChildren =
+                Computations.of(minimalTree).map(ComputeFeatureTopFeatures::new).compute();
         assertEquals(0, rootChildren);
 
-        rootChildren = simpleTreeProperties.topFeatures(smallTree).get();
+        rootChildren =
+                Computations.of(smallTree).map(ComputeFeatureTopFeatures::new).compute();
         assertEquals(1, rootChildren);
 
-        rootChildren = simpleTreeProperties.topFeatures(mediumTree).get();
+        rootChildren =
+                Computations.of(mediumTree).map(ComputeFeatureTopFeatures::new).compute();
         assertEquals(3, rootChildren);
     }
 
@@ -121,13 +124,19 @@ public class SimpleTreePropertiesTest extends Common {
     void testLeafFeaturesCounter() {
         int leaves;
 
-        leaves = simpleTreeProperties.leafFeaturesCounter(minimalTree).get();
+        leaves = Computations.of(minimalTree)
+                .map(ComputeFeatureFeaturesCounter::new)
+                .compute();
         assertEquals(1, leaves);
 
-        leaves = simpleTreeProperties.leafFeaturesCounter(smallTree).get();
+        leaves = Computations.of(smallTree)
+                .map(ComputeFeatureFeaturesCounter::new)
+                .compute();
         assertEquals(2, leaves);
 
-        leaves = simpleTreeProperties.leafFeaturesCounter(mediumTree).get();
+        leaves = Computations.of(mediumTree)
+                .map(ComputeFeatureFeaturesCounter::new)
+                .compute();
         assertEquals(6, leaves);
     }
 
@@ -135,13 +144,13 @@ public class SimpleTreePropertiesTest extends Common {
     void testTreeDepth() {
         int depth;
 
-        depth = simpleTreeProperties.treeDepth(minimalTree).get();
+        depth = Computations.of(minimalTree).map(ComputeFeatureTreeDepth::new).compute();
         assertEquals(1, depth);
 
-        depth = simpleTreeProperties.treeDepth(smallTree).get();
+        depth = Computations.of(smallTree).map(ComputeFeatureTreeDepth::new).compute();
         assertEquals(3, depth);
 
-        depth = simpleTreeProperties.treeDepth(mediumTree).get();
+        depth = Computations.of(mediumTree).map(ComputeFeatureTreeDepth::new).compute();
         assertEquals(3, depth);
     }
 
@@ -149,13 +158,19 @@ public class SimpleTreePropertiesTest extends Common {
     void testAvgNumberOfChildren() {
         double average;
 
-        average = simpleTreeProperties.avgNumberOfChildren(minimalTree).get();
+        average = Computations.of(minimalTree)
+                .map(ComputeFeatureAverageNumberOfChildren::new)
+                .compute();
         assertEquals(0.0, average);
 
-        average = simpleTreeProperties.avgNumberOfChildren(smallTree).get();
+        average = Computations.of(smallTree)
+                .map(ComputeFeatureAverageNumberOfChildren::new)
+                .compute();
         assertEquals(0.75, average);
 
-        average = simpleTreeProperties.avgNumberOfChildren(mediumTree).get();
+        average = Computations.of(mediumTree)
+                .map(ComputeFeatureAverageNumberOfChildren::new)
+                .compute();
         assertTrue(0.888 < average && average < 0.889);
     }
 
@@ -163,17 +178,23 @@ public class SimpleTreePropertiesTest extends Common {
     void testGroupDistribution() {
         HashMap<String, Integer> groupCounts;
 
-        groupCounts = simpleTreeProperties.groupDistribution(minimalTree).get();
+        groupCounts = Computations.of(minimalTree)
+                .map(ComputeFeatureGroupDistribution::new)
+                .compute();
         assertEquals(0, groupCounts.get("AlternativeGroup"));
         assertEquals(1, groupCounts.get("AndGroup"));
         assertEquals(0, groupCounts.get("OrGroup"));
 
-        groupCounts = simpleTreeProperties.groupDistribution(smallTree).get();
+        groupCounts = Computations.of(smallTree)
+                .map(ComputeFeatureGroupDistribution::new)
+                .compute();
         assertEquals(1, groupCounts.get("AlternativeGroup"));
         assertEquals(3, groupCounts.get("AndGroup"));
         assertEquals(0, groupCounts.get("OrGroup"));
 
-        groupCounts = simpleTreeProperties.groupDistribution(mediumTree).get();
+        groupCounts = Computations.of(mediumTree)
+                .map(ComputeFeatureGroupDistribution::new)
+                .compute();
         assertEquals(1, groupCounts.get("AlternativeGroup"));
         assertEquals(7, groupCounts.get("AndGroup"));
         assertEquals(1, groupCounts.get("OrGroup"));
