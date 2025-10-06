@@ -24,6 +24,8 @@ import de.featjar.base.data.Result;
 import de.featjar.base.tree.structure.ITree;
 import de.featjar.base.tree.visitor.ITreeVisitor;
 import de.featjar.formula.structure.connective.IConnective;
+import de.featjar.formula.structure.connective.Reference;
+
 import java.util.HashMap;
 import java.util.List;
 
@@ -35,12 +37,13 @@ import java.util.List;
  * @author Florian Beese
  */
 public class OperatorDistribution implements ITreeVisitor<ITree<?>, HashMap<String, Integer>> {
+	// Saves the count of each operator, where each key is the name of the class of the operator
     HashMap<String, Integer> operatorCount = new HashMap<String, Integer>();
 
     @Override
     public TraversalAction firstVisit(List<ITree<?>> path) {
         final ITree<?> node = ITreeVisitor.getCurrentNode(path);
-        if (node instanceof IConnective) {
+        if (node instanceof IConnective && ! (node instanceof Reference)) {
             String nodeKey = node.getClass().getSimpleName();
             if (!operatorCount.containsKey(nodeKey)) {
                 operatorCount.put(nodeKey, 1);
