@@ -4,4 +4,7 @@
         <extension id="de.featjar.feature.model.io.xml.GraphVizFeatureModelFormat" />
         <extension id="de.featjar.feature.model.io.xml.XMLFeatureModelFormat" />
     </point>
+    <point id="de.featjar.base.cli.Commands">
+		<extension id="de.featjar.feature.model.cli.PrintStatistics" />
+	</point>
 </extensions>
