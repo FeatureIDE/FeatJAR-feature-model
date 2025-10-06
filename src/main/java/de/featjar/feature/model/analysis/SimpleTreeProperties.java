@@ -11,7 +11,6 @@ import de.featjar.feature.model.analysis.visitor.TreeLeafCounter;
 import java.util.HashMap;
 
 public class SimpleTreeProperties {
-
     /**
      * @param tree: feature tree
      * {@return number of features directly below the root of this subtree.}
