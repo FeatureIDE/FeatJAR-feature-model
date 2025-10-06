@@ -34,7 +34,7 @@ import java.util.List;
  * @author Sebastian Krieter
  */
 public class FeatureTreeGroupCounter implements ITreeVisitor<ITree<IFeatureTree>, HashMap<String, Integer>> {
-    int altCounter = 0, orCounter = 0, andCounter = 0;
+    int altCounter = 0, orCounter = 0, andCounter = 0, otherCounter = 0;
 
     @Override
     public TraversalAction firstVisit(List<ITree<IFeatureTree>> path) {
@@ -47,6 +47,8 @@ public class FeatureTreeGroupCounter implements ITreeVisitor<ITree<IFeatureTree>
                 orCounter++;
             } else if (group.isAnd()) {
                 andCounter++;
+            } else {
+                otherCounter++;
             }
         }
 
@@ -58,6 +60,7 @@ public class FeatureTreeGroupCounter implements ITreeVisitor<ITree<IFeatureTree>
         altCounter = 0;
         orCounter = 0;
         andCounter = 0;
+        otherCounter = 0;
     }
 
     @Override
@@ -66,6 +69,7 @@ public class FeatureTreeGroupCounter implements ITreeVisitor<ITree<IFeatureTree>
         countedGroups.put("AlternativeGroup", altCounter);
         countedGroups.put("OrGroup", orCounter);
         countedGroups.put("AndGroup", andCounter);
+        countedGroups.put("OtherGroup", otherCounter);
         return Result.of(countedGroups);
     }
 }
