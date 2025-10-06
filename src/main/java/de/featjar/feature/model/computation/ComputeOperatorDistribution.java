@@ -34,6 +34,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Call the visitor OperatorDistribution on all constraints of a feature model to get the count of each nonterminal operation(and, or,...).
+ * For further information on its methods see {@link IComputation}
+ *
+ * @author Mohammad Khair Almekkawi
+ * @author Florian Beese
+ * */
 public class ComputeOperatorDistribution extends AComputation<HashMap<String, Integer>> {
     protected static final Dependency<FeatureModel> FEATUREMODEL = Dependency.newDependency(FeatureModel.class);
 
