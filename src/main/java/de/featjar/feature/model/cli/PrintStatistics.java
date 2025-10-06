@@ -24,12 +24,27 @@ import de.featjar.base.FeatJAR;
 import de.featjar.base.cli.ACommand;
 import de.featjar.base.cli.Option;
 import de.featjar.base.cli.OptionList;
+import de.featjar.base.computation.Computations;
+import de.featjar.base.computation.IComputation;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
+import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IFeatureModel;
+import de.featjar.feature.model.IFeatureTree;
+import de.featjar.feature.model.analysis.ComputeFeatureAverageNumberOfChildren;
+import de.featjar.feature.model.analysis.ComputeFeatureTopFeatures;
+import de.featjar.feature.model.computation.ComputeAtomsCount;
+import de.featjar.feature.model.computation.ComputeAverageConstraint;
+import de.featjar.feature.model.computation.ComputeFeatureDensity;
+import de.featjar.feature.model.computation.ComputeOperatorDistribution;
 import de.featjar.feature.model.io.FeatureModelFormats;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -55,7 +70,9 @@ public class PrintStatistics extends ACommand {
     public static final Option<Boolean> PRETTY_PRINT =
             Option.newFlag("pretty").setDescription("Pretty prints the numbers");
 
-    private HashMap<String, Integer> data;
+    private LinkedHashMap<String, Float> data;
+    private FeatureModel model;
+    private IFeatureModel imodel;
 
     @Override
     public int run(OptionList optionParser) {
@@ -68,13 +85,14 @@ public class PrintStatistics extends ACommand {
         // opening input model
         Path path = optionParser.getResult(INPUT_OPTION).orElseThrow();
         Result<IFeatureModel> load = IO.load(path, FeatureModelFormats.getInstance());
-        IFeatureModel model = load.orElseThrow();
+        imodel = load.orElseThrow();
+        model = (FeatureModel) imodel;
 
         // collecting statistics of the model, checking if scope is specified
         if (optionParser.getResult(ANALYSES_SCOPE).isPresent()) {
-            data = collectStats(model, optionParser.get(ANALYSES_SCOPE));
+            data = collectStats(optionParser.get(ANALYSES_SCOPE));
         } else {
-            data = collectStats(model, AnalysesScope.ALL);
+            data = collectStats(AnalysesScope.ALL);
         }
 
         // if output path is specified, write statistics to file
@@ -124,31 +142,74 @@ public class PrintStatistics extends ACommand {
         }
     }
 
-    private HashMap<String, Integer> collectStats(IFeatureModel model, AnalysesScope scope) {
+    private LinkedHashMap<String, Float> collectStats(AnalysesScope scope) {
 
-        HashMap<String, Integer> data = new HashMap<String, Integer>();
+        data = new LinkedHashMap<String, Float>();
+        
 
         if (scope == AnalysesScope.ALL || scope == AnalysesScope.CONSTRAINT_RELATED) {
+        	//Fetching constraint related statistics
+        	data.put("Number of Atoms", (float)Computations.of(model).map(ComputeAtomsCount::new).compute());
+        	data.put("Feature Density", (float)Computations.of(model).map(ComputeFeatureDensity::new).compute());
+            data.put("Average Constraints", (float)Computations.of(model).map(ComputeAverageConstraint::new).compute());
 
-            // For Example data.put(model.getConstraintInfo())
-
+        	HashMap<String, Integer> computational_opDensity = Computations.of(model)
+                    .map(ComputeOperatorDistribution::new)
+                    .compute();
+            data.put("Operator Density AND", (float)computational_opDensity.get("And"));
+            data.put("Operator Density Or", (float)computational_opDensity.get("Or"));
+            data.put("Operator Density Not", (float)computational_opDensity.get("Not"));
+            data.put("Operator Density Implies", (float)computational_opDensity.get("Implies"));
         }
+        
 
         if ((scope == AnalysesScope.ALL || scope == AnalysesScope.TREE_RELATED)) {
 
-            // For Example model.getTreeDepth()
-
+        	//Fetching tree related statistics
+        	
+        	List<IFeatureTree> trees = model.getRoots();
+        	float value;
+        	String treePrefix;
+        
+        	for (int i = 0; i < trees.size(); i++) {
+        		treePrefix = "[Tree "+(i+1) + "] ";
+        		
+        		IFeatureTree tree = trees.get(i);
+        		
+        		// avg num of children
+        		double average = Computations.of(tree)
+                        .map(ComputeFeatureAverageNumberOfChildren::new)
+                        .compute();
+        		value = (float) average;
+        		data.put(treePrefix + "Average Number of Childen", value);
+        		
+        		// num of top features
+        		int topFeatures = Computations.of(tree).map(ComputeFeatureTopFeatures::new).compute();
+        		data.put(treePrefix + "Number of Top Features", (float) topFeatures);
+        		
+        		// tree depth
+        		
+        	}
+        	
+        	
+        	
+        
+        	// Tree depth
+        	// Number of leaf features
+        	// Group distribution
+        	
         }
 
         // dummy values, will be handled by functions of other teams
+        /*
         data.put("numOfTopFeatures", 3);
         data.put("numOfLeafFeatures", 12);
         data.put("treeDepth", 3);
         data.put("avgNumOfChildren", 3);
         data.put("numInOrGroups", 7);
         data.put("numInAltGroups", 5);
-        data.put("numOfAtoms", 8);
         data.put("avgNumOfAtomsPerConstraints", 4);
+        */
 
         return data;
     }
@@ -161,7 +222,7 @@ public class PrintStatistics extends ACommand {
         StringBuilder outputString = new StringBuilder();
 
         for (Map.Entry<?, ?> entry : data.entrySet()) {
-            outputString.append(String.format("%-30s : %s%n", entry.getKey(), entry.getValue()));
+            outputString.append(String.format("%-40s : %s%n", entry.getKey(), entry.getValue()));
         }
         return outputString;
     }
