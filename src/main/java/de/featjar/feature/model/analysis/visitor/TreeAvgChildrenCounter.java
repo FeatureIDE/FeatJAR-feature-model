@@ -31,7 +31,7 @@ import java.util.List;
  *
  * @author Sebastian Krieter
  */
-public class TreeAvgChildrenCounter implements ITreeVisitor<ITree<?>, Float> {
+public class TreeAvgChildrenCounter implements ITreeVisitor<ITree<?>, Double> {
     private int nodeCount = 0;
     private int childCount = 0;
 
@@ -50,10 +50,10 @@ public class TreeAvgChildrenCounter implements ITreeVisitor<ITree<?>, Float> {
     }
 
     @Override
-    public Result<Float> getResult() {
-        float result = 0;
+    public Result<Double> getResult() {
+        double result = 0;
         if (nodeCount > 0) {
-            result = (float) childCount / nodeCount;
+            result = (double) childCount / nodeCount;
         }
         return Result.of(result);
     }
