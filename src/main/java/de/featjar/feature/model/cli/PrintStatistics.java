@@ -264,8 +264,8 @@ public class PrintStatistics extends ACommand {
     }
 
     /**
-     *
-     * @param data
+     * Prints gathered statistics in a compact format.
+     * @param data: the previously computed data packaged line by line: String names the stat, Object holds the data.
      */
     public void printStats(LinkedHashMap<String, Object> data) {
         FeatJAR.log().message("STATISTICS ABOUT THE FEATURE MODEL:\n" + data);
@@ -273,7 +273,7 @@ public class PrintStatistics extends ACommand {
 
     /**
      *
-     * @return
+     * {@return brief description of this class}
      */
     @Override
     public Optional<String> getDescription() {
@@ -282,7 +282,7 @@ public class PrintStatistics extends ACommand {
 
     /**
      *
-     * @return
+     * {@return short name of this class}
      */
     @Override
     public Optional<String> getShortName() {
