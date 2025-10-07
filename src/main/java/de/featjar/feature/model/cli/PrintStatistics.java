@@ -236,13 +236,11 @@ public class PrintStatistics extends ACommand {
 
         for (Map.Entry<?, ?> entry : data.entrySet()) {
 
-            if (entry.getValue() instanceof HashMap) {
-                /*
-                HashMap myHashMap = (HashMap) entry.getValue();
-                  	for(HashMap single : entry.getValue() {
-                  		outputString.append(String.format("%-40s : %s%n", single.getKey(), single.getValue()));
-                  	}
-                  	*/
+            if (entry.getValue() instanceof Map) {
+                Map<?, ?> nestedMap = (Map<?, ?>) entry.getValue();
+                for (Map.Entry<?, ?> nestedEntry : nestedMap.entrySet()) {
+                    outputString.append(String.format("%-40s : %s%n", nestedEntry.getKey(), nestedEntry.getValue()));
+                }
             } else {
                 outputString.append(String.format("%-40s : %s%n", entry.getKey(), entry.getValue()));
             }
