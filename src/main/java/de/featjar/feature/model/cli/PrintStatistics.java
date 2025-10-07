@@ -65,10 +65,6 @@ public class PrintStatistics extends ACommand {
     public static final Option<Boolean> PRETTY_PRINT =
             Option.newFlag("pretty").setDescription("Pretty prints the numbers");
 
-    private LinkedHashMap<String, Object> data;
-    private FeatureModel model;
-    private IFeatureModel imodel;
-
     @Override
     public int run(OptionList optionParser) {
 
@@ -80,14 +76,15 @@ public class PrintStatistics extends ACommand {
         // opening input model
         Path path = optionParser.getResult(INPUT_OPTION).orElseThrow();
         Result<IFeatureModel> load = IO.load(path, FeatureModelFormats.getInstance());
-        imodel = load.orElseThrow();
-        model = (FeatureModel) imodel;
+        LinkedHashMap<String, Object> data;
+
+        FeatureModel model = (FeatureModel) load.orElseThrow();
 
         // collecting statistics of the model, checking if scope is specified
         if (optionParser.getResult(ANALYSES_SCOPE).isPresent()) {
-            data = collectStats(optionParser.get(ANALYSES_SCOPE));
+            data = collectStats(model, optionParser.get(ANALYSES_SCOPE));
         } else {
-            data = collectStats(AnalysesScope.ALL);
+        	data = collectStats(model, AnalysesScope.ALL);
         }
 
         // if output path is specified, write statistics to file
@@ -99,9 +96,9 @@ public class PrintStatistics extends ACommand {
 
         // printing statistics to console
         if (optionParser.get(PRETTY_PRINT)) {
-            printStatsPretty();
+            printStatsPretty(data);
         } else {
-            printStats();
+            printStats(data);
         }
 
         return exit_status;
@@ -136,13 +133,11 @@ public class PrintStatistics extends ACommand {
         }
     }
 
-    private LinkedHashMap<String, Object> collectStats(AnalysesScope scope) {
+    public LinkedHashMap<String, Object> collectStats(FeatureModel model, AnalysesScope scope) {
 
-        data = new LinkedHashMap<String, Object>();
+    	LinkedHashMap<String, Object> data = new LinkedHashMap<String, Object>();
 
         if (scope == AnalysesScope.ALL || scope == AnalysesScope.CONSTRAINT_RELATED) {
-
-            data.put("CONSTRAINT RELATED STATS", null);
 
             // Fetching constraint related statistics
             data.put(
@@ -163,7 +158,6 @@ public class PrintStatistics extends ACommand {
 
         if ((scope == AnalysesScope.ALL || scope == AnalysesScope.TREE_RELATED)) {
 
-            data.put("TREE RELATED STATS", null);
 
             // Fetching tree related statistics
 
@@ -213,15 +207,24 @@ public class PrintStatistics extends ACommand {
         return data;
     }
 
-    public void printStatsPretty() {
-        FeatJAR.log().message("STATISTICS ABOUT THE FEATURE MODEL:\n" + buildPrettyStats());
+    public void printStatsPretty(LinkedHashMap<String, Object> data) {
+        FeatJAR.log().message("STATISTICS ABOUT THE FEATURE MODEL:\n" + buildStringPrettyStats(data));
     }
 
-    private StringBuilder buildPrettyStats() {
+    public StringBuilder buildStringPrettyStats(LinkedHashMap<String, Object> data) {
         StringBuilder outputString = new StringBuilder();
-
+        
+       
+        
         for (Map.Entry<?, ?> entry : data.entrySet()) {
+        	
+        	if(entry.getKey().equals("Number of Atoms")) {
+        		outputString.append(String.format("\n\t\t%-40s  %n", "CONSTRAINT RELATED STATS\n"));
+        	
+        	} else if(entry.getKey().equals("[Tree 1] Average Number of Childen")) {
+        		outputString.append(String.format("\n\t\t%-40s  %n", "TREE RELATED STATS\n"));
 
+        	}
             if (entry.getValue() instanceof Map) {
                 Map<?, ?> nestedMap = (Map<?, ?>) entry.getValue();
 
@@ -231,8 +234,6 @@ public class PrintStatistics extends ACommand {
                     outputString.append(
                             String.format("%-33s : %s%n", "\t   " + nestedEntry.getKey(), nestedEntry.getValue()));
                 }
-            } else if (entry.getValue() == null) {
-                outputString.append(String.format("\n\t\t%-40s  %n", entry.getKey() + "\n"));
             } else {
                 outputString.append(String.format("%-40s : %s%n", entry.getKey(), entry.getValue()));
             }
@@ -240,7 +241,7 @@ public class PrintStatistics extends ACommand {
         return outputString;
     }
 
-    public void printStats() {
+    public void printStats(LinkedHashMap<String, Object> data) {
         FeatJAR.log().message("STATISTICS ABOUT THE FEATURE MODEL:\n" + data);
     }
 
@@ -253,4 +254,5 @@ public class PrintStatistics extends ACommand {
     public Optional<String> getShortName() {
         return Optional.of("printStats");
     }
+  
 }
