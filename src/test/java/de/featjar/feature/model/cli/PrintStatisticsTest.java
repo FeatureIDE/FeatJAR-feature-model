@@ -51,7 +51,22 @@ public class PrintStatisticsTest {
         featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         return featureModel;
     }
-    
+
+    public static int indexOfDifference(String s1, String s2) {
+        int minLen = Math.min(s1.length(), s2.length());
+        for (int i = 0; i < minLen; i++) {
+            if (s1.charAt(i) != s2.charAt(i)) {
+                return i; // index where difference starts
+            }
+        }
+        if (s1.length() == s2.length()) {
+            return -1; // strings are equal
+        } else {
+            return minLen; // difference due to length
+        }
+    }
+
+
     @Test
     void inputTest() throws IOException {
 
