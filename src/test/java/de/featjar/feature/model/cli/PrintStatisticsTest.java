@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import de.featjar.base.FeatJAR;
 import de.featjar.base.data.identifier.AIdentifier;
+import de.featjar.base.data.identifier.IIdentifiable;
 import de.featjar.base.data.identifier.Identifiers;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.cli.PrintStatistics.AnalysesScope;
@@ -37,20 +38,6 @@ import org.junit.jupiter.api.Test;
  * @author Knut & Kilian
  */
 public class PrintStatisticsTest {
-
-    public static int indexOfDifference(String s1, String s2) {
-        int minLen = Math.min(s1.length(), s2.length());
-        for (int i = 0; i < minLen; i++) {
-            if (s1.charAt(i) != s2.charAt(i)) {
-                // System.out.println(s1.charAt(i-1) +"(" + s1.charAt(i) + ")" + s1.charAt(i+1));
-                System.out.println(s1.substring(340));
-                System.out.println("---------------------");
-                System.out.println(s2.substring(340));
-                return i;
-            }
-        }
-        return -1;
-    }
 
     PrintStatistics printStats = new PrintStatistics();
     FeatureModel minimalModel = generateMinimalModel();
