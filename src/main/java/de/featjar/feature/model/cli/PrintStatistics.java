@@ -46,7 +46,7 @@ import java.util.Optional;
 /**
  * Prints statistics about a provided Feature Model.
  *
- * @author Knut & Kilian
+ * @author Knut, Kilian & Benjamin
  */
 public class PrintStatistics extends ACommand {
 
@@ -58,7 +58,7 @@ public class PrintStatistics extends ACommand {
 
     private int exit_status = 0;
 
-    // options as command line arguments
+    // command line options for user customization
     public static final Option<AnalysesScope> ANALYSES_SCOPE =
             Option.newEnumOption("scope", AnalysesScope.class).setDescription("Specifies scope of statistics");
 
@@ -66,10 +66,10 @@ public class PrintStatistics extends ACommand {
             Option.newFlag("pretty").setDescription("Pretty prints the numbers");
 
     /**
-     *
+     * main method for gathering, printing and writing statistics of a feature model
      * @param optionParser the option parser
      *
-     * {@return If the return description covers your doc, put the @return line in curly brackets}
+     * @return returns 0 if successful, 1 in case of error
      */
     @Override
     public int run(OptionList optionParser) {
@@ -100,7 +100,7 @@ public class PrintStatistics extends ACommand {
             writeTo(optionParser.getResult(OUTPUT_OPTION).get(), fileExtension);
         }
 
-        // printing statistics to console
+        // printing statistics to console if no output file is specified
         if (optionParser.get(PRETTY_PRINT)) {
             printStatsPretty(data);
         } else if (!optionParser.getResult(OUTPUT_OPTION).isPresent()) {
@@ -111,9 +111,9 @@ public class PrintStatistics extends ACommand {
     }
 
     /**
-     *
+     * writes statistics into a file, depending on file type
      * @param path
-     * @param type
+     * @param type: is extracted from provided output path, needs to be lower case
      */
     private void writeTo(Path path, String type) {
 
@@ -145,10 +145,10 @@ public class PrintStatistics extends ACommand {
     }
 
     /**
-     *
+     * method for collecting statistics of the provided feature model depending on specified scope of information (all, constraint related, tree related)
      * @param model
      * @param scope
-     * @return
+     * @return LinkedHashMap with stats data, keys are descriptive strings, values types depend on statistic (Integer, Float, HashMap)
      */
     public LinkedHashMap<String, Object> collectStats(FeatureModel model, AnalysesScope scope) {
 
@@ -156,7 +156,7 @@ public class PrintStatistics extends ACommand {
 
         if (scope == AnalysesScope.ALL || scope == AnalysesScope.CONSTRAINT_RELATED) {
 
-            // Fetching constraint related statistics
+            // fetching constraint related statistics
             data.put(
                     "Number of Atoms",
                     Computations.of(model).map(ComputeAtomsCount::new).compute());
@@ -175,7 +175,7 @@ public class PrintStatistics extends ACommand {
 
         if ((scope == AnalysesScope.ALL || scope == AnalysesScope.TREE_RELATED)) {
 
-            // Fetching tree related statistics
+            // fetching tree related statistics
 
             List<IFeatureTree> trees = model.getRoots();
             String treePrefix;
@@ -185,33 +185,28 @@ public class PrintStatistics extends ACommand {
 
                 IFeatureTree tree = trees.get(i);
 
-                // avg num of children
                 data.put(
                         treePrefix + "Average Number of Children",
                         Computations.of(tree)
                                 .map(ComputeFeatureAverageNumberOfChildren::new)
                                 .compute());
 
-                // num of top features
                 data.put(
                         treePrefix + "Number of Top Features",
                         Computations.of(tree)
                                 .map(ComputeFeatureTopFeatures::new)
                                 .compute());
 
-                // num of leaf features
                 data.put(
                         treePrefix + "Number of Leaf Features",
                         Computations.of(tree)
                                 .map(ComputeFeatureFeaturesCounter::new)
                                 .compute());
 
-                // tree depth
                 data.put(
                         treePrefix + "Tree Depth",
                         Computations.of(tree).map(ComputeFeatureTreeDepth::new).compute());
 
-                // group distribution
                 data.put(
                         treePrefix + "Group Distribution",
                         Computations.of(tree)
