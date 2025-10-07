@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * Counts the share of groups found in the given feature tree, in order: Or, And, Alternate.
+ * Counts the share of groups found in the given feature tree, in order: AlternativeGroup, OrGroup, AndGroup, OtherGroup.
  *
  * @author Sebastian Krieter
  */
