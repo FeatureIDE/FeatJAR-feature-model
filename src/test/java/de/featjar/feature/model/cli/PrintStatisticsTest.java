@@ -26,14 +26,9 @@ import de.featjar.base.FeatJAR;
 import de.featjar.base.data.identifier.AIdentifier;
 import de.featjar.base.data.identifier.Identifiers;
 import de.featjar.feature.model.FeatureModel;
-import de.featjar.feature.model.IFeatureTree;
 import de.featjar.feature.model.cli.PrintStatistics.AnalysesScope;
-
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 
 /**
@@ -51,21 +46,6 @@ public class PrintStatisticsTest {
         featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         return featureModel;
     }
-
-    public static int indexOfDifference(String s1, String s2) {
-        int minLen = Math.min(s1.length(), s2.length());
-        for (int i = 0; i < minLen; i++) {
-            if (s1.charAt(i) != s2.charAt(i)) {
-                return i; // index where difference starts
-            }
-        }
-        if (s1.length() == s2.length()) {
-            return -1; // strings are equal
-        } else {
-            return minLen; // difference due to length
-        }
-    }
-
 
     @Test
     void inputTest() throws IOException {
@@ -117,47 +97,61 @@ public class PrintStatisticsTest {
                 "desktop/folder");
         assertEquals(1, exit_code);
     }
-    
+
     @Test
     void scopeAll() throws IOException {
-    	String content = "{Number of Atoms=0, Feature Density=0.0, Average Constraints=NaN, Operator Distribution={}, [Tree 1] Average Number of Childen=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
-    	String comparison = printStats.collectStats(minimalModel, AnalysesScope.ALL).toString();
-    	assertEquals(content, comparison);
-    	
+        String content =
+                "{Number of Atoms=0, Feature Density=0.0, Average Constraints=NaN, Operator Distribution={}, [Tree 1] Average Number of Childen=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
+        String comparison =
+                printStats.collectStats(minimalModel, AnalysesScope.ALL).toString();
+        assertEquals(content, comparison);
     }
 
     @Test
     void scopeTreeRelated() throws IOException {
-    	String content = "{[Tree 1] Average Number of Childen=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
-    	String comparison = printStats.collectStats(minimalModel, AnalysesScope.TREE_RELATED).toString();
-    	assertEquals(content, comparison);
+        String content =
+                "{[Tree 1] Average Number of Childen=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
+        String comparison = printStats
+                .collectStats(minimalModel, AnalysesScope.TREE_RELATED)
+                .toString();
+        assertEquals(content, comparison);
     }
 
     @Test
     void scopeConstraintRelated() throws IOException {
-    	String content = "{Number of Atoms=0, Feature Density=0.0, Average Constraints=NaN, Operator Distribution={}}";
-    	String comparison = printStats.collectStats(minimalModel, AnalysesScope.CONSTRAINT_RELATED).toString();
-    	assertEquals(content, comparison);
+        String content = "{Number of Atoms=0, Feature Density=0.0, Average Constraints=NaN, Operator Distribution={}}";
+        String comparison = printStats
+                .collectStats(minimalModel, AnalysesScope.CONSTRAINT_RELATED)
+                .toString();
+        assertEquals(content, comparison);
     }
-    
+
     @Test
     void prettyStringBuilder() throws IOException {
-    	
-    	LinkedHashMap<String, Object> testData = new LinkedHashMap<>();
-    	testData.put("Normal Entry", 10);
-    	// LinkedHashMap<String, Object> nestedMap = new LinkedHashMap<>();
-    	// nestedMap.put("Nested Entry 1", 5);
-    	// nestedMap.put("Nested Entry 2", 6);
-    	// testData.put("HashMap Entry",  nestedMap);
-    	// testData.put("Number of Atoms", "");
-    	// testData.put("[Tree 1] Average Number of Childen", "");
-    	
-    	StringBuilder comparison = new StringBuilder();
-    	comparison.append("Normal Entry                             : 10\n");
-    	
-    	System.out.println(printStats.buildStringPrettyStats(testData));
-    	
-    	assertEquals(printStats.buildStringPrettyStats(testData), comparison);
 
+        LinkedHashMap<String, Object> testData = new LinkedHashMap<>();
+        testData.put("Normal Entry", 10);
+        LinkedHashMap<String, Object> nestedMap = new LinkedHashMap<>();
+        nestedMap.put("Nested Entry 1", 5);
+        nestedMap.put("Nested Entry 2", 6);
+        testData.put("HashMap Entry", nestedMap);
+        testData.put("Number of Atoms", "");
+        testData.put("[Tree 1] Average Number of Childen", "");
+
+        StringBuilder comparison = new StringBuilder();
+        comparison.append("Normal Entry                             : 10\n"
+                + "HashMap Entry                           \n"
+                + "	   Nested Entry 1                : 5\n"
+                + "	   Nested Entry 2                : 6\n"
+                + "\n"
+                + "		CONSTRAINT RELATED STATS\n"
+                + "                 \n"
+                + "Number of Atoms                          : \n"
+                + "\n"
+                + "		TREE RELATED STATS\n"
+                + "                       \n"
+                + "[Tree 1] Average Number of Childen       : \n");
+
+        assertEquals(printStats.buildStringPrettyStats(testData).toString(), comparison.toString());
     }
 }

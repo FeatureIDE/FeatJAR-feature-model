@@ -55,7 +55,7 @@ public class PrintStatistics extends ACommand {
         TREE_RELATED,
         CONSTRAINT_RELATED
     }
-
+    
     private int exit_status = 0;
 
     // options as command line arguments
@@ -84,7 +84,7 @@ public class PrintStatistics extends ACommand {
         if (optionParser.getResult(ANALYSES_SCOPE).isPresent()) {
             data = collectStats(model, optionParser.get(ANALYSES_SCOPE));
         } else {
-        	data = collectStats(model, AnalysesScope.ALL);
+            data = collectStats(model, AnalysesScope.ALL);
         }
 
         // if output path is specified, write statistics to file
@@ -94,12 +94,12 @@ public class PrintStatistics extends ACommand {
             writeTo(optionParser.getResult(OUTPUT_OPTION).get(), fileExtension);
         }
 
-        // printing statistics to console
+        // printing statistics to console        
         if (optionParser.get(PRETTY_PRINT)) {
-            printStatsPretty(data);
-        } else {
-            printStats(data);
-        }
+        	printStatsPretty(data);
+        } else if (!optionParser.getResult(OUTPUT_OPTION).isPresent()) {
+        	printStats(data);
+        } 
 
         return exit_status;
     }
@@ -135,7 +135,7 @@ public class PrintStatistics extends ACommand {
 
     public LinkedHashMap<String, Object> collectStats(FeatureModel model, AnalysesScope scope) {
 
-    	LinkedHashMap<String, Object> data = new LinkedHashMap<String, Object>();
+        LinkedHashMap<String, Object> data = new LinkedHashMap<String, Object>();
 
         if (scope == AnalysesScope.ALL || scope == AnalysesScope.CONSTRAINT_RELATED) {
 
@@ -157,7 +157,6 @@ public class PrintStatistics extends ACommand {
         }
 
         if ((scope == AnalysesScope.ALL || scope == AnalysesScope.TREE_RELATED)) {
-
 
             // Fetching tree related statistics
 
@@ -213,18 +212,15 @@ public class PrintStatistics extends ACommand {
 
     public StringBuilder buildStringPrettyStats(LinkedHashMap<String, Object> data) {
         StringBuilder outputString = new StringBuilder();
-        
-       
-        
-        for (Map.Entry<?, ?> entry : data.entrySet()) {
-        	
-        	if(entry.getKey().equals("Number of Atoms")) {
-        		outputString.append(String.format("\n\t\t%-40s  %n", "CONSTRAINT RELATED STATS\n"));
-        	
-        	} else if(entry.getKey().equals("[Tree 1] Average Number of Childen")) {
-        		outputString.append(String.format("\n\t\t%-40s  %n", "TREE RELATED STATS\n"));
 
-        	}
+        for (Map.Entry<?, ?> entry : data.entrySet()) {
+
+            if (entry.getKey().equals("Number of Atoms")) {
+                outputString.append(String.format("\n\t\t%-40s  %n", "CONSTRAINT RELATED STATS\n"));
+
+            } else if (entry.getKey().equals("[Tree 1] Average Number of Childen")) {
+                outputString.append(String.format("\n\t\t%-40s  %n", "TREE RELATED STATS\n"));
+            }
             if (entry.getValue() instanceof Map) {
                 Map<?, ?> nestedMap = (Map<?, ?>) entry.getValue();
 
@@ -254,5 +250,4 @@ public class PrintStatistics extends ACommand {
     public Optional<String> getShortName() {
         return Optional.of("printStats");
     }
-  
 }
