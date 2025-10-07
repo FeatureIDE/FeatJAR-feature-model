@@ -25,22 +25,17 @@ import de.featjar.base.cli.ACommand;
 import de.featjar.base.cli.Option;
 import de.featjar.base.cli.OptionList;
 import de.featjar.base.computation.Computations;
-import de.featjar.base.computation.IComputation;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.IFeatureTree;
-import de.featjar.feature.model.analysis.ComputeFeatureAverageNumberOfChildren;
-import de.featjar.feature.model.analysis.ComputeFeatureTopFeatures;
+import de.featjar.feature.model.analysis.*;
 import de.featjar.feature.model.computation.ComputeAtomsCount;
 import de.featjar.feature.model.computation.ComputeAverageConstraint;
 import de.featjar.feature.model.computation.ComputeFeatureDensity;
 import de.featjar.feature.model.computation.ComputeOperatorDistribution;
 import de.featjar.feature.model.io.FeatureModelFormats;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -70,7 +65,7 @@ public class PrintStatistics extends ACommand {
     public static final Option<Boolean> PRETTY_PRINT =
             Option.newFlag("pretty").setDescription("Pretty prints the numbers");
 
-    private LinkedHashMap<String, Float> data;
+    private LinkedHashMap<String, Object> data;
     private FeatureModel model;
     private IFeatureModel imodel;
 
@@ -142,74 +137,90 @@ public class PrintStatistics extends ACommand {
         }
     }
 
-    private LinkedHashMap<String, Float> collectStats(AnalysesScope scope) {
+    private LinkedHashMap<String, Object> collectStats(AnalysesScope scope) {
 
-        data = new LinkedHashMap<String, Float>();
-        
+        data = new LinkedHashMap<String, Object>();
 
         if (scope == AnalysesScope.ALL || scope == AnalysesScope.CONSTRAINT_RELATED) {
-        	//Fetching constraint related statistics
-        	data.put("Number of Atoms", (float)Computations.of(model).map(ComputeAtomsCount::new).compute());
-        	data.put("Feature Density", (float)Computations.of(model).map(ComputeFeatureDensity::new).compute());
-            data.put("Average Constraints", (float)Computations.of(model).map(ComputeAverageConstraint::new).compute());
+            // Fetching constraint related statistics
+            data.put(
+                    "Number of Atoms",
+                    Computations.of(model).map(ComputeAtomsCount::new).compute());
+            data.put(
+                    "Feature Density",
+                    Computations.of(model).map(ComputeFeatureDensity::new).compute());
+            data.put(
+                    "Average Constraints",
+                    Computations.of(model).map(ComputeAverageConstraint::new).compute());
 
-        	HashMap<String, Integer> computational_opDensity = Computations.of(model)
-                    .map(ComputeOperatorDistribution::new)
-                    .compute();
-            data.put("Operator Density AND", (float)computational_opDensity.get("And"));
-            data.put("Operator Density Or", (float)computational_opDensity.get("Or"));
-            data.put("Operator Density Not", (float)computational_opDensity.get("Not"));
-            data.put("Operator Density Implies", (float)computational_opDensity.get("Implies"));
+            HashMap<String, Integer> computational_opDensity =
+                    Computations.of(model).map(ComputeOperatorDistribution::new).compute();
+
+            /*
+            for(int i = 0; i < computational_opDensity.size(); i++) {
+
+            }*/
+
+            data.put("Operator Distribution", computational_opDensity);
+
+            /*
+            data.put("Operator Density AND", computational_opDensity.get("And"));
+            data.put("Operator Density Or", computational_opDensity.get("Or"));
+            data.put("Operator Density Not", computational_opDensity.get("Not"));
+            data.put("Operator Density Implies", computational_opDensity.get("Implies"));
+            */
         }
-        
 
         if ((scope == AnalysesScope.ALL || scope == AnalysesScope.TREE_RELATED)) {
 
-        	//Fetching tree related statistics
-        	
-        	List<IFeatureTree> trees = model.getRoots();
-        	float value;
-        	String treePrefix;
-        
-        	for (int i = 0; i < trees.size(); i++) {
-        		treePrefix = "[Tree "+(i+1) + "] ";
-        		
-        		IFeatureTree tree = trees.get(i);
-        		
-        		// avg num of children
-        		double average = Computations.of(tree)
-                        .map(ComputeFeatureAverageNumberOfChildren::new)
-                        .compute();
-        		value = (float) average;
-        		data.put(treePrefix + "Average Number of Childen", value);
-        		
-        		// num of top features
-        		int topFeatures = Computations.of(tree).map(ComputeFeatureTopFeatures::new).compute();
-        		data.put(treePrefix + "Number of Top Features", (float) topFeatures);
-        		
-        		// tree depth
-        		
-        	}
-        	
-        	
-        	
-        
-        	// Tree depth
-        	// Number of leaf features
-        	// Group distribution
-        	
-        }
+            // Fetching tree related statistics
 
-        // dummy values, will be handled by functions of other teams
-        /*
-        data.put("numOfTopFeatures", 3);
-        data.put("numOfLeafFeatures", 12);
-        data.put("treeDepth", 3);
-        data.put("avgNumOfChildren", 3);
-        data.put("numInOrGroups", 7);
-        data.put("numInAltGroups", 5);
-        data.put("avgNumOfAtomsPerConstraints", 4);
-        */
+            model.mutate().addFeatureTreeRoot(model.mutate().addFeature("Second Tree Root"));
+
+            List<IFeatureTree> trees = model.getRoots();
+            String treePrefix;
+
+            for (int i = 0; i < trees.size(); i++) {
+                treePrefix = "[Tree " + (i + 1) + "] ";
+                // treePrefix = "\t";
+                // data.put("[Tree "+(i+1) + "]", "");
+
+                IFeatureTree tree = trees.get(i);
+
+                // avg num of children
+                data.put(
+                        treePrefix + "Average Number of Childen",
+                        Computations.of(tree)
+                                .map(ComputeFeatureAverageNumberOfChildren::new)
+                                .compute());
+
+                // num of top features
+                data.put(
+                        treePrefix + "Number of Top Features",
+                        Computations.of(tree)
+                                .map(ComputeFeatureTopFeatures::new)
+                                .compute());
+
+                // num of leaf features
+                data.put(
+                        treePrefix + "Number of Leaf Features",
+                        Computations.of(tree)
+                                .map(ComputeFeatureFeaturesCounter::new)
+                                .compute());
+
+                // tree depth
+                data.put(
+                        treePrefix + "Tree Depth",
+                        Computations.of(tree).map(ComputeFeatureTreeDepth::new).compute());
+
+                // group distribution
+                data.put(
+                        treePrefix + "Group Distribution",
+                        Computations.of(tree)
+                                .map(ComputeFeatureGroupDistribution::new)
+                                .compute());
+            }
+        }
 
         return data;
     }
@@ -221,8 +232,20 @@ public class PrintStatistics extends ACommand {
     private StringBuilder buildPrettyStats() {
         StringBuilder outputString = new StringBuilder();
 
+        // if(isInstance(Map.Entry<K, V>, LinkedHashMap) )
+
         for (Map.Entry<?, ?> entry : data.entrySet()) {
-            outputString.append(String.format("%-40s : %s%n", entry.getKey(), entry.getValue()));
+
+            if (entry.getValue() instanceof HashMap) {
+                /*
+                HashMap myHashMap = (HashMap) entry.getValue();
+                  	for(HashMap single : entry.getValue() {
+                  		outputString.append(String.format("%-40s : %s%n", single.getKey(), single.getValue()));
+                  	}
+                  	*/
+            } else {
+                outputString.append(String.format("%-40s : %s%n", entry.getKey(), entry.getValue()));
+            }
         }
         return outputString;
     }
