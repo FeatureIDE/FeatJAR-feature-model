@@ -28,10 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import de.featjar.base.tree.Trees;
-import de.featjar.base.tree.structure.ITree;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IConstraint;
-import de.featjar.formula.structure.IExpression;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.And;
 import de.featjar.formula.structure.connective.Implies;
@@ -44,8 +42,6 @@ import de.featjar.formula.structure.term.ITerm;
 import de.featjar.formula.structure.term.value.Constant;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -68,7 +64,8 @@ public class ConstraintPropertiesVisitorTest {
         assertEquals(1, formula1BooleansCount);
         assertEquals(3, formula2ConstantsCount);
         assertEquals(1, formula3VariablesCount);
-        assertEquals(0, Trees.traverse(new And(), new AtomsCount(true, true, true)).orElseThrow());
+        assertEquals(
+                0, Trees.traverse(new And(), new AtomsCount(true, true, true)).orElseThrow());
     }
 
     @Test
@@ -102,7 +99,8 @@ public class ConstraintPropertiesVisitorTest {
         assertEquals(1, formula3Features.size());
         assertTrue(formula3Features.contains("a"));
         assertFalse(formula3Features.contains("b"));
-        assertEquals(0, Trees.traverse(new And(), new FeatureDensity()).orElseThrow().size());
+        assertEquals(
+                0, Trees.traverse(new And(), new FeatureDensity()).orElseThrow().size());
     }
 
     @Test
@@ -133,7 +131,9 @@ public class ConstraintPropertiesVisitorTest {
         assertEquals(4, formula2Count.size());
 
         assertEquals(0, formula3Count.size());
-        assertEquals(0, Trees.traverse(null, new OperatorDistribution()).orElseThrow().size());
+        assertEquals(
+                0,
+                Trees.traverse(null, new OperatorDistribution()).orElseThrow().size());
     }
 
     public FeatureModel createFeatureModel() {
