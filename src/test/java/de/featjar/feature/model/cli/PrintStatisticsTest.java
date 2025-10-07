@@ -38,6 +38,20 @@ import org.junit.jupiter.api.Test;
  */
 public class PrintStatisticsTest {
 
+    public static int indexOfDifference(String s1, String s2) {
+        int minLen = Math.min(s1.length(), s2.length());
+        for (int i = 0; i < minLen; i++) {
+            if (s1.charAt(i) != s2.charAt(i)) {
+                // System.out.println(s1.charAt(i-1) +"(" + s1.charAt(i) + ")" + s1.charAt(i+1));
+                System.out.println(s1.substring(340));
+                System.out.println("---------------------");
+                System.out.println(s2.substring(340));
+                return i;
+            }
+        }
+        return -1;
+    }
+
     PrintStatistics printStats = new PrintStatistics();
     FeatureModel minimalModel = generateMinimalModel();
 
@@ -101,7 +115,7 @@ public class PrintStatisticsTest {
     @Test
     void scopeAll() throws IOException {
         String content =
-                "{Number of Atoms=0, Feature Density=0.0, Average Constraints=NaN, Operator Distribution={}, [Tree 1] Average Number of Childen=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
+                "{Number of Atoms=0, Feature Density=0.0, Average Constraints=NaN, Operator Distribution={}, [Tree 1] Average Number of Children=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
         String comparison =
                 printStats.collectStats(minimalModel, AnalysesScope.ALL).toString();
         assertEquals(content, comparison);
@@ -110,7 +124,7 @@ public class PrintStatisticsTest {
     @Test
     void scopeTreeRelated() throws IOException {
         String content =
-                "{[Tree 1] Average Number of Childen=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
+                "{[Tree 1] Average Number of Children=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
         String comparison = printStats
                 .collectStats(minimalModel, AnalysesScope.TREE_RELATED)
                 .toString();
@@ -136,7 +150,7 @@ public class PrintStatisticsTest {
         nestedMap.put("Nested Entry 2", 6);
         testData.put("HashMap Entry", nestedMap);
         testData.put("Number of Atoms", "");
-        testData.put("[Tree 1] Average Number of Childen", "");
+        testData.put("[Tree 1] Average Number of Children", "");
 
         StringBuilder comparison = new StringBuilder();
         comparison.append("Normal Entry                             : 10\n"
@@ -150,7 +164,7 @@ public class PrintStatisticsTest {
                 + "\n"
                 + "		TREE RELATED STATS\n"
                 + "                       \n"
-                + "[Tree 1] Average Number of Children       : \n");
+                + "[Tree 1] Average Number of Children      : \n");
 
         assertEquals(printStats.buildStringPrettyStats(testData).toString(), comparison.toString());
     }
