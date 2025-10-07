@@ -65,6 +65,12 @@ public class PrintStatistics extends ACommand {
     public static final Option<Boolean> PRETTY_PRINT =
             Option.newFlag("pretty").setDescription("Pretty prints the numbers");
 
+    /**
+     *
+     * @param optionParser the option parser
+     *
+     * {@return If the return description covers your doc, put the @return line in curly brackets}
+     */
     @Override
     public int run(OptionList optionParser) {
 
@@ -104,6 +110,11 @@ public class PrintStatistics extends ACommand {
         return exit_status;
     }
 
+    /**
+     *
+     * @param path
+     * @param type
+     */
     private void writeTo(Path path, String type) {
 
         switch (type) {
@@ -133,6 +144,12 @@ public class PrintStatistics extends ACommand {
         }
     }
 
+    /**
+     *
+     * @param model
+     * @param scope
+     * @return
+     */
     public LinkedHashMap<String, Object> collectStats(FeatureModel model, AnalysesScope scope) {
 
         LinkedHashMap<String, Object> data = new LinkedHashMap<String, Object>();
@@ -170,7 +187,7 @@ public class PrintStatistics extends ACommand {
 
                 // avg num of children
                 data.put(
-                        treePrefix + "Average Number of Childen",
+                        treePrefix + "Average Number of Children",
                         Computations.of(tree)
                                 .map(ComputeFeatureAverageNumberOfChildren::new)
                                 .compute());
@@ -206,10 +223,19 @@ public class PrintStatistics extends ACommand {
         return data;
     }
 
+    /**
+     *
+     * @param data
+     */
     public void printStatsPretty(LinkedHashMap<String, Object> data) {
         FeatJAR.log().message("STATISTICS ABOUT THE FEATURE MODEL:\n" + buildStringPrettyStats(data));
     }
 
+    /**
+     *
+     * @param data
+     * @return
+     */
     public StringBuilder buildStringPrettyStats(LinkedHashMap<String, Object> data) {
         StringBuilder outputString = new StringBuilder();
 
@@ -218,7 +244,7 @@ public class PrintStatistics extends ACommand {
             if (entry.getKey().equals("Number of Atoms")) {
                 outputString.append(String.format("\n\t\t%-40s  %n", "CONSTRAINT RELATED STATS\n"));
 
-            } else if (entry.getKey().equals("[Tree 1] Average Number of Childen")) {
+            } else if (entry.getKey().equals("[Tree 1] Average Number of Children")) {
                 outputString.append(String.format("\n\t\t%-40s  %n", "TREE RELATED STATS\n"));
             }
             if (entry.getValue() instanceof Map) {
@@ -237,15 +263,27 @@ public class PrintStatistics extends ACommand {
         return outputString;
     }
 
+    /**
+     *
+     * @param data
+     */
     public void printStats(LinkedHashMap<String, Object> data) {
         FeatJAR.log().message("STATISTICS ABOUT THE FEATURE MODEL:\n" + data);
     }
 
+    /**
+     *
+     * @return
+     */
     @Override
     public Optional<String> getDescription() {
         return Optional.of("Prints out statistics about a given Feature Model.");
     }
 
+    /**
+     *
+     * @return
+     */
     @Override
     public Optional<String> getShortName() {
         return Optional.of("printStats");

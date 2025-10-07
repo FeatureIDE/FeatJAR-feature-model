@@ -150,7 +150,7 @@ public class PrintStatisticsTest {
                 + "\n"
                 + "		TREE RELATED STATS\n"
                 + "                       \n"
-                + "[Tree 1] Average Number of Childen       : \n");
+                + "[Tree 1] Average Number of Children       : \n");
 
         assertEquals(printStats.buildStringPrettyStats(testData).toString(), comparison.toString());
     }
