@@ -113,7 +113,6 @@ public class PrintStatistics extends ACommand {
             case "xml":
                 // TODO future Story Card: Write to XML
                 // IO.save(new Object(data), path, new XMLFeatureModelFormat());
-                // IO.sa
                 break;
             case "csv":
                 // TODO future Story Card: Write to CSV
@@ -142,6 +141,9 @@ public class PrintStatistics extends ACommand {
         data = new LinkedHashMap<String, Object>();
 
         if (scope == AnalysesScope.ALL || scope == AnalysesScope.CONSTRAINT_RELATED) {
+
+            data.put("CONSTRAINT RELATED STATS", null);
+
             // Fetching constraint related statistics
             data.put(
                     "Number of Atoms",
@@ -156,34 +158,20 @@ public class PrintStatistics extends ACommand {
             HashMap<String, Integer> computational_opDensity =
                     Computations.of(model).map(ComputeOperatorDistribution::new).compute();
 
-            /*
-            for(int i = 0; i < computational_opDensity.size(); i++) {
-
-            }*/
-
             data.put("Operator Distribution", computational_opDensity);
-
-            /*
-            data.put("Operator Density AND", computational_opDensity.get("And"));
-            data.put("Operator Density Or", computational_opDensity.get("Or"));
-            data.put("Operator Density Not", computational_opDensity.get("Not"));
-            data.put("Operator Density Implies", computational_opDensity.get("Implies"));
-            */
         }
 
         if ((scope == AnalysesScope.ALL || scope == AnalysesScope.TREE_RELATED)) {
 
-            // Fetching tree related statistics
+            data.put("TREE RELATED STATS", null);
 
-            model.mutate().addFeatureTreeRoot(model.mutate().addFeature("Second Tree Root"));
+            // Fetching tree related statistics
 
             List<IFeatureTree> trees = model.getRoots();
             String treePrefix;
 
             for (int i = 0; i < trees.size(); i++) {
                 treePrefix = "[Tree " + (i + 1) + "] ";
-                // treePrefix = "\t";
-                // data.put("[Tree "+(i+1) + "]", "");
 
                 IFeatureTree tree = trees.get(i);
 
@@ -232,15 +220,19 @@ public class PrintStatistics extends ACommand {
     private StringBuilder buildPrettyStats() {
         StringBuilder outputString = new StringBuilder();
 
-        // if(isInstance(Map.Entry<K, V>, LinkedHashMap) )
-
         for (Map.Entry<?, ?> entry : data.entrySet()) {
 
             if (entry.getValue() instanceof Map) {
                 Map<?, ?> nestedMap = (Map<?, ?>) entry.getValue();
+
+                outputString.append(String.format("%-40s%n", entry.getKey()));
+
                 for (Map.Entry<?, ?> nestedEntry : nestedMap.entrySet()) {
-                    outputString.append(String.format("%-40s : %s%n", nestedEntry.getKey(), nestedEntry.getValue()));
+                    outputString.append(
+                            String.format("%-33s : %s%n", "\t   " + nestedEntry.getKey(), nestedEntry.getValue()));
                 }
+            } else if (entry.getValue() == null) {
+                outputString.append(String.format("\n\t\t%-40s  %n", entry.getKey() + "\n"));
             } else {
                 outputString.append(String.format("%-40s : %s%n", entry.getKey(), entry.getValue()));
             }
