@@ -55,7 +55,7 @@ public class PrintStatistics extends ACommand {
         TREE_RELATED,
         CONSTRAINT_RELATED
     }
-    
+
     private int exit_status = 0;
 
     // options as command line arguments
@@ -94,12 +94,12 @@ public class PrintStatistics extends ACommand {
             writeTo(optionParser.getResult(OUTPUT_OPTION).get(), fileExtension);
         }
 
-        // printing statistics to console        
+        // printing statistics to console
         if (optionParser.get(PRETTY_PRINT)) {
-        	printStatsPretty(data);
+            printStatsPretty(data);
         } else if (!optionParser.getResult(OUTPUT_OPTION).isPresent()) {
-        	printStats(data);
-        } 
+            printStats(data);
+        }
 
         return exit_status;
     }
