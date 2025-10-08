@@ -138,8 +138,7 @@ public class PrintStatisticsTest {
         testData.put("Number of Atoms", "");
         testData.put("[Tree 1] Average Number of Children", "");
 
-        StringBuilder comparison = new StringBuilder();
-        comparison.append("Normal Entry                             : 10\n"
+        String comparison = "Normal Entry                             : 10\n"
                 + "HashMap Entry                           \n"
                 + "	   Nested Entry 1                : 5\n"
                 + "	   Nested Entry 2                : 6\n"
@@ -150,8 +149,8 @@ public class PrintStatisticsTest {
                 + "\n"
                 + "		TREE RELATED STATS\n"
                 + "                       \n"
-                + "[Tree 1] Average Number of Children      : \n");
+                + "[Tree 1] Average Number of Children      : \n";
 
-        assertEquals(printStats.buildStringPrettyStats(testData).toString(), comparison.toString());
+        assertEquals(comparison, printStats.buildStringPrettyStats(testData).toString());
     }
 }
