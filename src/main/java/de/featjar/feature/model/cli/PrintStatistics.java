@@ -152,7 +152,7 @@ public class PrintStatistics extends ACommand {
      */
     public LinkedHashMap<String, Object> collectStats(FeatureModel model, AnalysesScope scope) {
 
-        LinkedHashMap<String, Object> data = new LinkedHashMap<String, Object>();
+        LinkedHashMap<String, Object> data = new LinkedHashMap<>();
 
         if (scope == AnalysesScope.ALL || scope == AnalysesScope.CONSTRAINT_RELATED) {
 
