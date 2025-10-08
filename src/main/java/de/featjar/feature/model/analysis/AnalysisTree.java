@@ -35,10 +35,6 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
         this.value = value;
     }
 
-    // public AnalysisTree(Hash) {
-    //	this.name = name;
-    // }
-
     public String getName() {
         return this.name;
     }
@@ -47,34 +43,32 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
         return this.value;
     }
 
-    public AnalysisTree(AnalysisTree analysisTree) {
+    public AnalysisTree(AnalysisTree<T> analysisTree) {
         this.name = analysisTree.name;
+        this.value = analysisTree.value;
     }
 
     @Override
     public AnalysisTree<?> cloneNode() {
         // TODO Auto-generated method stub
-        return new AnalysisTree(this);
+        return new AnalysisTree<>(this);
     }
 
     @Override
-    public boolean equalsNode(AnalysisTree other) {
-        return this.name.equals(other.name);
+    public boolean equalsNode(AnalysisTree<?> other) {
+        return this.name.equals(other.name) && this.value.equals(other.value);
     }
 
     // TODO is this hashing OK?
     @Override
     public int hashCodeNode() {
-        return Objects.hash(this.getClass(), this.name);
+        return Objects.hash(this.getClass(), this.name, this.value.getClass(), this.value);
     }
 
-    public static AnalysisTree hashMapToTree(HashMap<String, Object> hashMap, String name) {
+    public static AnalysisTree<?> hashMapToTree(HashMap<String, Object> hashMap, String name) {
         AnalysisTree<Object> root = new AnalysisTree<>(name, (Object) null);
         for (Iterator<String> iterator = hashMap.keySet().iterator(); iterator.hasNext(); ) {
             String currentKey = iterator.next();
-            /*if (obj.getClass().equals("HashMap")) {
-            	hashMapToTree((HashMap)obj);
-            }*/
             if (hashMap.get(currentKey) instanceof Integer) {
                 root.addChild(new AnalysisTree<>(currentKey, (int) hashMap.get(currentKey)));
             } else if (hashMap.get(currentKey) instanceof Float) {
