@@ -38,6 +38,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+//--input "../formula/src/testFixtures/resources/Automotive02_V1/model.xml"  --scope all --pretty --output "c://home/deskop/model.xml"
+
 /**
  * Prints statistics about a provided Feature Model.
  *
@@ -47,22 +49,17 @@ public class FormatConversion implements ICommand  {
 
 
 	
-	private static final List<String> supportedInputFileExtensions = Arrays.asList("xml", "uvl", "dot");
-	private static final List<String> supportedOutputFileExtensions = Arrays.asList("xml", "uvl", "dot");
+	private static final List<String> supportedInputFileExtensions = Arrays.asList("csv", "xml", "yaml", "txt", "dot");
+	private static final List<String> supportedOutputFileExtensions = Arrays.asList("csv", "xml", "yaml", "txt", "json");
 	
 	
 	public static final Option<Path> INPUT_OPTION = Option.newOption("input", Option.PathParser)
-            .setDescription("Path to input file. Accepted File Types: csv, xml, yaml, txt")
+            .setDescription("Path to input file. Accepted File Types: " + supportedInputFileExtensions)
             .setValidator(Option.PathValidator);
 
-	
-	
-	
-    /**
-     * Output option for saving files.
-     */
-    public static final Option<Path> OUTPUT_OPTION =
-            Option.newOption("output", Option.PathParser).setDescription("Path to output file. Accepted File Types: csv, xml, yaml, txt, json");
+    public static final Option<Path> OUTPUT_OPTION = Option.newOption("output", Option.PathParser)
+            .setDescription("Path to output file. Accepted File Types: " + supportedInputFileExtensions)
+            .setValidator(Option.PathValidator);
 
     /**
      * {@return all options registered for the calling class}
@@ -70,42 +67,35 @@ public class FormatConversion implements ICommand  {
     public final List<Option<?>> getOptions() {
         return Option.getAllOptions(getClass());
     }
-	
-	//--input "../formula/src/testFixtures/resources/Automotive02_V1/model.xml"  --scope all --pretty --output "c://home/deskop/model.xml" 
+
 
     /**
      * 
-     * @param optionParser the option parser
+     * @param optionParser option parser supplied by command line execution
      *
-     * @return returns 0 if successful, 1 in case of error
+     * @return 0 on success, 1 if in- or output paths are invalid, 2 on IOException, 3 if no model could be parsed from input file
      */
     @Override
     public int run(OptionList optionParser) {
-    	
-    	// Valid formats: XML, UVL, GraphVis
-    	
-	
+
+        // check if there is a missing input / output argument
     	if(!checkIfInputOutputIsPresent(optionParser)) {
     		return 1;
     	}
-    	IFeatureModel model = inputParser(optionParser); //model == null falls error occurred
-    	
-    	// check if provided file extensions are supported
-	    String inputFileExtension = IO.getFileExtension(optionParser.getResult(INPUT_OPTION).get());
-    	
-	    if (!supportedInputFileExtensions.contains(inputFileExtension)) {
-	    	System.out.println("supportedInputFileExtensions: " + supportedInputFileExtensions);
-	    	System.out.println("input: " + IO.getFileExtension(optionParser.getResult(INPUT_OPTION).get()));
-	    	FeatJAR.log().error("Unsupported input file extension.");
-	    	return 2;
-	    }
-	    
-	    String outputFileExtension = IO.getFileExtension(optionParser.getResult(OUTPUT_OPTION).get());
-	    
-	    if (!supportedOutputFileExtensions.contains(outputFileExtension)) {
-	    	FeatJAR.log().error("Unsupported output file extension.");
-	    	return 2;
-	    }
+
+        // check if provided file extensions are supported
+        String inputFileExtension = IO.getFileExtension(optionParser.getResult(INPUT_OPTION).get());
+        String outputFileExtension = IO.getFileExtension(optionParser.getResult(OUTPUT_OPTION).get());
+        if (!checkIfFileExtensionsValid(inputFileExtension, outputFileExtension)) {
+            return 1;
+        };
+
+        // check if model was corrected extracted from input
+    	IFeatureModel model = inputParser(optionParser);
+        if (model == null) {
+            FeatJAR.log().error("No model parsed from input file!");
+            return 3;
+        }
 
         // check if output path is valid
         Path outputPath = optionParser.getResult(OUTPUT_OPTION).orElseThrow();
@@ -116,6 +106,30 @@ public class FormatConversion implements ICommand  {
         // save file
         return saveFile(outputPath, model, outputFileExtension);
     }
+
+    /**
+     * Checks if input and output file extensions provided by user appear in list of supported extensions.
+     * @param inputFileExtension: extension used for the input file
+     * @param outputFileExtension extension used for the output file
+     * @return true if both extensions are valid, false if either is invalid
+     */
+    private boolean checkIfFileExtensionsValid (String inputFileExtension, String outputFileExtension) {
+        if (!supportedInputFileExtensions.contains(inputFileExtension)) {
+            FeatJAR.log().error("Unsupported input file extension.");
+            System.out.println("Received extension: " + inputFileExtension +
+                    "\n Supported extensions: " + supportedInputFileExtensions);
+            return false;
+        }
+
+        if (!supportedOutputFileExtensions.contains(outputFileExtension)) {
+            FeatJAR.log().error("Unsupported output file extension.");
+            System.out.println("Received extension: " + outputFileExtension +
+                    "\n Supported extensions: " + supportedOutputFileExtensions);
+            return false;
+        }
+        return true;
+    }
+
 
     private boolean checkIfInputOutputIsPresent(OptionList optionParser) {
 		if (!optionParser.getResult(INPUT_OPTION).isPresent()) {
@@ -151,7 +165,7 @@ public class FormatConversion implements ICommand  {
      * @param outputPath: full path to the output file
      * @param model: Feature model read from original input file
      * @param fileExtension IFormat that can write FeatureModels to our output file extension
-     * @return 0 on success, 1 on IOException, 2 on invalid output file extension
+     * @return 0 on success, 1 on invalid output file extension, 2 on IOException,
      */
     private int saveFile(Path outputPath, IFeatureModel model, String fileExtension) {
         IFormat<IFeatureModel> format;
@@ -161,15 +175,16 @@ public class FormatConversion implements ICommand  {
                 format = new XMLFeatureModelFormat();
                 break;
             default:
+                // this still catches errors if the switch case construct has not implemented all supported file types!
                 FeatJAR.log().error("Unsupported output file extension: " + fileExtension);
-                return 2;
+                return 1;
         }
 
         try {
             IO.save(model, outputPath, format);
         }catch (IOException e) {
             FeatJAR.log().error(e.getMessage());
-            return 1;
+            return 2;
         }
         return 0;
 
