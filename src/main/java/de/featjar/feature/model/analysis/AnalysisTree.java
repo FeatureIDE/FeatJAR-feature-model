@@ -58,6 +58,15 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
 
     @Override
     public boolean equalsNode(AnalysisTree<?> other) {
+        if (other.value == null && this.value != null) {
+            return false;
+        }
+        if (other.value != null && this.value == null) {
+            return false;
+        }
+        if (this.value == null && other.value == null) {
+            return this.name.equals(other.name);
+        }
         return this.name.equals(other.name) && this.value.equals(other.value);
     }
 
