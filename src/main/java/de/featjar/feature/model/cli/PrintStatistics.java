@@ -50,7 +50,7 @@ import java.util.Optional;
  */
 public class PrintStatistics extends ACommand {
 
-    enum AnalysesScope {
+    public enum AnalysesScope {
         ALL,
         TREE_RELATED,
         CONSTRAINT_RELATED
