@@ -20,18 +20,27 @@
  */
 package de.featjar.feature.model.cli;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 
 import de.featjar.base.FeatJAR;
 import de.featjar.base.data.identifier.AIdentifier;
 import de.featjar.base.data.identifier.IIdentifiable;
+import de.featjar.base.data.identifier.Identifiers;
+import de.featjar.feature.model.FeatureModel;
+import de.featjar.feature.model.cli.PrintStatistics.AnalysesScope;
+
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Test;
+
+import de.featjar.feature.model.cli.FormatConversion;
 
 /**
  * Tests for {@link AIdentifier} and {@link IIdentifiable}.
@@ -42,55 +51,62 @@ public class FormatConversionTest {
 
     FormatConversion formatConversion = new FormatConversion();
 
+
+
     @Test
-    void fileWritingTest() {
+    void fileWritingTest() throws IOException {
+    	
+    	String pathToOutPutModel = "output_model.xml";
+    	String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
 
-        String pathToOutPutModel = "output_model.xml";
-        String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
-
-        int exit_code = FeatJAR.runTest("formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
+        int exit_code = FeatJAR.runTest(
+                "formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
         assertEquals(0, exit_code);
         assertTrue(new File(pathToOutPutModel).exists());
         Path pathToBeDeleted = Paths.get(pathToOutPutModel);
         assertDoesNotThrow(() -> {
-            Files.deleteIfExists(pathToBeDeleted);
-        });
+        Files.deleteIfExists(pathToBeDeleted);
+        } );
     }
-
+    
     @Test
-    void invalidOutput() {
+    void invalidOutput() throws IOException {
+    	
+    	String pathToOutPutModel = "output_model.pdf";
+    	String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
 
-        String pathToOutPutModel = "output_model.pdf";
-        String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
-
-        int exit_code = FeatJAR.runTest("formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
+        int exit_code = FeatJAR.runTest(
+                "formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
         assertEquals(1, exit_code);
     }
-
     @Test
-    void invalidInput() {
-
-        String pathToOutPutModel = "output_model.xml";
-        String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.pdf";
-
-        int exit_code = FeatJAR.runTest("formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
+    void invalidInput() throws IOException {
+    	
+    	String pathToOutPutModel = "output_model.xml";
+    	String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.pdf";
+    	
+        int exit_code = FeatJAR.runTest(
+                "formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
         assertEquals(1, exit_code);
     }
-
     @Test
-    void invalid() {
-
-        String pathToOutPutModel = "output_model.xml";
-        String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.pdf";
-
-        int exit_code = FeatJAR.runTest("formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
+    void invalid() throws IOException {
+    	
+    	String pathToOutPutModel = "output_model.xml";
+    	String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.pdf";
+    	
+        int exit_code = FeatJAR.runTest(
+                "formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
         assertEquals(1, exit_code);
     }
-
+    
     @Test
-    void ioExceptionTest() {
-        int exit_code = formatConversion.saveFile(Paths.get(""), null, "xml");
-        System.out.println(exit_code);
-        assertEquals(2, exit_code);
+    void ioExceptionTest() throws IOException {
+    	FormatConversion fc = new FormatConversion();
+    	int exit_code = fc.saveFile(Paths.get(""), null, "xml", "xml");
+    	assertEquals(2, exit_code);
     }
+    
+
+   
 }

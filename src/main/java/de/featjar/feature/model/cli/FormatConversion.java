@@ -41,6 +41,9 @@ import java.util.Optional;
 // --input "../formula/src/testFixtures/resources/Automotive02_V1/model.xml"  --scope all --pretty --output
 // "c://home/deskop/model.xml"
 
+// Extensionpoints um auf UVL zuzugreifen
+
+
 /**
  * Prints statistics about a provided Feature Model.
  *
@@ -48,6 +51,7 @@ import java.util.Optional;
  */
 public class FormatConversion implements ICommand {
 
+	
     private static final List<String> supportedInputFileExtensions = Arrays.asList("csv", "xml", "yaml", "txt", "dot");
     private static final List<String> supportedOutputFileExtensions =
             Arrays.asList("csv", "xml", "yaml", "txt", "json", "dot");
@@ -75,6 +79,8 @@ public class FormatConversion implements ICommand {
     @Override
     public int run(OptionList optionParser) {
 
+    	System.out.println(FeatureModelFormats.getInstance().getExtensions());
+    	
         if (!checkIfInputOutputIsPresent(optionParser)) {
             return 1;
         }
@@ -102,7 +108,7 @@ public class FormatConversion implements ICommand {
             return 1;
         }
 
-        return saveFile(outputPath, model, outputFileExtension);
+        return saveFile(outputPath, model, inputFileExtension, outputFileExtension);
     }
 
     /**
@@ -164,23 +170,72 @@ public class FormatConversion implements ICommand {
      * @param fileExtension IFormat that can write FeatureModels to our output file extension
      * @return 0 on success, 1 on invalid output file extension, 2 on IOException,
      */
-    public int saveFile(Path outputPath, IFeatureModel model, String fileExtension) {
-        IFormat<IFeatureModel> format;
+    private IFormat<IFeatureModel> determineInfoLossFromTypes(String inputFileExtension, String outputFileExtension) {
+    	IFormat<IFeatureModel> format = null;
+    	List<String> noLossExtensions;
+    	List<String> someLossExtensions;
+    	List<String> muchLossExtension;
+    	
+    	String noLoss = "No Information Loss from " + inputFileExtension + " to " + outputFileExtension;
+    	String someLoss = "Some Information Loss from " + inputFileExtension + " to " + outputFileExtension; //genauer ausführen 
+    	String muchLoss = "Much Information Loss from " + inputFileExtension + " to " + outputFileExtension; //was verloren gehen wird
+    	
+    	String message = "";
 
-        switch (fileExtension) {
-            case "xml":
-                format = new XMLFeatureModelFormat();
-                break;
-            case "dot":
-                format = new GraphVizFeatureModelFormat();
-                break;
-            case "txt":
-                format = new GenericTextFormat();
-                break;
-            default:
-                // this still catches errors if the switch case construct has not implemented all supported file types!
-                FeatJAR.log().error("Unsupported output file extension: " + fileExtension);
-                return 1;
+    	switch(inputFileExtension) {
+    	case "xml":
+    		format = new XMLFeatureModelFormat();
+        	noLossExtensions = Arrays.asList("xml", "json", "yaml");
+        	someLossExtensions = Arrays.asList("csv", "txt");
+        	muchLossExtension = Arrays.asList("dot");
+        	break;
+    	case "dot":
+    		format = new GraphVizFeatureModelFormat();
+        	noLossExtensions = Arrays.asList("dot", "yaml");
+        	someLossExtensions = Arrays.asList("xml", "txt");
+        	muchLossExtension = Arrays.asList("json", "csv");
+        	break;
+    	case "txt":
+    		format = new GenericTextFormat();
+    		noLossExtensions = Arrays.asList("txt");
+        	someLossExtensions = Arrays.asList("xml", "dot", "yaml");
+        	muchLossExtension = Arrays.asList("json", "csv");
+        	break;
+    	default:
+    		noLossExtensions = Arrays.asList("");
+        	someLossExtensions = Arrays.asList("");
+        	muchLossExtension = Arrays.asList("");    		
+    	}
+    	if(noLossExtensions.contains(outputFileExtension)) {
+			message = noLoss;
+		} else if(someLossExtensions.contains(outputFileExtension)) {
+			message = someLoss;
+		} else if(noLossExtensions.contains(outputFileExtension)) {
+			message = muchLoss;
+		}
+    	FeatJAR.log().message(message);
+    	return format;
+    }
+    
+    public int saveFile(Path outputPath, IFeatureModel model, String inputFileExtension, String outputFileExtension) {
+        IFormat<IFeatureModel> format = determineInfoLossFromTypes(inputFileExtension,outputFileExtension);
+//        switch (outputFileExtension) {
+//            case "xml":
+//                format = new XMLFeatureModelFormat();
+//                break;
+//            case "dot":
+//                format = new GraphVizFeatureModelFormat();
+//                break;
+//            case "txt":
+//                format = new GenericTextFormat();
+//                break;
+//            default:
+//                // this still catches errors if the switch case construct has not implemented all supported file types!
+//                FeatJAR.log().error("Unsupported output file extension: " + outputFileExtension);
+//                return 1;
+//        }
+        if (format == null) {
+        	return 1;
         }
         try {
             IO.save(model, outputPath, format);
@@ -188,7 +243,7 @@ public class FormatConversion implements ICommand {
                 throw new IOException("model has value null");
             }
         } catch (IOException e) {
-            FeatJAR.log().error(e.getMessage());
+            FeatJAR.log().error(e);
             return 2;
         }
         return 0;
