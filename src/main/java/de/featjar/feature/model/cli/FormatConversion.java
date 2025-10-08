@@ -32,6 +32,7 @@ import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.IFeatureTree;
 import de.featjar.feature.model.analysis.*;
+import de.featjar.feature.model.cli.PrintStatistics.AnalysesScope;
 import de.featjar.feature.model.computation.ComputeAtomsCount;
 import de.featjar.feature.model.computation.ComputeAverageConstraint;
 import de.featjar.feature.model.computation.ComputeFeatureDensity;
@@ -40,8 +41,10 @@ import de.featjar.feature.model.io.FeatureModelFormats;
 import de.featjar.feature.model.io.xml.GraphVizFeatureModelFormat;
 import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,11 +57,20 @@ import java.util.Optional;
  * @author Knut, Kilian & Benjamin
  */
 public class FormatConversion implements ICommand  {
+
+	
+	
+	private static final List<String> supportedInputFileExtensions = Arrays.asList("xml", "uvl", "dot");
+	private static final List<String> supportedOutputFileExtensions = Arrays.asList("xml", "uvl", "dot");
+	
 	
 	public static final Option<Path> INPUT_OPTION = Option.newOption("input", Option.PathParser)
             .setDescription("Path to input file. Accepted File Types: csv, xml, yaml, txt")
             .setValidator(Option.PathValidator);
 
+	
+	
+	
     /**
      * Output option for saving files.
      */
@@ -85,24 +97,44 @@ public class FormatConversion implements ICommand  {
     	
     	// Valid formats: XML, UVL, GraphVis
     	
-    	// opening file
-    	Path inputPath = optionParser.getResult(INPUT_OPTION).orElseThrow();
-        Result<IFeatureModel> load = IO.load(inputPath, FeatureModelFormats.getInstance());
-        FeatureModel model = (FeatureModel) load.orElseThrow();
+	
+    	if(!checkIfInputOutputIsPresent(optionParser)) {
+    		return 1;
+    	};
+    	IFeatureModel model = inputParser(optionParser); //model == null falls error occurred
     	
+    	// check if provided file extensions are supported
+	    String inputFileExtension = IO.getFileExtension(optionParser.getResult(INPUT_OPTION).get());
+    	
+	    if (!supportedInputFileExtensions.contains(inputFileExtension)) {
+	    	System.out.println("supportedInputFileExtensions: " + supportedInputFileExtensions);
+	    	System.out.println("input: " + IO.getFileExtension(optionParser.getResult(INPUT_OPTION).get()));
+	    	FeatJAR.log().error("Unsupported input file extension.");
+	    	return 2;
+	    }
+	    
+	    String outputFileExtension = IO.getFileExtension(optionParser.getResult(OUTPUT_OPTION).get());
+	    
+	    if (!supportedOutputFileExtensions.contains(outputFileExtension)) {
+	    	FeatJAR.log().error("Unsupported output file extension.");
+	    	return 2;
+	    }
+	    
+	    
+	    if(saveFile(optionParser, model, outputFileExtension));
+	    
+    	
+	    Path outputPath = optionParser.getResult(OUTPUT_OPTION).orElseThrow();
+	    
+	    if(!isValidOutputPath(outputPath)) {
+	    	return 1;
+	    }
+	    
+	   
+	    	
         // saving file
-        Path outputPath = optionParser.getResult(OUTPUT_OPTION).orElseThrow();
-        
-        Path test = Paths.get("");
-        System.out.println(test.toAbsolutePath());
-        
-        Path target = Paths.get(test.toAbsolutePath()+"model.dot");
-        
-        
         try {
-        	
-            IO.save(model, target, new XMLFeatureModelFormat());
-        	FeatJAR.log().message("HALLO");
+            IO.save(model, outputPath, new XMLFeatureModelFormat());
             
         }catch (Exception e) {
         	FeatJAR.log().error(e.getMessage());
@@ -112,6 +144,45 @@ public class FormatConversion implements ICommand  {
         return 0;
     }
 
+    private boolean checkIfInputOutputIsPresent(OptionList optionParser) {
+		if (!optionParser.getResult(INPUT_OPTION).isPresent()) {
+        	FeatJAR.log().error("No input path provided.");
+        	return false;
+	    } else if (!optionParser.getResult(OUTPUT_OPTION).isPresent()) {
+		FeatJAR.log().error("No output path provided.");
+		return false;
+    	}
+		return true;
+    }
+    
+    private IFeatureModel inputParser(OptionList optionParser) {
+    	Path inputPath = optionParser.getResult(INPUT_OPTION).orElseThrow();
+	    IFeatureModel model = null;
+	    try {
+	        Result<IFeatureModel> load = IO.load(inputPath, FeatureModelFormats.getInstance());
+	        model = load.get(); 
+	        return model;
+	    }catch (Exception e) {
+	    	FeatJAR.log().error(e.getMessage());
+	    }
+	    return model;
+    };
+    
+    private boolean isValidOutputPath(Path outputPath) {
+    	//
+    	return true;
+    }
+    
+    private boolean saveFile(OptionList optionParser, IFeatureModel model, String fileExtension) {
+    	Path outputPath = optionParser.getResult(OUTPUT_OPTION).orElseThrow();
+        try {
+            IO.save(model, outputPath, new XMLFeatureModelFormat());
+            return true;
+        }catch (IOException e) {
+        	FeatJAR.log().error(e.getMessage());
+        }
+	    return false;
+    };
     
 
     /**
