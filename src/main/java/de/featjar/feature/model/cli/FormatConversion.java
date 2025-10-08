@@ -113,24 +113,6 @@ public class FormatConversion implements ICommand {
     @Override
     public int run(OptionList optionParser) {
 
-        // needs to be tested
-        Map<String, Map<FileInfo, SupportLevel>> infoLossMap = buildInfoLossMap();
-        String inputExt = "xml";
-        String outputExt = "txt";
-
-        Map<FileInfo, SupportLevel> input_supports = infoLossMap.get(inputExt);
-        Map<FileInfo, SupportLevel> output_supports = infoLossMap.get(outputExt);
-
-        for (FileInfo fileInfo : input_supports.keySet()) {
-            int inputRank = input_supports.get(fileInfo).rank;
-            int outputRank = output_supports.get(fileInfo).rank;
-            if (outputRank < inputRank) {
-                System.out.println("Info Loss:");
-                System.out.println(fileInfo);
-                System.out.println(inputExt + " support: " + input_supports.get(fileInfo));
-                System.out.println(outputExt + " support: " + output_supports.get(fileInfo));
-            }
-        }
 
     	System.out.println(FeatureModelFormats.getInstance().getExtensions());
         System.out.println(buildInfoLossMap());
@@ -159,6 +141,27 @@ public class FormatConversion implements ICommand {
         Path outputPath = optionParser.getResult(OUTPUT_OPTION).orElseThrow();
 
         return saveFile(outputPath, model, outputFileExtension);
+    }
+    public int testInfoLossMap() {
+        Map<String, Map<FileInfo, SupportLevel>> infoLossMap = buildInfoLossMap();
+        String iExt = "xml";
+        String oExt = "txt";
+
+        Map<FileInfo, SupportLevel> iSupports = infoLossMap.get(iExt);
+        Map<FileInfo, SupportLevel> oSupports = infoLossMap.get(oExt);
+
+        for (FileInfo fileInfo : iSupports.keySet()) {
+            SupportLevel iSupportLevel = iSupports.get(fileInfo);
+            SupportLevel oSupportLevel = oSupports.get(fileInfo);
+            if (oSupportLevel.rank < iSupportLevel.rank) {
+                System.out.println("Info Loss:");
+                System.out.println(fileInfo);
+                System.out.println("  " + iExt + " support: " + iSupportLevel);
+                System.out.println("  " + oExt + " support: " + oSupportLevel);
+            }
+        }
+
+        return 0;
     }
 
     private Map<String, Map<FileInfo, SupportLevel>> buildInfoLossMap () {

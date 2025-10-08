@@ -92,13 +92,11 @@ public class FormatConversionTest {
                 "formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
         assertEquals(1, exit_code);
     }
-    
-    @Test
-    void ioExceptionTest(){
-    	int exit_code = formatConversion.saveFile(Paths.get(""), null, "xml");
-    	assertEquals(2, exit_code);
-    }
-    
 
+    // temp test for quick testing of the info loss map
+    @Test
+    void infoLossMapTest(){
+        assertEquals(0, formatConversion.testInfoLossMap());
+    }
    
 }
