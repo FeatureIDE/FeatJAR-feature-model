@@ -34,9 +34,7 @@ import de.featjar.feature.model.io.xml.GraphVizFeatureModelFormat;
 import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 // --input "../formula/src/testFixtures/resources/Automotive02_V1/model.xml"  --scope all --pretty --output
 // "c://home/deskop/model.xml"
@@ -70,6 +68,18 @@ public class FormatConversion implements ICommand {
         return Option.getAllOptions(getClass());
     }
 
+    enum SupportLevel {
+        FULL,
+        PARTIAL,
+        NONE
+    }
+
+    enum Feature {
+        FEATURE_1,
+        FEATURE_2,
+        FEATURE_3
+    }
+
     /**
      *
      * @param optionParser option parser supplied by command line execution
@@ -80,6 +90,7 @@ public class FormatConversion implements ICommand {
     public int run(OptionList optionParser) {
 
     	System.out.println(FeatureModelFormats.getInstance().getExtensions());
+        System.out.println(buildInfoLossMap());
     	
         if (!checkIfInputOutputIsPresent(optionParser)) {
             return 1;
@@ -109,6 +120,29 @@ public class FormatConversion implements ICommand {
         }
 
         return saveFile(outputPath, model, inputFileExtension, outputFileExtension);
+    }
+
+    private Map<String, Map<Feature, SupportLevel>> buildInfoLossMap () {
+        Map<String, Map<Feature, SupportLevel>> supportMap = new HashMap<>();
+
+        // set to eliminate duplicates
+        Set<String> supportedFileExtensions = new LinkedHashSet<>(supportedInputFileExtensions);
+        supportedFileExtensions.addAll(supportedOutputFileExtensions);
+
+        // default values
+        for (String fileExtension: supportedFileExtensions) {
+            supportMap.put(fileExtension, new EnumMap<>(Feature.class)); // for each extension: add each feature
+            for (Feature feature : Feature.values()) {
+                supportMap.get(fileExtension).put(feature, SupportLevel.NONE); // by default: all features are unsupported
+            }
+        }
+
+        // fill with real values
+        supportMap.get("xml").put(Feature.FEATURE_1, SupportLevel.FULL);
+        supportMap.get("xml").put(Feature.FEATURE_2, SupportLevel.FULL);
+        supportMap.get("xml").put(Feature.FEATURE_3, SupportLevel.PARTIAL);
+
+        return supportMap;
     }
 
     /**
@@ -163,13 +197,6 @@ public class FormatConversion implements ICommand {
         return true;
     }
 
-    /**
-     * Handles the saving of the output file. Chooses a method appropriate for the respective file type.
-     * @param outputPath: full path to the output file
-     * @param model: Feature model read from original input file
-     * @param fileExtension IFormat that can write FeatureModels to our output file extension
-     * @return 0 on success, 1 on invalid output file extension, 2 on IOException,
-     */
     private IFormat<IFeatureModel> determineInfoLossFromTypes(String inputFileExtension, String outputFileExtension) {
     	IFormat<IFeatureModel> format = null;
     	List<String> noLossExtensions;
