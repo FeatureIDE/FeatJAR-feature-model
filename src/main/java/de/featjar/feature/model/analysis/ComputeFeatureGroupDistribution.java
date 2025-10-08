@@ -33,6 +33,7 @@ import java.util.List;
 
 /**
  * Calculates the number of features that have no child features.
+ * Hashmap returns, in order: AlternativeGroup, OrGroup, AndGroup, OtherGroup.
  *
  * @author Benjamin von Holt
  */

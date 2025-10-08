@@ -24,19 +24,29 @@ import de.featjar.base.FeatJAR;
 import de.featjar.base.cli.ACommand;
 import de.featjar.base.cli.Option;
 import de.featjar.base.cli.OptionList;
+import de.featjar.base.computation.Computations;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
+import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IFeatureModel;
+import de.featjar.feature.model.IFeatureTree;
+import de.featjar.feature.model.analysis.*;
+import de.featjar.feature.model.computation.ComputeAtomsCount;
+import de.featjar.feature.model.computation.ComputeAverageConstraint;
+import de.featjar.feature.model.computation.ComputeFeatureDensity;
+import de.featjar.feature.model.computation.ComputeOperatorDistribution;
 import de.featjar.feature.model.io.FeatureModelFormats;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 /**
  * Prints statistics about a provided Feature Model.
  *
- * @author Knut & Kilian
+ * @author Knut, Kilian & Benjamin
  */
 public class PrintStatistics extends ACommand {
 
@@ -48,15 +58,19 @@ public class PrintStatistics extends ACommand {
 
     private int exit_status = 0;
 
-    // options as command line arguments
+    // command line options for user customization
     public static final Option<AnalysesScope> ANALYSES_SCOPE =
             Option.newEnumOption("scope", AnalysesScope.class).setDescription("Specifies scope of statistics");
 
     public static final Option<Boolean> PRETTY_PRINT =
             Option.newFlag("pretty").setDescription("Pretty prints the numbers");
 
-    private HashMap<String, Integer> data;
-
+    /**
+     * main method for gathering, printing and writing statistics of a feature model
+     * @param optionParser the option parser
+     *
+     * @return returns 0 if successful, 1 in case of error
+     */
     @Override
     public int run(OptionList optionParser) {
 
@@ -68,7 +82,9 @@ public class PrintStatistics extends ACommand {
         // opening input model
         Path path = optionParser.getResult(INPUT_OPTION).orElseThrow();
         Result<IFeatureModel> load = IO.load(path, FeatureModelFormats.getInstance());
-        IFeatureModel model = load.orElseThrow();
+        LinkedHashMap<String, Object> data;
+
+        FeatureModel model = (FeatureModel) load.orElseThrow();
 
         // collecting statistics of the model, checking if scope is specified
         if (optionParser.getResult(ANALYSES_SCOPE).isPresent()) {
@@ -84,23 +100,27 @@ public class PrintStatistics extends ACommand {
             writeTo(optionParser.getResult(OUTPUT_OPTION).get(), fileExtension);
         }
 
-        // printing statistics to console
+        // printing statistics to console if no output file is specified
         if (optionParser.get(PRETTY_PRINT)) {
-            printStatsPretty();
-        } else {
-            printStats();
+            printStatsPretty(data);
+        } else if (!optionParser.getResult(OUTPUT_OPTION).isPresent()) {
+            printStats(data);
         }
 
         return exit_status;
     }
 
+    /**
+     * writes statistics into a file, depending on file type
+     * @param path
+     * @param type: is extracted from provided output path, needs to be lower case
+     */
     private void writeTo(Path path, String type) {
 
         switch (type) {
             case "xml":
                 // TODO future Story Card: Write to XML
                 // IO.save(new Object(data), path, new XMLFeatureModelFormat());
-                // IO.sa
                 break;
             case "csv":
                 // TODO future Story Card: Write to CSV
@@ -124,57 +144,141 @@ public class PrintStatistics extends ACommand {
         }
     }
 
-    private HashMap<String, Integer> collectStats(IFeatureModel model, AnalysesScope scope) {
+    /**
+     * method for collecting statistics of the provided feature model depending on specified scope of information (all, constraint related, tree related)
+     * @param model
+     * @param scope
+     * @return LinkedHashMap with stats data, keys are descriptive strings, values types depend on statistic (Integer, Float, HashMap)
+     */
+    public LinkedHashMap<String, Object> collectStats(FeatureModel model, AnalysesScope scope) {
 
-        HashMap<String, Integer> data = new HashMap<String, Integer>();
+        LinkedHashMap<String, Object> data = new LinkedHashMap<String, Object>();
 
         if (scope == AnalysesScope.ALL || scope == AnalysesScope.CONSTRAINT_RELATED) {
 
-            // For Example data.put(model.getConstraintInfo())
+            // fetching constraint related statistics
+            data.put(
+                    "Number of Atoms",
+                    Computations.of(model).map(ComputeAtomsCount::new).compute());
+            data.put(
+                    "Feature Density",
+                    Computations.of(model).map(ComputeFeatureDensity::new).compute());
+            data.put(
+                    "Average Constraints",
+                    Computations.of(model).map(ComputeAverageConstraint::new).compute());
 
+            HashMap<String, Integer> computational_opDensity =
+                    Computations.of(model).map(ComputeOperatorDistribution::new).compute();
+
+            data.put("Operator Distribution", computational_opDensity);
         }
 
         if ((scope == AnalysesScope.ALL || scope == AnalysesScope.TREE_RELATED)) {
 
-            // For Example model.getTreeDepth()
+            // fetching tree related statistics
 
+            List<IFeatureTree> trees = model.getRoots();
+            String treePrefix;
+
+            for (int i = 0; i < trees.size(); i++) {
+                treePrefix = "[Tree " + (i + 1) + "] ";
+
+                IFeatureTree tree = trees.get(i);
+
+                data.put(
+                        treePrefix + "Average Number of Children",
+                        Computations.of(tree)
+                                .map(ComputeFeatureAverageNumberOfChildren::new)
+                                .compute());
+
+                data.put(
+                        treePrefix + "Number of Top Features",
+                        Computations.of(tree)
+                                .map(ComputeFeatureTopFeatures::new)
+                                .compute());
+
+                data.put(
+                        treePrefix + "Number of Leaf Features",
+                        Computations.of(tree)
+                                .map(ComputeFeatureFeaturesCounter::new)
+                                .compute());
+
+                data.put(
+                        treePrefix + "Tree Depth",
+                        Computations.of(tree).map(ComputeFeatureTreeDepth::new).compute());
+
+                data.put(
+                        treePrefix + "Group Distribution",
+                        Computations.of(tree)
+                                .map(ComputeFeatureGroupDistribution::new)
+                                .compute());
+            }
         }
-
-        // dummy values, will be handled by functions of other teams
-        data.put("numOfTopFeatures", 3);
-        data.put("numOfLeafFeatures", 12);
-        data.put("treeDepth", 3);
-        data.put("avgNumOfChildren", 3);
-        data.put("numInOrGroups", 7);
-        data.put("numInAltGroups", 5);
-        data.put("numOfAtoms", 8);
-        data.put("avgNumOfAtomsPerConstraints", 4);
 
         return data;
     }
 
-    public void printStatsPretty() {
-        FeatJAR.log().message("STATISTICS ABOUT THE FEATURE MODEL:\n" + buildPrettyStats());
+    /**
+     *
+     * @param data
+     */
+    public void printStatsPretty(LinkedHashMap<String, Object> data) {
+        FeatJAR.log().message("STATISTICS ABOUT THE FEATURE MODEL:\n" + buildStringPrettyStats(data));
     }
 
-    private StringBuilder buildPrettyStats() {
+    /**
+     *
+     * @param data
+     * @return
+     */
+    public StringBuilder buildStringPrettyStats(LinkedHashMap<String, Object> data) {
         StringBuilder outputString = new StringBuilder();
 
         for (Map.Entry<?, ?> entry : data.entrySet()) {
-            outputString.append(String.format("%-30s : %s%n", entry.getKey(), entry.getValue()));
+
+            if (entry.getKey().equals("Number of Atoms")) {
+                outputString.append(String.format("\n\t\t%-40s  %n", "CONSTRAINT RELATED STATS\n"));
+
+            } else if (entry.getKey().equals("[Tree 1] Average Number of Children")) {
+                outputString.append(String.format("\n\t\t%-40s  %n", "TREE RELATED STATS\n"));
+            }
+            if (entry.getValue() instanceof Map) {
+                Map<?, ?> nestedMap = (Map<?, ?>) entry.getValue();
+
+                outputString.append(String.format("%-40s%n", entry.getKey()));
+
+                for (Map.Entry<?, ?> nestedEntry : nestedMap.entrySet()) {
+                    outputString.append(
+                            String.format("%-33s : %s%n", "\t   " + nestedEntry.getKey(), nestedEntry.getValue()));
+                }
+            } else {
+                outputString.append(String.format("%-40s : %s%n", entry.getKey(), entry.getValue()));
+            }
         }
         return outputString;
     }
 
-    public void printStats() {
+    /**
+     * Prints gathered statistics in a compact format.
+     * @param data: the previously computed data packaged line by line: String names the stat, Object holds the data.
+     */
+    public void printStats(LinkedHashMap<String, Object> data) {
         FeatJAR.log().message("STATISTICS ABOUT THE FEATURE MODEL:\n" + data);
     }
 
+    /**
+     *
+     * {@return brief description of this class}
+     */
     @Override
     public Optional<String> getDescription() {
         return Optional.of("Prints out statistics about a given Feature Model.");
     }
 
+    /**
+     *
+     * {@return short name of this class}
+     */
     @Override
     public Optional<String> getShortName() {
         return Optional.of("printStats");

@@ -24,7 +24,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import de.featjar.base.FeatJAR;
 import de.featjar.base.data.identifier.AIdentifier;
+import de.featjar.base.data.identifier.IIdentifiable;
+import de.featjar.base.data.identifier.Identifiers;
+import de.featjar.feature.model.FeatureModel;
+import de.featjar.feature.model.cli.PrintStatistics.AnalysesScope;
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -35,6 +40,13 @@ import org.junit.jupiter.api.Test;
 public class PrintStatisticsTest {
 
     PrintStatistics printStats = new PrintStatistics();
+    FeatureModel minimalModel = generateMinimalModel();
+
+    private FeatureModel generateMinimalModel() {
+        FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
+        return featureModel;
+    }
 
     @Test
     void inputTest() throws IOException {
@@ -88,20 +100,59 @@ public class PrintStatisticsTest {
     }
 
     @Test
-    void printPretty() throws IOException {}
+    void scopeAll() throws IOException {
+        String content =
+                "{Number of Atoms=0, Feature Density=0.0, Average Constraints=NaN, Operator Distribution={}, [Tree 1] Average Number of Children=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
+        String comparison =
+                printStats.collectStats(minimalModel, AnalysesScope.ALL).toString();
+        assertEquals(content, comparison);
+    }
 
     @Test
-    void printDefault() throws IOException {}
+    void scopeTreeRelated() throws IOException {
+        String content =
+                "{[Tree 1] Average Number of Children=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
+        String comparison = printStats
+                .collectStats(minimalModel, AnalysesScope.TREE_RELATED)
+                .toString();
+        assertEquals(content, comparison);
+    }
 
     @Test
-    void scopeAll() throws IOException {}
+    void scopeConstraintRelated() throws IOException {
+        String content = "{Number of Atoms=0, Feature Density=0.0, Average Constraints=NaN, Operator Distribution={}}";
+        String comparison = printStats
+                .collectStats(minimalModel, AnalysesScope.CONSTRAINT_RELATED)
+                .toString();
+        assertEquals(content, comparison);
+    }
 
     @Test
-    void scopeTreeRelated() throws IOException {}
+    void prettyStringBuilder() throws IOException {
 
-    @Test
-    void scopeConstraintRelated() throws IOException {}
+        LinkedHashMap<String, Object> testData = new LinkedHashMap<>();
+        testData.put("Normal Entry", 10);
+        LinkedHashMap<String, Object> nestedMap = new LinkedHashMap<>();
+        nestedMap.put("Nested Entry 1", 5);
+        nestedMap.put("Nested Entry 2", 6);
+        testData.put("HashMap Entry", nestedMap);
+        testData.put("Number of Atoms", "");
+        testData.put("[Tree 1] Average Number of Children", "");
 
-    @Test
-    void scopeNotSpecified() throws IOException {}
+        StringBuilder comparison = new StringBuilder();
+        comparison.append("Normal Entry                             : 10\n"
+                + "HashMap Entry                           \n"
+                + "	   Nested Entry 1                : 5\n"
+                + "	   Nested Entry 2                : 6\n"
+                + "\n"
+                + "		CONSTRAINT RELATED STATS\n"
+                + "                 \n"
+                + "Number of Atoms                          : \n"
+                + "\n"
+                + "		TREE RELATED STATS\n"
+                + "                       \n"
+                + "[Tree 1] Average Number of Children      : \n");
+
+        assertEquals(printStats.buildStringPrettyStats(testData).toString(), comparison.toString());
+    }
 }
