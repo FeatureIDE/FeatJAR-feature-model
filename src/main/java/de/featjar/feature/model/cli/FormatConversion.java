@@ -37,7 +37,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 // --input "../formula/src/testFixtures/resources/Automotive02_V1/model.xml"  --scope all --pretty --output
-// "c://home/deskop/model.xml"
+// "c://home/desktop/model.xml"
 
 // Extensionpoints um auf UVL zuzugreifen
 
@@ -68,16 +68,40 @@ public class FormatConversion implements ICommand {
         return Option.getAllOptions(getClass());
     }
 
-    enum SupportLevel {
-        FULL,
-        PARTIAL,
-        NONE
+    // for info loss map
+    private enum SupportLevel {
+        NONE(0),
+        PARTIAL(1),
+        FULL(2);
+
+        public final int rank;
+        SupportLevel(int rank) {this.rank = rank;}
     }
 
-    enum Feature {
-        FEATURE_1,
-        FEATURE_2,
-        FEATURE_3
+    // for info loss map
+    // saving name as well as a description in case we need to explain it to the user later
+    private enum FileInfo {
+        hierarchicalFeatureStructure("Hierarchical feature structure"),
+        featureAttributesAndMetadata("Feature attributes and metadata"),
+        mandatoryAndOptionalFeatures("Mandatory and optional features"),
+        featureGroups("Feature groups (AND, OR, XOR)",
+                "AND groups are equivalent to cardinality groups ranging from 1 to 1, and OR from 1 to n.");
+
+        public final String name;
+        public final String description;
+
+        FileInfo(String name) {
+            this.name = name;
+            this.description = "";
+        }
+
+        FileInfo(String name, String description) {
+            this.name = name;
+            this.description = description;
+        }
+
+        @Override
+        public String toString() { return description.isEmpty() ? name : name + ": " + description; }
     }
 
     /**
@@ -88,6 +112,25 @@ public class FormatConversion implements ICommand {
      */
     @Override
     public int run(OptionList optionParser) {
+
+        // needs to be tested
+        Map<String, Map<FileInfo, SupportLevel>> infoLossMap = buildInfoLossMap();
+        String inputExt = "xml";
+        String outputExt = "txt";
+
+        Map<FileInfo, SupportLevel> input_supports = infoLossMap.get(inputExt);
+        Map<FileInfo, SupportLevel> output_supports = infoLossMap.get(outputExt);
+
+        for (FileInfo fileInfo : input_supports.keySet()) {
+            int inputRank = input_supports.get(fileInfo).rank;
+            int outputRank = output_supports.get(fileInfo).rank;
+            if (outputRank < inputRank) {
+                System.out.println("Info Loss:");
+                System.out.println(fileInfo);
+                System.out.println(inputExt + " support: " + input_supports.get(fileInfo));
+                System.out.println(outputExt + " support: " + output_supports.get(fileInfo));
+            }
+        }
 
     	System.out.println(FeatureModelFormats.getInstance().getExtensions());
         System.out.println(buildInfoLossMap());
@@ -104,7 +147,7 @@ public class FormatConversion implements ICommand {
         if (!checkIfFileExtensionsValid(inputFileExtension, outputFileExtension)) {
             return 1;
         }
-        ;
+
 
         // check if model was corrected extracted from input
         IFeatureModel model = inputParser(optionParser);
@@ -113,17 +156,13 @@ public class FormatConversion implements ICommand {
             return 3;
         }
 
-        // check if output path is valid
         Path outputPath = optionParser.getResult(OUTPUT_OPTION).orElseThrow();
-        if (!isValidOutputPath(outputPath)) {
-            return 1;
-        }
 
-        return saveFile(outputPath, model, inputFileExtension, outputFileExtension);
+        return saveFile(outputPath, model, outputFileExtension);
     }
 
-    private Map<String, Map<Feature, SupportLevel>> buildInfoLossMap () {
-        Map<String, Map<Feature, SupportLevel>> supportMap = new HashMap<>();
+    private Map<String, Map<FileInfo, SupportLevel>> buildInfoLossMap () {
+        Map<String, Map<FileInfo, SupportLevel>> supportMap = new HashMap<>();
 
         // set to eliminate duplicates
         Set<String> supportedFileExtensions = new LinkedHashSet<>(supportedInputFileExtensions);
@@ -131,16 +170,24 @@ public class FormatConversion implements ICommand {
 
         // default values
         for (String fileExtension: supportedFileExtensions) {
-            supportMap.put(fileExtension, new EnumMap<>(Feature.class)); // for each extension: add each feature
-            for (Feature feature : Feature.values()) {
-                supportMap.get(fileExtension).put(feature, SupportLevel.NONE); // by default: all features are unsupported
+            supportMap.put(fileExtension, new EnumMap<>(FileInfo.class)); // for each extension: add each feature
+            for (FileInfo fileInfo : FileInfo.values()) {
+                supportMap.get(fileExtension).put(fileInfo, SupportLevel.NONE); // by default: all features are unsupported
             }
         }
 
         // fill with real values
-        supportMap.get("xml").put(Feature.FEATURE_1, SupportLevel.FULL);
-        supportMap.get("xml").put(Feature.FEATURE_2, SupportLevel.FULL);
-        supportMap.get("xml").put(Feature.FEATURE_3, SupportLevel.PARTIAL);
+        String ext = "xml";
+        supportMap.get(ext).put(FileInfo.mandatoryAndOptionalFeatures, SupportLevel.FULL);
+        supportMap.get(ext).put(FileInfo.featureAttributesAndMetadata, SupportLevel.FULL);
+        supportMap.get(ext).put(FileInfo.hierarchicalFeatureStructure, SupportLevel.PARTIAL);
+        supportMap.get(ext).put(FileInfo.featureGroups, SupportLevel.NONE);
+
+        ext = "txt";
+        supportMap.get(ext).put(FileInfo.mandatoryAndOptionalFeatures, SupportLevel.FULL);
+        supportMap.get(ext).put(FileInfo.featureAttributesAndMetadata, SupportLevel.NONE);
+        supportMap.get(ext).put(FileInfo.hierarchicalFeatureStructure, SupportLevel.PARTIAL);
+        supportMap.get(ext).put(FileInfo.featureGroups, SupportLevel.NONE);
 
         return supportMap;
     }
@@ -185,84 +232,28 @@ public class FormatConversion implements ICommand {
         try {
             Result<IFeatureModel> load = IO.load(inputPath, FeatureModelFormats.getInstance());
             model = load.get();
-            return model;
         } catch (Exception e) {
             FeatJAR.log().error(e.getMessage());
         }
         return model;
     }
-
-    private boolean isValidOutputPath(Path outputPath) {
-        //
-        return true;
-    }
-
-    private IFormat<IFeatureModel> determineInfoLossFromTypes(String inputFileExtension, String outputFileExtension) {
-    	IFormat<IFeatureModel> format = null;
-    	List<String> noLossExtensions;
-    	List<String> someLossExtensions;
-    	List<String> muchLossExtension;
-    	
-    	String noLoss = "No Information Loss from " + inputFileExtension + " to " + outputFileExtension;
-    	String someLoss = "Some Information Loss from " + inputFileExtension + " to " + outputFileExtension; //genauer ausführen 
-    	String muchLoss = "Much Information Loss from " + inputFileExtension + " to " + outputFileExtension; //was verloren gehen wird
-    	
-    	String message = "";
-
-    	switch(inputFileExtension) {
-    	case "xml":
-    		format = new XMLFeatureModelFormat();
-        	noLossExtensions = Arrays.asList("xml", "json", "yaml");
-        	someLossExtensions = Arrays.asList("csv", "txt");
-        	muchLossExtension = Arrays.asList("dot");
-        	break;
-    	case "dot":
-    		format = new GraphVizFeatureModelFormat();
-        	noLossExtensions = Arrays.asList("dot", "yaml");
-        	someLossExtensions = Arrays.asList("xml", "txt");
-        	muchLossExtension = Arrays.asList("json", "csv");
-        	break;
-    	case "txt":
-    		format = new GenericTextFormat();
-    		noLossExtensions = Arrays.asList("txt");
-        	someLossExtensions = Arrays.asList("xml", "dot", "yaml");
-        	muchLossExtension = Arrays.asList("json", "csv");
-        	break;
-    	default:
-    		noLossExtensions = Arrays.asList("");
-        	someLossExtensions = Arrays.asList("");
-        	muchLossExtension = Arrays.asList("");    		
-    	}
-    	if(noLossExtensions.contains(outputFileExtension)) {
-			message = noLoss;
-		} else if(someLossExtensions.contains(outputFileExtension)) {
-			message = someLoss;
-		} else if(noLossExtensions.contains(outputFileExtension)) {
-			message = muchLoss;
-		}
-    	FeatJAR.log().message(message);
-    	return format;
-    }
     
-    public int saveFile(Path outputPath, IFeatureModel model, String inputFileExtension, String outputFileExtension) {
-        IFormat<IFeatureModel> format = determineInfoLossFromTypes(inputFileExtension,outputFileExtension);
-//        switch (outputFileExtension) {
-//            case "xml":
-//                format = new XMLFeatureModelFormat();
-//                break;
-//            case "dot":
-//                format = new GraphVizFeatureModelFormat();
-//                break;
-//            case "txt":
-//                format = new GenericTextFormat();
-//                break;
-//            default:
-//                // this still catches errors if the switch case construct has not implemented all supported file types!
-//                FeatJAR.log().error("Unsupported output file extension: " + outputFileExtension);
-//                return 1;
-//        }
-        if (format == null) {
-        	return 1;
+    public int saveFile(Path outputPath, IFeatureModel model, String outputFileExtension) {
+        IFormat<IFeatureModel> format;
+        switch (outputFileExtension) {
+            case "xml":
+                format = new XMLFeatureModelFormat();
+                break;
+            case "dot":
+                format = new GraphVizFeatureModelFormat();
+                break;
+            case "txt":
+                format = new GenericTextFormat();
+                break;
+            default:
+                // this still catches errors if the switch case construct has not implemented all supported file types!
+                FeatJAR.log().error("Unsupported output file extension: " + outputFileExtension);
+                return 1;
         }
         try {
             IO.save(model, outputPath, format);
