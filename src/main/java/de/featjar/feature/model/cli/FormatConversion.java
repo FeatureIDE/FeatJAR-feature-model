@@ -21,34 +21,20 @@
 package de.featjar.feature.model.cli;
 
 import de.featjar.base.FeatJAR;
-import de.featjar.base.cli.ACommand;
 import de.featjar.base.cli.ICommand;
 import de.featjar.base.cli.Option;
 import de.featjar.base.cli.OptionList;
-import de.featjar.base.computation.Computations;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
-import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IFeatureModel;
-import de.featjar.feature.model.IFeatureTree;
 import de.featjar.feature.model.analysis.*;
-import de.featjar.feature.model.cli.PrintStatistics.AnalysesScope;
-import de.featjar.feature.model.computation.ComputeAtomsCount;
-import de.featjar.feature.model.computation.ComputeAverageConstraint;
-import de.featjar.feature.model.computation.ComputeFeatureDensity;
-import de.featjar.feature.model.computation.ComputeOperatorDistribution;
 import de.featjar.feature.model.io.FeatureModelFormats;
-import de.featjar.feature.model.io.xml.GraphVizFeatureModelFormat;
 import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -58,7 +44,7 @@ import java.util.Optional;
  */
 public class FormatConversion implements ICommand  {
 
-	
+
 	
 	private static final List<String> supportedInputFileExtensions = Arrays.asList("xml", "uvl", "dot");
 	private static final List<String> supportedOutputFileExtensions = Arrays.asList("xml", "uvl", "dot");
@@ -100,7 +86,7 @@ public class FormatConversion implements ICommand  {
 	
     	if(!checkIfInputOutputIsPresent(optionParser)) {
     		return 1;
-    	};
+    	}
     	IFeatureModel model = inputParser(optionParser); //model == null falls error occurred
     	
     	// check if provided file extensions are supported
@@ -166,7 +152,7 @@ public class FormatConversion implements ICommand  {
 	    	FeatJAR.log().error(e.getMessage());
 	    }
 	    return model;
-    };
+    }
     
     private boolean isValidOutputPath(Path outputPath) {
     	//
@@ -182,7 +168,7 @@ public class FormatConversion implements ICommand  {
         	FeatJAR.log().error(e.getMessage());
         }
 	    return false;
-    };
+    }
     
 
     /**
