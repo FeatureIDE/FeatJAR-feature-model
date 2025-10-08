@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Paths;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -54,33 +54,45 @@ public class JSONFExportTest {
         data.put("numOfAtoms", 8);
         data.put("avgNumOfAsss", 4);
 
+        AnalysisTree<?> analsyisTree = AnalysisTree.hashMapToTree(data, "Analysis");
+        System.out.println("Tree input" + Trees.traverse(analsyisTree, new TreePrinter()));
+
         FileSystem fileSystem = FileSystems.getDefault();
         JSONFeatureModelFormat jsonFormat = new JSONFeatureModelFormat();
-        System.out.println(jsonFormat.serialize(data).get());
+        System.out.println(
+                "Tree as json String: \n" + jsonFormat.serialize(analsyisTree).get());
+        System.out.println("Tree as json String END \n");
         try {
             FileOutputStream outputStream = new FileOutputStream("filename.json");
-            IO.save(data, Paths.get("filename.json"), new JSONFeatureModelFormat());
+            IO.save(analsyisTree, Paths.get("filename.json"), new JSONFeatureModelFormat());
             System.out.println("no error");
         } catch (Exception e) {
             System.out.println(e);
         }
 
-        JSONObject jsonobj = new JSONObject(data);
-        System.out.println(jsonobj.toString(1));
-        JSONObject jsonobj1 = new JSONObject(jsonobj.toString(1));
+        System.out.println(analsyisTree.getChild(1).get().getName());
+
+        // JSONObject jsonobj = new JSONObject(data);
+        // System.out.println(jsonobj.toString(1));
+        // JSONObject jsonobj1 = new JSONObject(jsonobj.toString(1));
         // for (Iterator iterator = jsonobj1.keys(); iterator.hasNext();) {
         //	System.out.println(jsonobj1.get(iterator.next().toString()).getClass());
 
         // }
 
-        for (Iterator<String> iterator = data.keySet().iterator(); iterator.hasNext(); ) {
-            String currentKey = iterator.next();
-            System.out.println((data.get(currentKey)).getClass().isPrimitive());
-            // System.out.println((data.get(iterator.next())).getClass());
-        }
+        // System.out.println("Tree input" + Trees.traverse(analsyisTree, new TreePrinter()));
 
-        AnalysisTree analsyisTree = AnalysisTree.hashMapToTree(data, "Analysis");
+        // AnalysisTree<?> analysisTreeLoaded = IO.load(Paths.get("filename.json"), new JSONFeatureModelFormat()).get();
+        // AnalysisTree<?> analysisTreeLoaded = IO.load(Paths.get("filename.json"), new JSONFeatureModelFormat()).get();
+        String AnalysisListJson = jsonFormat.serialize(analsyisTree).get();
+        JSONObject jsonobj = new JSONObject(AnalysisListJson);
+        AnalysisTree<?> analysisTreeLoaded =
+                AnalysisTree.hashMapListToTree((HashMap<String, Object>) jsonobj.toMap(), "Analysis");
+        System.out.println(jsonobj.toString());
 
-        System.out.println(Trees.traverse(analsyisTree, new TreePrinter()).get());
+        // AnalysisTree<?> analysisTreeLoaded = IO.load(Paths.get("filename.json"), new JSONFeatureModelFormat()).get();
+
+        System.out.println("Tree output"
+                + Trees.traverse(analysisTreeLoaded, new TreePrinter()).get());
     }
 }

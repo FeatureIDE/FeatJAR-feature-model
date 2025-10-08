@@ -6,6 +6,7 @@ plugins {
 dependencies {
     api 'de.featjar:formula'
     api testFixtures('de.featjar:formula')
+    implementation 'org.json:json:20240303'
 }
 
 license {
@@ -13,3 +14,4 @@ license {
         licence_url = 'https://github.com/FeatureIDE/FeatJAR-feature-model'
     }
 }
+

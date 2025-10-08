@@ -21,6 +21,8 @@
 package de.featjar.feature.model.analysis;
 
 import de.featjar.base.tree.structure.ATree;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Objects;
@@ -59,10 +61,9 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
         return this.name.equals(other.name) && this.value.equals(other.value);
     }
 
-    // TODO is this hashing OK?
     @Override
     public int hashCodeNode() {
-        return Objects.hash(this.getClass(), this.name, this.value.getClass(), this.value);
+        return Objects.hash(this.getClass(), this.name, this.value);
     }
 
     public static AnalysisTree<?> hashMapToTree(HashMap<String, Object> hashMap, String name) {
@@ -78,7 +79,30 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
             } else if (hashMap.get(currentKey) instanceof HashMap) {
                 root.addChild(hashMapToTree((HashMap<String, Object>) hashMap.get(currentKey), currentKey));
             } else {
-                System.out.println("ERROR HELP ME");
+                // TODO Add handling for other types or errors if needed
+            }
+        }
+        return root;
+    }
+
+    public static AnalysisTree<?> hashMapListToTree(HashMap<String, Object> hashMap, String name) {
+        AnalysisTree<Object> root = new AnalysisTree<>(name, (Object) null);
+        for (Iterator<String> iterator = hashMap.keySet().iterator(); iterator.hasNext(); ) {
+            String currentKey = iterator.next();
+            System.out.println("LIST: " + hashMap.get(currentKey).getClass());
+            if (hashMap.get(currentKey) instanceof HashMap) {
+                root.addChild(hashMapListToTree((HashMap<String, Object>) hashMap.get(currentKey), currentKey));
+            } else if (hashMap.get(currentKey) instanceof ArrayList) {
+                ArrayList currentElement = (ArrayList) hashMap.get(currentKey);
+                if (currentElement.get(1).equals("class java.lang.Double")) {
+                    BigDecimal currentDeccimal = (BigDecimal) currentElement.get(2);
+                    root.addChild(new AnalysisTree<>(currentKey, currentDeccimal.doubleValue()));
+                } else if (currentElement.get(1).equals("class java.lang.Integer")) {
+                    root.addChild(new AnalysisTree<>(currentKey, (int) currentElement.get(2)));
+                } else if (currentElement.get(1).equals("class java.lang.Float")) {
+                    BigDecimal currentDeccimal = (BigDecimal) currentElement.get(2);
+                    root.addChild(new AnalysisTree<>(currentKey, currentDeccimal.floatValue()));
+                }
             }
         }
         return root;
@@ -86,6 +110,10 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
 
     @Override
     public String toString() {
-        return "" + this.getClass() + " " + this.name;
+        if (this.value == null) {
+            return "Name: " + this.name + "Value: " + this.value + "Value class: " + "No class";
+        } else {
+            return "Name: " + this.name + "Value: " + this.value + "Value class: " + this.value.getClass();
+        }
     }
 }

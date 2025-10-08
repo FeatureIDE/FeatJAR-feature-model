@@ -22,10 +22,14 @@ package de.featjar.feature.model.io.json;
 
 import de.featjar.base.data.Result;
 import de.featjar.base.io.format.IFormat;
+import de.featjar.base.io.input.AInputMapper;
+import de.featjar.base.tree.Trees;
+import de.featjar.feature.model.analysis.AnalysisTree;
+import de.featjar.feature.model.analysis.visitor.AnalysisTreeVisitor;
 import java.util.HashMap;
 import org.json.JSONObject;
 
-public class JSONFeatureModelFormat implements IFormat<HashMap<String, Object>> {
+public class JSONFeatureModelFormat implements IFormat<AnalysisTree<?>> {
 
     @Override
     public String getName() {
@@ -39,7 +43,7 @@ public class JSONFeatureModelFormat implements IFormat<HashMap<String, Object>> 
 
     @Override
     public boolean supportsParse() {
-        return false;
+        return true;
     }
 
     @Override
@@ -48,7 +52,17 @@ public class JSONFeatureModelFormat implements IFormat<HashMap<String, Object>> 
     }
 
     @Override
-    public Result<String> serialize(HashMap<String, Object> object) {
-        return Result.of(new JSONObject(object).toString(1)); // new XMLFeatureModelWriter().serialize(object);
+    public Result<String> serialize(AnalysisTree<?> analysisTree) {
+        return Result.of(new JSONObject(
+                        Trees.traverse(analysisTree, new AnalysisTreeVisitor()).get())
+                .toString(1)); // new XMLFeatureModelWriter().serialize(object);
+    }
+
+    @Override
+    public Result<AnalysisTree<?>> parse(AInputMapper inputMapper) {
+        HashMap<String, Object> jsonMap =
+                (HashMap<String, Object>) new JSONObject(inputMapper.get().text()).toMap();
+        System.out.println("\n \n \n \n \n \n" + inputMapper.get().text());
+        return Result.of(AnalysisTree.hashMapListToTree(jsonMap, "Analysis"));
     }
 }
