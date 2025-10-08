@@ -26,6 +26,7 @@ import de.featjar.base.cli.Option;
 import de.featjar.base.cli.OptionList;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
+import de.featjar.base.io.format.IFormat;
 import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.analysis.*;
 import de.featjar.feature.model.io.FeatureModelFormats;
@@ -105,29 +106,15 @@ public class FormatConversion implements ICommand  {
 	    	FeatJAR.log().error("Unsupported output file extension.");
 	    	return 2;
 	    }
-	    
-	    
-	    if(saveFile(optionParser, model, outputFileExtension));
-	    
-    	
-	    Path outputPath = optionParser.getResult(OUTPUT_OPTION).orElseThrow();
-	    
-	    if(!isValidOutputPath(outputPath)) {
-	    	return 1;
-	    }
-	    
-	   
-	    	
-        // saving file
-        try {
-            IO.save(model, outputPath, new XMLFeatureModelFormat());
-            
-        }catch (Exception e) {
-        	FeatJAR.log().error(e.getMessage());
+
+        // check if output path is valid
+        Path outputPath = optionParser.getResult(OUTPUT_OPTION).orElseThrow();
+        if(!isValidOutputPath(outputPath)) {
+            return 1;
         }
-        
-        
-        return 0;
+
+        // save file
+        return saveFile(outputPath, model, outputFileExtension);
     }
 
     private boolean checkIfInputOutputIsPresent(OptionList optionParser) {
@@ -158,18 +145,36 @@ public class FormatConversion implements ICommand  {
     	//
     	return true;
     }
-    
-    private boolean saveFile(OptionList optionParser, IFeatureModel model, String fileExtension) {
-    	Path outputPath = optionParser.getResult(OUTPUT_OPTION).orElseThrow();
-        try {
-            IO.save(model, outputPath, new XMLFeatureModelFormat());
-            return true;
-        }catch (IOException e) {
-        	FeatJAR.log().error(e.getMessage());
+
+    /**
+     * Handles the saving of the output file. Chooses a method appropriate for the respective file type.
+     * @param outputPath: full path to the output file
+     * @param model: Feature model read from original input file
+     * @param fileExtension IFormat that can write FeatureModels to our output file extension
+     * @return 0 on success, 1 on IOException, 2 on invalid output file extension
+     */
+    private int saveFile(Path outputPath, IFeatureModel model, String fileExtension) {
+        IFormat<IFeatureModel> format;
+
+        switch (fileExtension) {
+            case "xml":
+                format = new XMLFeatureModelFormat();
+                break;
+            default:
+                FeatJAR.log().error("Unsupported output file extension: " + fileExtension);
+                return 2;
         }
-	    return false;
+
+        try {
+            IO.save(model, outputPath, format);
+        }catch (IOException e) {
+            FeatJAR.log().error(e.getMessage());
+            return 1;
+        }
+        return 0;
+
     }
-    
+
 
     /**
      *
@@ -177,7 +182,7 @@ public class FormatConversion implements ICommand  {
      */
     @Override
     public Optional<String> getDescription() {
-        return Optional.of("Convert exisiting file of feature model into new format.");
+        return Optional.of("Convert existing file of feature model into new format.");
     }
 
     /**
