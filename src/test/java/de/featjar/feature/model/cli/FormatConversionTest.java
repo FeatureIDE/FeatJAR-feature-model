@@ -28,16 +28,11 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import de.featjar.base.FeatJAR;
 import de.featjar.base.data.identifier.AIdentifier;
 import de.featjar.base.data.identifier.IIdentifiable;
-import de.featjar.base.data.identifier.Identifiers;
-import de.featjar.feature.model.FeatureModel;
-import de.featjar.feature.model.cli.PrintStatistics.AnalysesScope;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Test;
 
 import de.featjar.feature.model.cli.FormatConversion;
@@ -51,10 +46,8 @@ public class FormatConversionTest {
 
     FormatConversion formatConversion = new FormatConversion();
 
-
-
     @Test
-    void fileWritingTest() throws IOException {
+    void fileWritingTest() {
     	
     	String pathToOutPutModel = "output_model.xml";
     	String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
@@ -70,7 +63,7 @@ public class FormatConversionTest {
     }
     
     @Test
-    void invalidOutput() throws IOException {
+    void invalidOutput(){
     	
     	String pathToOutPutModel = "output_model.pdf";
     	String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
@@ -80,7 +73,7 @@ public class FormatConversionTest {
         assertEquals(1, exit_code);
     }
     @Test
-    void invalidInput() throws IOException {
+    void invalidInput(){
     	
     	String pathToOutPutModel = "output_model.xml";
     	String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.pdf";
@@ -90,7 +83,7 @@ public class FormatConversionTest {
         assertEquals(1, exit_code);
     }
     @Test
-    void invalid() throws IOException {
+    void invalid(){
     	
     	String pathToOutPutModel = "output_model.xml";
     	String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.pdf";
@@ -101,9 +94,8 @@ public class FormatConversionTest {
     }
     
     @Test
-    void ioExceptionTest() throws IOException {
-    	FormatConversion fc = new FormatConversion();
-    	int exit_code = fc.saveFile(Paths.get(""), null, "xml", "xml");
+    void ioExceptionTest(){
+    	int exit_code = formatConversion.saveFile(Paths.get(""), null, "xml");
     	assertEquals(2, exit_code);
     }
     
