@@ -77,7 +77,7 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
             } else if (hashMap.get(currentKey) instanceof HashMap) {
                 root.addChild(hashMapToTree((HashMap<String, Object>) hashMap.get(currentKey), currentKey));
             } else {
-                //TODO Add handling for other types or errors if needed
+                // TODO Add handling for other types or errors if needed
             }
         }
         return root;

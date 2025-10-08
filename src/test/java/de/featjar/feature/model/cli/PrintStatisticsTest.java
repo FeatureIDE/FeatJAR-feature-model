@@ -108,7 +108,9 @@ public class PrintStatisticsTest {
     }
 
     @Test
+
     void scopeTreeRelated() {
+
         String content =
                 "{[Tree 1] Average Number of Children=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
         String comparison = printStats
