@@ -23,6 +23,7 @@ package de.featjar.feature.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Test;
@@ -92,5 +93,7 @@ public class AnalysisTreeTest {
         assertEquals(map2secondLevel.getChild(0).get().getValue(), (float) 21);
         assertEquals(map2secondLevel.getChild(1).get().getName(), "float2thirdLevel");
         assertEquals(map2secondLevel.getChild(1).get().getValue(), (float) 22);
+
+        assertTrue(Trees.equals(returnedTree, returnedTree.cloneTree()));
     }
 }
