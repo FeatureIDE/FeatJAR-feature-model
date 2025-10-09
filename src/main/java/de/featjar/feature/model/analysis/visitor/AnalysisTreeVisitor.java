@@ -31,8 +31,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Transforms a given AnalysisTree into a HashMap 
- * 
+ * Transforms a given AnalysisTree into a HashMap
+ *
  * @author Mohammad Khair Almekkawi
  * @author Florian Beese
  */

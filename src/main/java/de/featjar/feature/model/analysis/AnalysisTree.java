@@ -159,7 +159,7 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
      * This function is specially suited to process a hashmap having only a single key in its first layer.
      *
      * @param hashMap data to convert
-     * @return returns the recursively built tree including its children
+     * @return returns the recursively built tree including its children, or an empty tree with an empty name in case of an error
      */
     public static AnalysisTree<?> hashMapListToTree(HashMap<String, Object> hashMap) {
         if (hashMap.size() == 1) {
