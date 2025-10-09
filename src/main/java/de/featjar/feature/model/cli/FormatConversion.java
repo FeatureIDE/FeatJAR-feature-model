@@ -33,7 +33,9 @@ import de.featjar.feature.model.io.FeatureModelFormats;
 import de.featjar.feature.model.io.xml.GraphVizFeatureModelFormat;
 import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 // --input "../formula/src/testFixtures/resources/Automotive02_V1/model.xml"  --scope all --pretty --output
@@ -60,7 +62,9 @@ public class FormatConversion implements ICommand {
 
     public static final Option<Path> OUTPUT_OPTION = Option.newOption("output", Option.PathParser)
             .setDescription("Path to output file. Accepted File Types: " + supportedInputFileExtensions);
-
+    
+    public static final Option<Boolean> OVERWRITE =
+            Option.newFlag("overwrite").setDescription("Overwrite output file.");
     /**
      * {@return all options registered for the calling class}
      */
@@ -114,10 +118,6 @@ public class FormatConversion implements ICommand {
      */
     @Override
     public int run(OptionList optionParser) {
-
-
-    	System.out.println(FeatureModelFormats.getInstance().getExtensions());
-        System.out.println(buildInfoLossMap());
     	
         if (!checkIfInputOutputIsPresent(optionParser)) {
             return 1;
@@ -131,7 +131,8 @@ public class FormatConversion implements ICommand {
         if (!checkIfFileExtensionsValid(inputFileExtension, outputFileExtension)) {
             return 1;
         }
-
+        
+        infoLossMessage(inputFileExtension, outputFileExtension);
 
         // check if model was corrected extracted from input
         IFeatureModel model = inputParser(optionParser);
@@ -141,13 +142,19 @@ public class FormatConversion implements ICommand {
         }
 
         Path outputPath = optionParser.getResult(OUTPUT_OPTION).orElseThrow();
-
-        return saveFile(outputPath, model, outputFileExtension);
+        
+        return saveFile(outputPath, model, outputFileExtension, optionParser.get(OVERWRITE));
     }
-    public int testInfoLossMap() {
+    
+    
+    
+    
+    
+    // return 0 for no information loss. return 1 for information loss
+    public int infoLossMessage(String iExt, String oExt) {
+    	String msg = "Info Loss:\n";
         Map<String, Map<FileInfo, SupportLevel>> infoLossMap = buildInfoLossMap();
-        String iExt = "xml";
-        String oExt = "txt";
+
 
         Map<FileInfo, SupportLevel> iSupports = infoLossMap.get(iExt);
         Map<FileInfo, SupportLevel> oSupports = infoLossMap.get(oExt);
@@ -156,11 +163,15 @@ public class FormatConversion implements ICommand {
             SupportLevel iSupportLevel = iSupports.get(fileInfo);
             SupportLevel oSupportLevel = oSupports.get(fileInfo);
             if (oSupportLevel.isLessThan(iSupportLevel)) {
-                System.out.println("Info Loss:");
-                System.out.println(fileInfo);
-                System.out.println("  " + iExt + " support: " + iSupportLevel);
-                System.out.println("  " + oExt + " support: " + oSupportLevel);
+            	msg += "\t Supports " + fileInfo + "\n   \t\t" + iExt + ": " + iSupportLevel + "\n  \t\t" + oExt + ": " + oSupportLevel + "\n";
             }
+            
+        }
+        if(!msg.equals("Info Loss:\n")) {
+            FeatJAR.log().warning(msg);
+            return 1;
+        } else {
+        	FeatJAR.log().message("No Information Loss from " + iExt + " to " + oExt + ".");
         }
 
         return 0;
@@ -189,7 +200,7 @@ public class FormatConversion implements ICommand {
         supportMap.get(ext).put(FileInfo.featureGroups, SupportLevel.NONE);
 
         ext = "txt";
-        supportMap.get(ext).put(FileInfo.mandatoryAndOptionalFeatures, SupportLevel.FULL);
+        supportMap.get(ext).put(FileInfo.mandatoryAndOptionalFeatures, SupportLevel.NONE);
         supportMap.get(ext).put(FileInfo.featureAttributesAndMetadata, SupportLevel.NONE);
         supportMap.get(ext).put(FileInfo.hierarchicalFeatureStructure, SupportLevel.PARTIAL);
         supportMap.get(ext).put(FileInfo.featureGroups, SupportLevel.NONE);
@@ -243,7 +254,7 @@ public class FormatConversion implements ICommand {
         return model;
     }
     
-    public int saveFile(Path outputPath, IFeatureModel model, String outputFileExtension) {
+    public int saveFile(Path outputPath, IFeatureModel model, String outputFileExtension, boolean overWriteOutputFile) {
         IFormat<IFeatureModel> format;
         switch (outputFileExtension) {
             case "xml":
@@ -253,7 +264,7 @@ public class FormatConversion implements ICommand {
                 format = new GraphVizFeatureModelFormat();
                 break;
             case "txt":
-                format = new GenericTextFormat();
+                format = new GenericTextFormat<>();
                 break;
             default:
                 // this still catches errors if the switch case construct has not implemented all supported file types!
@@ -261,10 +272,16 @@ public class FormatConversion implements ICommand {
                 return 1;
         }
         try {
-            IO.save(model, outputPath, format);
-            if (model == null) {
-                throw new IOException("model has value null");
+            if(Files.exists(outputPath)) {
+            	if(overWriteOutputFile) {
+            	FeatJAR.log().message("File already present at: " + outputPath + "\n\tContinuing to overwrite File.");
+            } else if(!overWriteOutputFile){
+            	FeatJAR.log().error("Saving outputModel in File unsuccessful: File already present at: " + outputPath + "\n\tTo overwrite present file add --overwrite");
+            	return 1;
+            	}
             }
+            IO.save(model, outputPath, format);
+
         } catch (IOException e) {
             FeatJAR.log().error(e);
             return 2;

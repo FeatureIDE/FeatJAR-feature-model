@@ -96,7 +96,9 @@ public class FormatConversionTest {
     // temp test for quick testing of the info loss map
     @Test
     void infoLossMapTest(){
-        assertEquals(0, formatConversion.testInfoLossMap());
+        assertEquals(1, formatConversion.infoLossMessage("xml", "txt"));
+        assertEquals(0, formatConversion.infoLossMessage("xml", "xml"));
+
     }
    
 }
