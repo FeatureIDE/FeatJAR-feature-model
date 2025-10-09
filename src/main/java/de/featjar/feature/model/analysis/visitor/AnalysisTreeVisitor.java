@@ -30,6 +30,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Transforms a given AnalysisTree into a HashMap 
+ * 
+ * @author Mohammad Khair Almekkawi
+ * @author Florian Beese
+ */
 public class AnalysisTreeVisitor implements ITreeVisitor<AnalysisTree<?>, HashMap<String, Object>> {
     HashMap<String, Object> nodesMap = new HashMap<String, Object>();
 
@@ -46,7 +52,7 @@ public class AnalysisTreeVisitor implements ITreeVisitor<AnalysisTree<?>, HashMa
         for (Iterator<AnalysisTree<?>> iterator = path.iterator(); iterator.hasNext(); ) {
             AnalysisTree<?> currentAnalysisTree = iterator.next();
 
-            if (iterator.hasNext()) { // || node.getName().equals(currentAnalysisTree.getName())
+            if (iterator.hasNext()) {
                 currentMap = (HashMap<String, Object>) currentMap.get(currentAnalysisTree.getName());
             }
         }
