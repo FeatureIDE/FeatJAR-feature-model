@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import de.featjar.base.FeatJAR;
 import de.featjar.base.data.identifier.Identifiers;
 import de.featjar.base.io.IO;
-import de.featjar.base.log.ConfigurableLog.Configuration;
 import de.featjar.base.log.Log.Verbosity;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
@@ -41,7 +40,6 @@ import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
 /**
- * @throws IOException
  * @author Knut, Kilian & Benjamin
  */
 public class FormatConversionTest {
