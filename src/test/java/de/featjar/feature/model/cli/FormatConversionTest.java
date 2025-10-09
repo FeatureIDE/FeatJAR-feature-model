@@ -51,6 +51,9 @@ public class FormatConversionTest {
         return featureModel;
     }
 
+    /**
+     *
+     */
     @Test
     void fileWritingTest() {
 
@@ -69,6 +72,9 @@ public class FormatConversionTest {
         });
     }
 
+    /**
+     *
+     */
     @Test
     void invalidOutput() {
 
@@ -80,6 +86,9 @@ public class FormatConversionTest {
         assertEquals(2, exit_code);
     }
 
+    /**
+     *
+     */
     @Test
     void invalidInput() {
 
@@ -90,6 +99,9 @@ public class FormatConversionTest {
         assertEquals(1, exit_code);
     }
 
+    /**
+     *
+     */
     @Test
     void invalid() {
 
@@ -100,6 +112,9 @@ public class FormatConversionTest {
         assertEquals(1, exit_code);
     }
 
+    /**
+     *
+     */
     @Test
     void infoLossMapTest() {
         FormatConversion formatConversion = new FormatConversion();

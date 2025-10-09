@@ -83,7 +83,9 @@ public class FormatConversion implements ICommand {
         return Option.getAllOptions(getClass());
     }
 
-    // for info loss map
+    /**
+     * for info loss map; indicates whether a feature is supported fully, partially, or not at all.
+     */
     private enum SupportLevel {
         NONE(0),
         PARTIAL(1),
@@ -100,8 +102,12 @@ public class FormatConversion implements ICommand {
         }
     }
 
-    // for info loss map
-    // saving name as well as a description in case we need to explain it to the user later
+
+
+    /**
+     * for info loss map
+     * saving name as well as a description in case we need to explain it to the user later
+     */
     private enum FileInfo {
         hierarchicalFeatureStructure("Hierarchical feature structure"),
         featureAttributesAndMetadata("Feature attributes and metadata"),
@@ -170,6 +176,10 @@ public class FormatConversion implements ICommand {
         return saveFile(outputPath, model, outputFileExtension, optionParser.get(OVERWRITE));
     }
 
+    /**
+     *
+     * @return
+     */
     private static Map<String, List<String>> buildSupportedFileExtensions() {
 
         // todo can we do this cleaner?
@@ -204,8 +214,12 @@ public class FormatConversion implements ICommand {
                 "output", supportedOutputFileExtensions);
     }
 
-    // return 0 for no information loss. return 1 for information loss, return 2 on error due to unsupported input or
-    // output file extensions
+    /**
+     *
+     * @param iExt
+     * @param oExt
+     * @return 0 for no information loss. 1 for information loss, 2 on error due to unsupported input or
+     */
     public int infoLossMessage(String iExt, String oExt) {
         String msg = "Info Loss:\n";
         Map<String, Map<FileInfo, SupportLevel>> infoLossMap = buildInfoLossMap();
@@ -240,6 +254,10 @@ public class FormatConversion implements ICommand {
         return 0;
     }
 
+    /**
+     *
+     * @return
+     */
     private Map<String, Map<FileInfo, SupportLevel>> buildInfoLossMap() {
         Map<String, Map<FileInfo, SupportLevel>> supportMap = new HashMap<>();
 
@@ -302,6 +320,11 @@ public class FormatConversion implements ICommand {
         return true;
     }
 
+    /**
+     *
+     * @param optionParser
+     * @return
+     */
     private boolean checkIfInputOutputIsPresent(OptionList optionParser) {
         if (!optionParser.getResult(INPUT_OPTION).isPresent()) {
             FeatJAR.log().error("No input path provided.");
@@ -313,6 +336,11 @@ public class FormatConversion implements ICommand {
         return true;
     }
 
+    /**
+     *
+     * @param optionParser
+     * @return
+     */
     private IFeatureModel inputParser(OptionList optionParser) {
         Path inputPath = optionParser.getResult(INPUT_OPTION).orElseThrow();
         IFeatureModel model = null;
@@ -325,6 +353,14 @@ public class FormatConversion implements ICommand {
         return model;
     }
 
+    /**
+     *
+     * @param outputPath
+     * @param model
+     * @param outputFileExtension
+     * @param overWriteOutputFile
+     * @return
+     */
     public int saveFile(Path outputPath, IFeatureModel model, String outputFileExtension, boolean overWriteOutputFile) {
         IFormat<IFeatureModel> format;
         switch (outputFileExtension) {
