@@ -52,20 +52,17 @@ public class FormatConversionTest {
     }
 
     /**
-     *
+     * Tests whether an XML file can be loaded and written elsewhere (no content check)
      */
     @Test
     void fileWritingTest() {
-
         String pathToOutPutModel = "../../Desktop/modelWritingTest.xml";
         String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
 
         int exit_code = FeatJAR.runTest("formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
-        System.out.println("exit_code: " + exit_code);
         assertEquals(0, exit_code);
-        System.out.println("Output File Exists: " + new File(pathToOutPutModel).exists());
-
         assertTrue(new File(pathToOutPutModel).exists());
+
         Path pathToBeDeleted = Paths.get(pathToOutPutModel);
         assertDoesNotThrow(() -> {
             Files.deleteIfExists(pathToBeDeleted);
@@ -73,7 +70,7 @@ public class FormatConversionTest {
     }
 
     /**
-     *
+     * Attempts to write model to an incompatible file format (.pdf) and checks whether it's rejected correctly.
      */
     @Test
     void invalidOutput() {
@@ -82,12 +79,11 @@ public class FormatConversionTest {
         String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
 
         int exit_code = FeatJAR.runTest("formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
-        System.out.println(exit_code);
         assertEquals(2, exit_code);
     }
 
     /**
-     *
+     * Attempts to read model from an incompatible file format (.pdf) and checks whether it's rejected correctly.
      */
     @Test
     void invalidInput() {
@@ -100,30 +96,23 @@ public class FormatConversionTest {
     }
 
     /**
-     *
-     */
-    @Test
-    void invalid() {
-
-        String pathToOutPutModel = "output_model.xml";
-        String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.pdf";
-
-        int exit_code = FeatJAR.runTest("formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
-        assertEquals(1, exit_code);
-    }
-
-    /**
-     *
+     * Tests whether information loss warnings are given when appropriate.
      */
     @Test
     void infoLossMapTest() {
         FormatConversion formatConversion = new FormatConversion();
 
+        // output extension should not be found in information loss map
         assertEquals(2, formatConversion.infoLossMessage("xml", "pdf"));
+        // this input / output file extension combination should trigger an info loss warning
         assertEquals(1, formatConversion.infoLossMessage("xml", "dot"));
+        // this input / output file extension combination should NOT trigger an info loss warning
         assertEquals(0, formatConversion.infoLossMessage("xml", "xml"));
     }
 
+    /**
+     * Tests whether the converter can do an XML -> XML round trip with a basic feature model.
+     */
     @Test
     void testWriteAndOverwrite() throws IOException {
 
@@ -133,7 +122,7 @@ public class FormatConversionTest {
         // let program write model to XML file
         new FormatConversion().saveFile(outputPath, model, "xml", true);
 
-        // roundtrip: rebuild model from XML file
+        // round trip: rebuild model from XML file
         FeatureModel retrievedModel =
                 (FeatureModel) IO.load(outputPath, new XMLFeatureModelFormat()).get();
 
