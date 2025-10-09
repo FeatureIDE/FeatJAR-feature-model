@@ -21,6 +21,7 @@
 package de.featjar.feature.model.analysis;
 
 import de.featjar.base.tree.structure.ATree;
+import de.featjar.feature.model.io.json.JSONAnalysisFormat;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +30,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * A tree of nodes with a given name and some data.
+ *
+ * @param <T> type of value this node holds
+ * @author Mohammad Khair Almekkawi
+ * @author Florian Beese
+ */
 public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
 
     String name;
@@ -64,7 +72,6 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
 
     @Override
     public AnalysisTree<?> cloneNode() {
-        // TODO Auto-generated method stub
         return new AnalysisTree<>(this);
     }
 
@@ -87,6 +94,14 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
         return Objects.hash(this.getClass(), this.name, this.value);
     }
 
+    /**
+     * Static function to convert a nested HashMap having integers, floats, doubles and other recursively defined HashMaps as value
+     * to its AnalysisTree representation.
+     *
+     * @param hashMap data to convert
+     * @param name specifies the name of root
+     * @return returns a recursively built tree including its children
+     */
     public static AnalysisTree<?> hashMapToTree(HashMap<String, Object> hashMap, String name) {
         AnalysisTree<Object> root = new AnalysisTree<>(name, (Object) null);
         for (Iterator<String> iterator = hashMap.keySet().iterator(); iterator.hasNext(); ) {
@@ -106,6 +121,15 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
         return root;
     }
 
+    /**
+     * Static function to convert a nested hashmap being processed by {@link JSONAnalysisFormat} into its AnalysisTree representation.
+     * This function is not supposed to be called initially, otherwise a root node with
+     * name having the whole tree as single child is returned.
+     *
+     * @param hashMap data to convert
+     * @param name name of the root
+     * @return returns the recursively built tree including its children
+     */
     public static AnalysisTree<?> hashMapListToTree(HashMap<String, Object> hashMap, String name) {
         AnalysisTree<Object> root = new AnalysisTree<>(name, (Object) null);
         for (Iterator<String> iterator = hashMap.keySet().iterator(); iterator.hasNext(); ) {
@@ -128,6 +152,13 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
         return root;
     }
 
+    /**
+     * Static function to convert a nested hashmap being processed by {@link JSONAnalysisFormat} into its AnalysisTree representation.
+     * This function is specially suited to process a hashmap having only a single key in its first layer.
+     *
+     * @param hashMap data to convert
+     * @return returns the recursively built tree including its children
+     */
     public static AnalysisTree<?> hashMapListToTree(HashMap<String, Object> hashMap) {
         if (hashMap.size() == 1) {
             String key = hashMap.keySet().iterator().next();
