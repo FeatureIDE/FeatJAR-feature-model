@@ -108,7 +108,6 @@ public class PrintStatisticsTest {
     }
 
     @Test
-
     void scopeTreeRelated() {
 
         String content =
