@@ -44,6 +44,9 @@ import org.junit.jupiter.api.Test;
  */
 public class FormatConversionTest {
 
+    /**
+     * {@return example feature model for testing purposes}
+     */
     private FeatureModel generateModel() {
         FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
         featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
@@ -56,8 +59,6 @@ public class FormatConversionTest {
 
     /**
      * Attempts to write model to an incompatible file format (.pdf) and checks whether it's rejected correctly.
-     * @throws IOException
-     *
      */
     @Test
     void fileWritingTest() throws IOException {
@@ -74,8 +75,7 @@ public class FormatConversionTest {
     }
 
     /**
-     * @throws IOException
-     *
+     * Attempts to read model from an incompatible file format (.pdf) and checks whether it's rejected correctly.
      */
     @Test
     void invalidInput() throws IOException {
@@ -92,8 +92,7 @@ public class FormatConversionTest {
     }
 
     /**
-     * @throws IOException
-     *
+     * Attempts to write model to an incompatible file format (.pdf) and checks whether it's rejected correctly.
      */
     @Test
     void invalidOutput() throws IOException {
@@ -109,7 +108,7 @@ public class FormatConversionTest {
     }
 
     /**
-     *
+     * Tests whether information loss warnings are given when appropriate.
      */
     @Test
     void infoLossMapTest() {
