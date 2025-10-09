@@ -32,6 +32,9 @@ import java.util.List;
 
 /**
  * Transforms a given AnalysisTree into a HashMap
+ * Where the resulted HashMap is a HashMap that have other HashMap<String, Object> or a list that contains no further
+ * HashMaps but exactly three elements, with the first element being a name, the second a value, the third the type of the value.
+ * Furthermore, the types of the values that are allowed are only Integer, Double, or Float.
  *
  * @author Mohammad Khair Almekkawi
  * @author Florian Beese
@@ -61,7 +64,7 @@ public class AnalysisTreeVisitor implements ITreeVisitor<AnalysisTree<?>, HashMa
             currentMap.put(
                     node.getName(),
                     new ArrayList<Object>(
-                            Arrays.asList(node.getName(), node.getValue().getClass(), node.getValue())));
+                            Arrays.asList(node.getName(), node.getValue().getClass().toString(), node.getValue())));
         } else {
             currentMap.put(node.getName(), new HashMap<String, Object>());
         }

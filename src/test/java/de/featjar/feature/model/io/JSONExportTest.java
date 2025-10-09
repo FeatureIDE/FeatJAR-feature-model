@@ -33,23 +33,11 @@ import java.util.LinkedHashMap;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
-public class JSONFExportTest {
+public class JSONExportTest {
 
     LinkedHashMap<String, Object> data = new LinkedHashMap<String, Object>();
 
     public AnalysisTree<?> createDefaultTree() {
-        LinkedHashMap<String, Object> innerMap = new LinkedHashMap<String, Object>();
-        innerMap.put("xo", 3.3);
-        innerMap.put("numOfLeafFeatures", (float) 12.4);
-        data.put("numOfTopFeatures", 3.3);
-        data.put("numOfLeafFeatures", (float) 12.4);
-        data.put("treeDepth", 3);
-        data.put("avgNumOfChildren", 3);
-        data.put("numInOrGroups", 7);
-        data.put("numInAltGroups", 5);
-        data.put("avgNumOfAtomsPerConstraints", innerMap);
-        data.put("numOfAtoms", 8);
-        data.put("avgNumOfAsss", 4);
         AnalysisTree<?> innereanalysisTree = new AnalysisTree<>(
                 "avgNumOfAtomsPerConstraints",
                 new AnalysisTree<>("xo", 3.3),

@@ -39,8 +39,8 @@ import java.util.Objects;
  */
 public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
 
-    String name;
-    T value;
+    private String name;
+    private T value;
 
     public AnalysisTree(String name, T value) {
         this.name = name;
@@ -165,6 +165,39 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
         if (hashMap.size() == 1) {
             String key = hashMap.keySet().iterator().next();
             return hashMapListToTree((HashMap<String, Object>) hashMap.get(key), key);
+        } else {
+            return new AnalysisTree<>("");
+        }
+    }
+    
+    public static AnalysisTree<?> hashMapListYamlToTree(HashMap<String, Object> hashMap, String name) {
+        AnalysisTree<Object> root = new AnalysisTree<>(name, (Object) null);
+        for (Iterator<String> iterator = hashMap.keySet().iterator(); iterator.hasNext(); ) {
+            String currentKey = iterator.next();
+            if (hashMap.get(currentKey) instanceof HashMap) {
+                root.addChild(hashMapListYamlToTree((HashMap<String, Object>) hashMap.get(currentKey), currentKey));
+            } else if (hashMap.get(currentKey) instanceof ArrayList) {
+                ArrayList currentElement = (ArrayList) hashMap.get(currentKey);
+                if (currentElement.get(1).equals("class java.lang.Double")) {
+                    double currentDeccimal = (double) currentElement.get(2);
+                    root.addChild(new AnalysisTree<>(currentKey, currentDeccimal));
+                } else if (currentElement.get(1).equals("class java.lang.Integer")) {
+                    root.addChild(new AnalysisTree<>(currentKey, (int) currentElement.get(2)));
+                } else if (currentElement.get(1).equals("class java.lang.Float")) {
+                	double currentDouble = (double) currentElement.get(2);
+                	float currentDeccimal = (float) currentDouble;
+                    root.addChild(new AnalysisTree<>(currentKey, currentDeccimal));
+                }
+            }
+        }
+        return root;
+    }
+    
+    
+    public static AnalysisTree<?> hashMapListYamlToTree(HashMap<String, Object> hashMap) {
+        if (hashMap.size() == 1) {
+            String key = hashMap.keySet().iterator().next();
+            return hashMapListYamlToTree((HashMap<String, Object>) hashMap.get(key), key);
         } else {
             return new AnalysisTree<>("");
         }
