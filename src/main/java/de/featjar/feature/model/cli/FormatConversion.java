@@ -27,7 +27,6 @@ import de.featjar.base.cli.OptionList;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
 import de.featjar.base.io.format.IFormat;
-import de.featjar.base.io.text.GenericTextFormat;
 import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.io.FeatureModelFormats;
 import de.featjar.feature.model.io.xml.GraphVizFeatureModelFormat;
@@ -37,14 +36,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-// formatConversion --input "../formula/src/testFixtures/resources/Automotive02_V1/model.xml" --output
-// "../../Desktop/model.xml" --overwrite
-
-// derzeit dynamisch implementiert von welchem dateityp man zu einem anderen dateityp konvertieren
-// wir würden aber den daraus resultierenden information loss hard coden. Dynam
-
-// Extensionpoints um auf UVL zuzugreifen
-
 /**
  * Prints statistics about a provided Feature Model.
  *
@@ -52,20 +43,9 @@ import java.util.*;
  */
 public class FormatConversion implements ICommand {
 
-    /*
-    private static Map<String, List<String>> supportedFileExtensions;
-       private static List<String> supportedInputFileExtensions;
-       private static List<String> supportedOutputFileExtensions;
-       */
-
     private static Map<String, List<String>> supportedFileExtensions = buildSupportedFileExtensions();
     private static List<String> supportedInputFileExtensions = supportedFileExtensions.get("input");
     private static List<String> supportedOutputFileExtensions = supportedFileExtensions.get("output");
-
-    //    private static final List<String> supportedInputFileExtensions = Arrays.asList("csv", "xml", "yaml", "txt",
-    // "dot", "uvl");
-    //    private static final List<String> supportedOutputFileExtensions =
-    //            Arrays.asList("csv", "xml", "yaml", "txt", "json", "dot", "uvl");
 
     public static final Option<Path> INPUT_OPTION = Option.newOption("input", Option.PathParser)
             .setDescription("Path to input file. Accepted File Types: " + supportedInputFileExtensions)
@@ -76,6 +56,7 @@ public class FormatConversion implements ICommand {
 
     public static final Option<Boolean> OVERWRITE =
             Option.newFlag("overwrite").setDescription("Overwrite output file.");
+
     /**
      * {@return all options registered for the calling class}
      */
@@ -101,8 +82,6 @@ public class FormatConversion implements ICommand {
             return this.rank < other.rank;
         }
     }
-
-
 
     /**
      * for info loss map
@@ -143,11 +122,6 @@ public class FormatConversion implements ICommand {
      */
     @Override
     public int run(OptionList optionParser) {
-        /*
-        supportedFileExtensions = buildSupportedFileExtensions();
-        supportedInputFileExtensions = supportedFileExtensions.get("input");
-        supportedOutputFileExtensions = supportedFileExtensions.get("output");
-        */
 
         if (!checkIfInputOutputIsPresent(optionParser)) {
             return 1;
@@ -182,11 +156,8 @@ public class FormatConversion implements ICommand {
      */
     private static Map<String, List<String>> buildSupportedFileExtensions() {
 
-        // todo can we do this cleaner?
-        try {
+        if (!FeatJAR.isInitialized()) {
             FeatJAR.initialize();
-        } catch (Exception e) {
-            System.out.println("Already Initialized, Caught");
         }
 
         List<IFormat<IFeatureModel>> supportedFileExtensions = null;
@@ -221,16 +192,12 @@ public class FormatConversion implements ICommand {
      * @return 0 for no information loss. 1 for information loss, 2 on error due to unsupported input or
      */
     public int infoLossMessage(String iExt, String oExt) {
+
         String msg = "Info Loss:\n";
         Map<String, Map<FileInfo, SupportLevel>> infoLossMap = buildInfoLossMap();
 
-        System.out.print(supportedInputFileExtensions);
-        System.out.print(supportedOutputFileExtensions);
-
-        Map<FileInfo, SupportLevel> iSupports = infoLossMap.get(iExt);
-        ;
+        Map<FileInfo, SupportLevel> iSupports = infoLossMap.get(iExt); // xml
         Map<FileInfo, SupportLevel> oSupports = infoLossMap.get(oExt);
-        ;
 
         if (iSupports == null || oSupports == null) {
             return 2;
@@ -239,6 +206,7 @@ public class FormatConversion implements ICommand {
         for (FileInfo fileInfo : iSupports.keySet()) {
             SupportLevel iSupportLevel = iSupports.get(fileInfo);
             SupportLevel oSupportLevel = oSupports.get(fileInfo);
+
             if (oSupportLevel.isLessThan(iSupportLevel)) {
                 msg += "\t Supports " + fileInfo + "\n   \t\t" + iExt + ": " + iSupportLevel + "\n  \t\t" + oExt + ": "
                         + oSupportLevel + "\n";
@@ -259,40 +227,29 @@ public class FormatConversion implements ICommand {
      * @return
      */
     private Map<String, Map<FileInfo, SupportLevel>> buildInfoLossMap() {
+
         Map<String, Map<FileInfo, SupportLevel>> supportMap = new HashMap<>();
 
-        // set to eliminate duplicates
-        Set<String> supportedFileExtensions = new LinkedHashSet<>(supportedInputFileExtensions);
-        supportedFileExtensions.addAll(supportedOutputFileExtensions);
-
-        // default values
-        for (String fileExtension : supportedFileExtensions) {
-            supportMap.put(fileExtension, new EnumMap<>(FileInfo.class)); // for each extension: add each feature
-            for (FileInfo fileInfo : FileInfo.values()) {
-                supportMap
-                        .get(fileExtension)
-                        .put(fileInfo, SupportLevel.NONE); // by default: all features are unsupported
-            }
-        }
-
-        // fill with real values maybe dynamically?
         String extension = "xml";
+        supportMap.put(extension, new EnumMap<>(FileInfo.class)); // for each extension: add each feature
         supportMap.get(extension).put(FileInfo.mandatoryAndOptionalFeatures, SupportLevel.FULL);
         supportMap.get(extension).put(FileInfo.featureAttributesAndMetadata, SupportLevel.FULL);
         supportMap.get(extension).put(FileInfo.hierarchicalFeatureStructure, SupportLevel.PARTIAL);
         supportMap.get(extension).put(FileInfo.featureGroups, SupportLevel.NONE);
 
-        //        extension = "uvl";
-        //        supportMap.get(extension).put(FileInfo.mandatoryAndOptionalFeatures, SupportLevel.NONE);
-        //        supportMap.get(extension).put(FileInfo.featureAttributesAndMetadata, SupportLevel.NONE);
-        //        supportMap.get(extension).put(FileInfo.hierarchicalFeatureStructure, SupportLevel.PARTIAL);
-        //        supportMap.get(extension).put(FileInfo.featureGroups, SupportLevel.NONE);
+        extension = "uvl";
+        supportMap.put(extension, new EnumMap<>(FileInfo.class)); // for each extension: add each feature
+        supportMap.get(extension).put(FileInfo.mandatoryAndOptionalFeatures, SupportLevel.NONE);
+        supportMap.get(extension).put(FileInfo.featureAttributesAndMetadata, SupportLevel.NONE);
+        supportMap.get(extension).put(FileInfo.hierarchicalFeatureStructure, SupportLevel.PARTIAL);
+        supportMap.get(extension).put(FileInfo.featureGroups, SupportLevel.NONE);
 
-        //        extension = "txt";
-        //        supportMap.get(extension).put(FileInfo.mandatoryAndOptionalFeatures, SupportLevel.NONE);
-        //        supportMap.get(extension).put(FileInfo.featureAttributesAndMetadata, SupportLevel.NONE);
-        //        supportMap.get(extension).put(FileInfo.hierarchicalFeatureStructure, SupportLevel.PARTIAL);
-        //        supportMap.get(extension).put(FileInfo.featureGroups, SupportLevel.NONE);
+        extension = "dot";
+        supportMap.put(extension, new EnumMap<>(FileInfo.class)); // for each extension: add each feature
+        supportMap.get(extension).put(FileInfo.mandatoryAndOptionalFeatures, SupportLevel.NONE);
+        supportMap.get(extension).put(FileInfo.featureAttributesAndMetadata, SupportLevel.NONE);
+        supportMap.get(extension).put(FileInfo.hierarchicalFeatureStructure, SupportLevel.PARTIAL);
+        supportMap.get(extension).put(FileInfo.featureGroups, SupportLevel.NONE);
 
         return supportMap;
     }
@@ -353,7 +310,7 @@ public class FormatConversion implements ICommand {
         return model;
     }
 
-    /**
+    /** TODO:
      *
      * @param outputPath
      * @param model
@@ -370,11 +327,6 @@ public class FormatConversion implements ICommand {
             case "dot":
                 format = new GraphVizFeatureModelFormat();
                 break;
-            case "txt":
-                format = new GenericTextFormat<>();
-                break;
-                //            case "uvl":
-                //            	TODO
             default:
                 // this still catches errors if the switch case construct has not implemented all supported file types!
                 FeatJAR.log().error("Unsupported output file extension: " + outputFileExtension);

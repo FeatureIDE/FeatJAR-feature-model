@@ -20,7 +20,6 @@
  */
 package de.featjar.feature.model.cli;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -45,61 +44,76 @@ import org.junit.jupiter.api.Test;
  */
 public class FormatConversionTest {
 
-    private FeatureModel generateMinimalModel() {
+    private FeatureModel generateModel() {
         FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
         featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         return featureModel;
     }
 
-    /**
-     * Tests whether an XML file can be loaded and written elsewhere (no content check)
-     */
-    @Test
-    void fileWritingTest() {
-        String pathToOutPutModel = "../../Desktop/modelWritingTest.xml";
-        String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
+    private String inputPath = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
+    private String outputPath;
 
-        int exit_code = FeatJAR.runTest("formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
-        assertEquals(0, exit_code);
-        assertTrue(new File(pathToOutPutModel).exists());
-
-        Path pathToBeDeleted = Paths.get(pathToOutPutModel);
-        assertDoesNotThrow(() -> {
-            Files.deleteIfExists(pathToBeDeleted);
-        });
-    }
 
     /**
      * Attempts to write model to an incompatible file format (.pdf) and checks whether it's rejected correctly.
+     * @throws IOException
+     *
      */
     @Test
-    void invalidOutput() {
+    void fileWritingTest() throws IOException {
 
-        String pathToOutPutModel = "output_model.pdf";
-        String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
+        outputPath = "model_fileWritingTest.xml";
 
-        int exit_code = FeatJAR.runTest("formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
-        assertEquals(2, exit_code);
+        Files.deleteIfExists(Paths.get(outputPath));
+
+        int exit_code = FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", outputPath);
+        assertEquals(0, exit_code);
+        assertTrue(new File(outputPath).exists());
+
+        Files.deleteIfExists(Paths.get(outputPath));
     }
 
     /**
-     * Attempts to read model from an incompatible file format (.pdf) and checks whether it's rejected correctly.
+     * @throws IOException
+     *
      */
     @Test
-    void invalidInput() {
+    void invalidInput() throws IOException {
 
-        String pathToOutPutModel = "output_model.xml";
-        String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.pdf";
+        inputPath = "../formula/src/testFixtures/resources/Automotive02_V1/model.pdf";
+        outputPath = "model_invalidInput.xml";
 
-        int exit_code = FeatJAR.runTest("formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
+        Files.deleteIfExists(Paths.get(outputPath));
+
+        int exit_code = FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", outputPath);
         assertEquals(1, exit_code);
+
+        Files.deleteIfExists(Paths.get(outputPath));
     }
 
     /**
-     * Tests whether information loss warnings are given when appropriate.
+     * @throws IOException
+     *
+     */
+    @Test
+    void invalidOutput() throws IOException {
+
+        outputPath = "model_invalidOutput.pdf";
+
+        Files.deleteIfExists(Paths.get(outputPath));
+
+        int exit_code = FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", outputPath);
+        assertEquals(2, exit_code);
+
+        Files.deleteIfExists(Paths.get(outputPath));
+    }
+
+    /**
+     *
      */
     @Test
     void infoLossMapTest() {
+
         FormatConversion formatConversion = new FormatConversion();
 
         // output extension should not be found in information loss map
@@ -116,8 +130,10 @@ public class FormatConversionTest {
     @Test
     void testWriteAndOverwrite() throws IOException {
 
-        Path outputPath = Paths.get("../../Desktop/COPYTHIS.xml");
-        FeatureModel model = generateMinimalModel();
+        Path outputPath = Paths.get("model_testWriteAndOverwrite.xml");
+        FeatureModel model = generateModel();
+
+        Files.deleteIfExists(outputPath);
 
         // let program write model to XML file
         new FormatConversion().saveFile(outputPath, model, "xml", true);
