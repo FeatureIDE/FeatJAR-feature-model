@@ -51,10 +51,14 @@ import java.util.*;
  */
 public class FormatConversion implements ICommand {
 
-	
+	private static final Map<String, List<String>> supportedFileExtensions = buildSupportedFileExtensions();
+    private static final List<String> supportedInputFileExtensions = supportedFileExtensions.get("input");
+    private static final List<String> supportedOutputFileExtensions = supportedFileExtensions.get("output");
+    /*
     private static final List<String> supportedInputFileExtensions = Arrays.asList("csv", "xml", "yaml", "txt", "dot");
     private static final List<String> supportedOutputFileExtensions =
             Arrays.asList("csv", "xml", "yaml", "txt", "json", "dot");
+     */
 
     public static final Option<Path> INPUT_OPTION = Option.newOption("input", Option.PathParser)
             .setDescription("Path to input file. Accepted File Types: " + supportedInputFileExtensions)
@@ -146,7 +150,21 @@ public class FormatConversion implements ICommand {
         return saveFile(outputPath, model, outputFileExtension, optionParser.get(OVERWRITE));
     }
     
-    
+    private static Map<String, List<String>> buildSupportedFileExtensions() {
+        List<IFormat<IFeatureModel>> supportedFileExtensions = FeatureModelFormats.getInstance().getExtensions();
+        List<String> supportedInputFileExtensions = new ArrayList<>();
+        List<String> supportedOutputFileExtensions = new ArrayList<>();
+
+        for (IFormat<IFeatureModel> ext : supportedFileExtensions) {
+            if (ext.supportsParse()) {supportedInputFileExtensions.add(ext.getFileExtension());}
+            if (ext.supportsWrite()) {supportedOutputFileExtensions.add(ext.getFileExtension());}
+        }
+
+        return Map.of(
+                "input", supportedInputFileExtensions,
+                "output", supportedOutputFileExtensions
+        );
+    }
     
     
     
