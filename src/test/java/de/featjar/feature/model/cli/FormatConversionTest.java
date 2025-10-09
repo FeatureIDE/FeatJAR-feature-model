@@ -26,35 +26,52 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 
 import de.featjar.base.FeatJAR;
+import de.featjar.base.data.Result;
 import de.featjar.base.data.identifier.AIdentifier;
 import de.featjar.base.data.identifier.IIdentifiable;
+import de.featjar.base.data.identifier.Identifiers;
+import de.featjar.base.io.IO;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
+import de.featjar.feature.model.FeatureModel;
+import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.cli.FormatConversion;
+import de.featjar.feature.model.io.FeatureModelFormats;
+import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
 
 /**
  * Tests for {@link AIdentifier} and {@link IIdentifiable}.
  *
- * @author Knut & Kilian
+ * @author Knut, Kilian & Benjamin
  */
 public class FormatConversionTest {
+	
+    
+    private FeatureModel generateMinimalModel() {
+        FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
+        return featureModel;
+    }
 
-    FormatConversion formatConversion = new FormatConversion();
-
+    
     @Test
     void fileWritingTest() {
     	
-    	String pathToOutPutModel = "output_model.xml";
+    	String pathToOutPutModel = "../../Desktop/modelWritingTest.xml";
     	String pathToInputModel = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
 
         int exit_code = FeatJAR.runTest(
                 "formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
+        System.out.println("exit_code: " + exit_code);
         assertEquals(0, exit_code);
+        System.out.println("Output File Exists: " + new File(pathToOutPutModel).exists());
+
         assertTrue(new File(pathToOutPutModel).exists());
         Path pathToBeDeleted = Paths.get(pathToOutPutModel);
         assertDoesNotThrow(() -> {
@@ -70,7 +87,8 @@ public class FormatConversionTest {
 
         int exit_code = FeatJAR.runTest(
                 "formatConversion", "--input", pathToInputModel, "--output", pathToOutPutModel);
-        assertEquals(1, exit_code);
+        System.out.println(exit_code);
+        assertEquals(2, exit_code);
     }
     @Test
     void invalidInput(){
@@ -93,12 +111,31 @@ public class FormatConversionTest {
         assertEquals(1, exit_code);
     }
 
-    // temp test for quick testing of the info loss map
     @Test
     void infoLossMapTest(){
-        assertEquals(1, formatConversion.infoLossMessage("xml", "txt"));
+    	FormatConversion formatConversion = new FormatConversion();
+
+    	assertEquals(2, formatConversion.infoLossMessage("xml", "pdf"));
+        assertEquals(1, formatConversion.infoLossMessage("xml", "dot"));
         assertEquals(0, formatConversion.infoLossMessage("xml", "xml"));
 
+    }
+    
+    @Test
+    void testWriteAndOverwrite() throws IOException {
+    	
+    	Path outputPath = Paths.get("../../Desktop/COPYTHIS.xml");
+    	FeatureModel model = generateMinimalModel();
+ 
+    	// let program write model to XML file
+    	new FormatConversion().saveFile(outputPath, model, "xml", true);
+    	
+    	// roundtrip: rebuild model from XML file
+        FeatureModel retrievedModel = (FeatureModel) IO.load(outputPath, new XMLFeatureModelFormat()).get();
+        
+        assertEquals(model, retrievedModel);
+        		
+        Files.deleteIfExists(outputPath);
     }
    
 }
