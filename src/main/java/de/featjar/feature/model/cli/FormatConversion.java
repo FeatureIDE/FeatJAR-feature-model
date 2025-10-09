@@ -58,14 +58,14 @@ public class FormatConversion implements ICommand {
             Option.newFlag("overwrite").setDescription("Overwrite output file.");
 
     /**
-     * {@return all options registered for the calling class}
+     * @return all options registered for the calling class.
      */
     public final List<Option<?>> getOptions() {
         return Option.getAllOptions(getClass());
     }
 
     /**
-     * for info loss map; indicates whether a feature is supported fully, partially, or not at all.
+     * For info loss map; indicates whether a feature is supported fully, partially, or not at all.
      */
     private enum SupportLevel {
         NONE(0),
@@ -84,8 +84,8 @@ public class FormatConversion implements ICommand {
     }
 
     /**
-     * for info loss map
-     * saving name as well as a description in case we need to explain it to the user later
+     * For info loss map.
+     * Saving name as well as a description in case we need to explain it to the user later.
      */
     private enum FileInfo {
         hierarchicalFeatureStructure("Hierarchical feature structure"),
@@ -115,14 +115,14 @@ public class FormatConversion implements ICommand {
     }
 
     /**
+     * main function for handling format conversion
+     * @param OptionParser supplied by command line execution.
      *
-     * @param optionParser option parser supplied by command line execution
-     *
-     * @return 0 on success, 1 if in- or output paths are invalid, 2 on IOException, 3 if no model could be parsed from input file
+     * @return 0 if success, 1 if input/output paths are invalid, 2 if IOException, 3 if no model could be parsed from input file.
      */
     @Override
     public int run(OptionList optionParser) {
-
+    	
         if (!checkIfInputOutputIsPresent(optionParser)) {
             return 1;
         }
@@ -136,6 +136,7 @@ public class FormatConversion implements ICommand {
             return 2;
         }
 
+        // informing user about information loss during conversion between file formats
         infoLossMessage(inputFileExtension, outputFileExtension);
 
         // check if model was corrected extracted from input
@@ -150,9 +151,8 @@ public class FormatConversion implements ICommand {
         return saveFile(outputPath, model, outputFileExtension, optionParser.get(OVERWRITE));
     }
 
-    /**
-     *
-     * @return
+    /** Iterates over an extension point to compile lists of the supported file extensions.
+     *	@return One list that contains all supported input file extensions (under the key: "input"), and one list that contains all supported output file extensions (key: "output".
      */
     private static Map<String, List<String>> buildSupportedFileExtensions() {
 
@@ -191,7 +191,7 @@ public class FormatConversion implements ICommand {
      * @param oExt
      * @return 0 for no information loss. 1 for information loss, 2 on error due to unsupported input or
      */
-    public int infoLossMessage(String iExt, String oExt) {
+    private void infoLossMessage(String iExt, String oExt) {
 
         String msg = "Info Loss:\n";
         Map<String, Map<FileInfo, SupportLevel>> infoLossMap = buildInfoLossMap();
@@ -200,7 +200,7 @@ public class FormatConversion implements ICommand {
         Map<FileInfo, SupportLevel> oSupports = infoLossMap.get(oExt);
 
         if (iSupports == null || oSupports == null) {
-            return 2;
+            return;
         }
 
         for (FileInfo fileInfo : iSupports.keySet()) {
@@ -214,12 +214,9 @@ public class FormatConversion implements ICommand {
         }
         if (!msg.equals("Info Loss:\n")) {
             FeatJAR.log().warning(msg);
-            return 1;
         } else {
             FeatJAR.log().message("No Information Loss from " + iExt + " to " + oExt + ".");
         }
-
-        return 0;
     }
 
     /**
@@ -310,7 +307,7 @@ public class FormatConversion implements ICommand {
         return model;
     }
 
-    /** TODO:
+    /** 
      *
      * @param outputPath
      * @param model

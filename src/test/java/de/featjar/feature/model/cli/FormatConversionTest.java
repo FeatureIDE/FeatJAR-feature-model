@@ -24,22 +24,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import de.featjar.base.FeatJAR;
-import de.featjar.base.data.identifier.AIdentifier;
-import de.featjar.base.data.identifier.IIdentifiable;
 import de.featjar.base.data.identifier.Identifiers;
 import de.featjar.base.io.IO;
+import de.featjar.base.log.ConfigurableLog.Configuration;
+import de.featjar.base.log.Log.Verbosity;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for {@link AIdentifier} and {@link IIdentifiable}.
- *
+ * @throws IOException
  * @author Knut, Kilian & Benjamin
  */
 public class FormatConversionTest {
@@ -59,6 +61,7 @@ public class FormatConversionTest {
 
     /**
      * Attempts to write model to an incompatible file format (.pdf) and checks whether it's rejected correctly.
+     *
      */
     @Test
     void fileWritingTest() throws IOException {
@@ -75,6 +78,8 @@ public class FormatConversionTest {
     }
 
     /**
+     *
+     *
      * Attempts to read model from an incompatible file format (.pdf) and checks whether it's rejected correctly.
      */
     @Test
@@ -108,23 +113,49 @@ public class FormatConversionTest {
     }
 
     /**
-     * Tests whether information loss warnings are given when appropriate.
+     *
+     * checks if an info loss message is produced
      */
     @Test
-    void infoLossMapTest() {
+    void infoLossMapTestTriggers() throws IOException {
+
+        inputPath = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
+        outputPath = "model_invalidInput.dot";
+
+        Files.deleteIfExists(Paths.get(outputPath));
+
+        FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", outputPath);
+
+
+    	ByteArrayOutputStream out = new ByteArrayOutputStream();
+		PrintStream stream = new PrintStream(out);
+    	de.featjar.base.FeatJAR.Configuration config = FeatJAR.configure();
+		config
+    		.logConfig
+    		.logToStream(stream, "", Verbosity.MESSAGE, Verbosity.WARNING);
+    	FeatJAR.initialize(config);
+
 
         FormatConversion formatConversion = new FormatConversion();
 
-        // output extension should not be found in information loss map
-        assertEquals(2, formatConversion.infoLossMessage("xml", "pdf"));
-        // this input / output file extension combination should trigger an info loss warning
-        assertEquals(1, formatConversion.infoLossMessage("xml", "dot"));
-        // this input / output file extension combination should NOT trigger an info loss warning
-        assertEquals(0, formatConversion.infoLossMessage("xml", "xml"));
+        byte[] byteArray = out.toByteArray();
+    	String string = new String(byteArray);
+    	// System.out.println(string); // to check what was written to logger
+    	String expected_output = "Info Loss:\n"
+    			+ "	 Supports Feature attributes and metadata\n"
+    			+ "   		xml: FULL\n"
+    			+ "  		dot: NONE\n"
+    			+ "	 Supports Mandatory and optional features\n"
+    			+ "   		xml: FULL\n"
+    			+ "  		dot: NONE\n";
+    	assertTrue(string.contains(expected_output));
+
+    	// assertEquals(expected_output, string);
     }
 
     /**
      * Tests whether the converter can do an XML -> XML round trip with a basic feature model.
+     *
      */
     @Test
     void testWriteAndOverwrite() throws IOException {
