@@ -76,6 +76,8 @@ public class FormatConversion implements ICommand {
 
         public final int rank;
         SupportLevel(int rank) {this.rank = rank;}
+
+        boolean isLessThan(SupportLevel other) {return this.rank < other.rank; }
     }
 
     // for info loss map
@@ -153,7 +155,7 @@ public class FormatConversion implements ICommand {
         for (FileInfo fileInfo : iSupports.keySet()) {
             SupportLevel iSupportLevel = iSupports.get(fileInfo);
             SupportLevel oSupportLevel = oSupports.get(fileInfo);
-            if (oSupportLevel.rank < iSupportLevel.rank) {
+            if (oSupportLevel.isLessThan(iSupportLevel)) {
                 System.out.println("Info Loss:");
                 System.out.println(fileInfo);
                 System.out.println("  " + iExt + " support: " + iSupportLevel);
