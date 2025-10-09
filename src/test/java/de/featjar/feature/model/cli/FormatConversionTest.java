@@ -122,9 +122,6 @@ public class FormatConversionTest {
 
         Files.deleteIfExists(Paths.get(outputPath));
 
-        FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", outputPath);
-
-
     	ByteArrayOutputStream out = new ByteArrayOutputStream();
 		PrintStream stream = new PrintStream(out);
     	de.featjar.base.FeatJAR.Configuration config = FeatJAR.configure();
@@ -133,8 +130,7 @@ public class FormatConversionTest {
     		.logToStream(stream, "", Verbosity.MESSAGE, Verbosity.WARNING);
     	FeatJAR.initialize(config);
 
-
-        FormatConversion formatConversion = new FormatConversion();
+        FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", outputPath);
 
         byte[] byteArray = out.toByteArray();
     	String string = new String(byteArray);
@@ -149,6 +145,8 @@ public class FormatConversionTest {
     	assertTrue(string.contains(expected_output));
 
     	// assertEquals(expected_output, string);
+
+        Files.deleteIfExists(Paths.get(outputPath));
     }
 
     /**
