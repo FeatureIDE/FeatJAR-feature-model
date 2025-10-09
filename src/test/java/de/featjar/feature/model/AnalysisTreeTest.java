@@ -21,6 +21,7 @@
 package de.featjar.feature.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import de.featjar.base.tree.Trees;
@@ -37,6 +38,7 @@ public class AnalysisTreeTest {
 
         assertEquals(returnedTree.getName(), "empty");
         assertEquals(returnedTree.getChildrenCount(), 0);
+        assertNull(returnedTree.getValue());
 
         emptyMap.put("intfirstLevel", 42);
         emptyMap.put("floatfirstLevel", (float) 42);

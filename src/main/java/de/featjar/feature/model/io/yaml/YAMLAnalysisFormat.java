@@ -26,10 +26,7 @@ import de.featjar.base.io.input.AInputMapper;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.analysis.visitor.AnalysisTreeVisitor;
-
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-
 import org.yaml.snakeyaml.Yaml;
 
 public class YAMLAnalysisFormat implements IFormat<AnalysisTree<?>> {
@@ -56,14 +53,16 @@ public class YAMLAnalysisFormat implements IFormat<AnalysisTree<?>> {
 
     @Override
     public Result<String> serialize(AnalysisTree<?> analysisTree) {
-    	Yaml yaml = new Yaml();
-        return Result.of(yaml.dump(Trees.traverse(analysisTree, new AnalysisTreeVisitor()).get()));
+        Yaml yaml = new Yaml();
+        return Result.of(yaml.dump(
+                Trees.traverse(analysisTree, new AnalysisTreeVisitor()).get()));
     }
 
     @Override
     public Result<AnalysisTree<?>> parse(AInputMapper inputMapper) {
-    	Yaml yaml = new Yaml();
-    	HashMap<String, Object> yamlHashMap = (HashMap<String, Object>) yaml.load(inputMapper.get().text());
-    	return Result.of(AnalysisTree.hashMapListYamlToTree(yamlHashMap));
+        Yaml yaml = new Yaml();
+        HashMap<String, Object> yamlHashMap =
+                (HashMap<String, Object>) yaml.load(inputMapper.get().text());
+        return Result.of(AnalysisTree.hashMapListYamlToTree(yamlHashMap));
     }
 }

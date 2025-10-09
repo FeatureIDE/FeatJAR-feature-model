@@ -63,8 +63,8 @@ public class AnalysisTreeVisitor implements ITreeVisitor<AnalysisTree<?>, HashMa
         if (node.getChildrenCount() == 0) {
             currentMap.put(
                     node.getName(),
-                    new ArrayList<Object>(
-                            Arrays.asList(node.getName(), node.getValue().getClass().toString(), node.getValue())));
+                    new ArrayList<Object>(Arrays.asList(
+                            node.getName(), node.getValue().getClass().toString(), node.getValue())));
         } else {
             currentMap.put(node.getName(), new HashMap<String, Object>());
         }

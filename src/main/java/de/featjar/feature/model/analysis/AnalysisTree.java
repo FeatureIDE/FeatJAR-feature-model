@@ -169,7 +169,7 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
             return new AnalysisTree<>("");
         }
     }
-    
+
     public static AnalysisTree<?> hashMapListYamlToTree(HashMap<String, Object> hashMap, String name) {
         AnalysisTree<Object> root = new AnalysisTree<>(name, (Object) null);
         for (Iterator<String> iterator = hashMap.keySet().iterator(); iterator.hasNext(); ) {
@@ -184,16 +184,15 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
                 } else if (currentElement.get(1).equals("class java.lang.Integer")) {
                     root.addChild(new AnalysisTree<>(currentKey, (int) currentElement.get(2)));
                 } else if (currentElement.get(1).equals("class java.lang.Float")) {
-                	double currentDouble = (double) currentElement.get(2);
-                	float currentDeccimal = (float) currentDouble;
+                    double currentDouble = (double) currentElement.get(2);
+                    float currentDeccimal = (float) currentDouble;
                     root.addChild(new AnalysisTree<>(currentKey, currentDeccimal));
                 }
             }
         }
         return root;
     }
-    
-    
+
     public static AnalysisTree<?> hashMapListYamlToTree(HashMap<String, Object> hashMap) {
         if (hashMap.size() == 1) {
             String key = hashMap.keySet().iterator().next();
