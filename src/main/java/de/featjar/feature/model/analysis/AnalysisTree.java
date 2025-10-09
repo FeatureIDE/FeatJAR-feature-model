@@ -23,8 +23,10 @@ package de.featjar.feature.model.analysis;
 import de.featjar.base.tree.structure.ATree;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 
 public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
@@ -35,6 +37,16 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
     public AnalysisTree(String name, T value) {
         this.name = name;
         this.value = value;
+    }
+
+    protected AnalysisTree(AnalysisTree<?>... children) {
+        super(children.length);
+        if (children.length > 0) super.setChildren(Arrays.asList(children));
+    }
+
+    public AnalysisTree(List<? extends AnalysisTree<?>> children) {
+        super(children.size());
+        super.setChildren(children);
     }
 
     public String getName() {
@@ -98,7 +110,6 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
         AnalysisTree<Object> root = new AnalysisTree<>(name, (Object) null);
         for (Iterator<String> iterator = hashMap.keySet().iterator(); iterator.hasNext(); ) {
             String currentKey = iterator.next();
-            System.out.println("LIST: " + hashMap.get(currentKey).getClass());
             if (hashMap.get(currentKey) instanceof HashMap) {
                 root.addChild(hashMapListToTree((HashMap<String, Object>) hashMap.get(currentKey), currentKey));
             } else if (hashMap.get(currentKey) instanceof ArrayList) {
@@ -117,12 +128,21 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
         return root;
     }
 
+    public static AnalysisTree<?> hashMapListToTree(HashMap<String, Object> hashMap) {
+        if (hashMap.size() == 1) {
+            String key = hashMap.keySet().iterator().next();
+            return hashMapListToTree((HashMap<String, Object>) hashMap.get(key), key);
+        } else {
+            return new AnalysisTree<>();
+        }
+    }
+
     @Override
     public String toString() {
         if (this.value == null) {
-            return "Name: " + this.name + "Value: " + this.value + "Value class: " + "No class";
+            return "Name: " + this.name + " - Value: " + this.value + " - Value class: " + "No class";
         } else {
-            return "Name: " + this.name + "Value: " + this.value + "Value class: " + this.value.getClass();
+            return "Name: " + this.name + " - Value: " + this.value + " - Value class: " + this.value.getClass();
         }
     }
 }

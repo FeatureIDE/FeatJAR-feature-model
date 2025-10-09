@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.analysis.AnalysisTree;
-import de.featjar.feature.model.io.json.JSONFeatureModelFormat;
+import de.featjar.feature.model.io.json.JSONAnalysisFormat;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -51,21 +51,18 @@ public class JSONFExportTest {
         data.put("avgNumOfAsss", 4);
 
         AnalysisTree<?> analsyisTree = AnalysisTree.hashMapToTree(data, "Analysis");
-        JSONFeatureModelFormat jsonFormat = new JSONFeatureModelFormat();
+        JSONAnalysisFormat jsonFormat = new JSONAnalysisFormat();
         JSONObject firstJSONObject =
                 new JSONObject(jsonFormat.serialize(analsyisTree).get());
         String jsonString = firstJSONObject.toString();
         JSONObject secondJSONJsonObject = new JSONObject(jsonString);
         HashMap<String, Object> jsonAsMap = (HashMap<String, Object>) secondJSONJsonObject.toMap();
-        AnalysisTree<?> analsyisTreeAfterConversion = AnalysisTree.hashMapListToTree(jsonAsMap, "Analysis");
+        AnalysisTree<?> analsyisTreeAfterConversion = AnalysisTree.hashMapListToTree(jsonAsMap);
 
         analsyisTree.sort();
         analsyisTreeAfterConversion.sort();
-        // TODO fix function and adjust test so it does not cheat
         assertTrue(
-                Trees.equals(
-                        analsyisTree, analsyisTreeAfterConversion.getChild(0).get()),
-                "firstTree\n" + analsyisTree.print() + "\nsecond tree\n"
-                        + analsyisTreeAfterConversion.getChild(0).get().print());
+                Trees.equals(analsyisTree, analsyisTreeAfterConversion),
+                "firstTree\n" + analsyisTree.print() + "\nsecond tree\n" + analsyisTreeAfterConversion.print());
     }
 }

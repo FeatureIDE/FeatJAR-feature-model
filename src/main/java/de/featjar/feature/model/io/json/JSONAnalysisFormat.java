@@ -29,7 +29,7 @@ import de.featjar.feature.model.analysis.visitor.AnalysisTreeVisitor;
 import java.util.HashMap;
 import org.json.JSONObject;
 
-public class JSONFeatureModelFormat implements IFormat<AnalysisTree<?>> {
+public class JSONAnalysisFormat implements IFormat<AnalysisTree<?>> {
 
     @Override
     public String getName() {
