@@ -29,6 +29,10 @@ import de.featjar.feature.model.analysis.visitor.AnalysisTreeVisitor;
 import java.util.HashMap;
 import org.json.JSONObject;
 
+/**
+ * An IFormat class that take an AnalysisTree as input and can serialize it into JSON String
+ * and from JSON String
+ */
 public class JSONAnalysisFormat implements IFormat<AnalysisTree<?>> {
 
     @Override
@@ -55,14 +59,13 @@ public class JSONAnalysisFormat implements IFormat<AnalysisTree<?>> {
     public Result<String> serialize(AnalysisTree<?> analysisTree) {
         return Result.of(new JSONObject(
                         Trees.traverse(analysisTree, new AnalysisTreeVisitor()).get())
-                .toString(1)); // new XMLFeatureModelWriter().serialize(object);
+                .toString(1));
     }
 
     @Override
     public Result<AnalysisTree<?>> parse(AInputMapper inputMapper) {
         HashMap<String, Object> jsonMap =
                 (HashMap<String, Object>) new JSONObject(inputMapper.get().text()).toMap();
-        System.out.println("\n \n \n \n \n \n" + inputMapper.get().text());
-        return Result.of(AnalysisTree.hashMapListToTree(jsonMap, "Analysis"));
+        return Result.of(AnalysisTree.hashMapListToTree(jsonMap));
     }
 }

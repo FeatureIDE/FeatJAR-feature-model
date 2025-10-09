@@ -39,14 +39,16 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
         this.value = value;
     }
 
-    protected AnalysisTree(AnalysisTree<?>... children) {
+    public AnalysisTree(String name, AnalysisTree<?>... children) {
         super(children.length);
         if (children.length > 0) super.setChildren(Arrays.asList(children));
+        this.name = name;
     }
 
-    public AnalysisTree(List<? extends AnalysisTree<?>> children) {
+    public AnalysisTree(String name, List<? extends AnalysisTree<?>> children) {
         super(children.size());
         super.setChildren(children);
+        this.name = name;
     }
 
     public String getName() {
@@ -133,7 +135,7 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
             String key = hashMap.keySet().iterator().next();
             return hashMapListToTree((HashMap<String, Object>) hashMap.get(key), key);
         } else {
-            return new AnalysisTree<>();
+            return new AnalysisTree<>("");
         }
     }
 
