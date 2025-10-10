@@ -42,9 +42,9 @@ import java.util.stream.Collectors;
  */
 public class FormatConversion implements ICommand {
 
-    private static Map<String, List<String>> supportedFileExtensions = buildSupportedFileExtensions();
-    private static List<String> supportedInputFileExtensions = supportedFileExtensions.get("input");
-    private static List<String> supportedOutputFileExtensions = supportedFileExtensions.get("output");
+    private static final Map<String, List<String>> supportedFileExtensions = buildSupportedFileExtensions();
+    private static final List<String> supportedInputFileExtensions = supportedFileExtensions.get("input");
+    private static final List<String> supportedOutputFileExtensions = supportedFileExtensions.get("output");
 
     public static final Option<Path> INPUT_OPTION = Option.newOption("input", Option.PathParser)
             .setDescription("Path to input file. Accepted File Types: " + supportedInputFileExtensions)
@@ -68,8 +68,7 @@ public class FormatConversion implements ICommand {
      */
     private enum SupportLevel {
         NO(0),
-        PARTIAL(1),
-        YES(2);
+        YES(1);
 
         public final int rank;
 
@@ -87,8 +86,8 @@ public class FormatConversion implements ICommand {
      * Saving name as well as a description in case we need to explain it to the user later.
      */
     private enum FileInfo {
-        basicHierarchy("General hierarchial Structure"),
-        subgroupHierarchy("Hierarchy with supgroups"),
+        basicHierarchy("General hierarchical Structure"),
+        subgroupHierarchy("Hierarchy with subgroups"),
         featureDescription("Features with descriptions"),
         featureAttributes("Features with attributes"),
         featureCardinality("Cardinality of features"),
@@ -97,21 +96,14 @@ public class FormatConversion implements ICommand {
         parseable("File can be used for input");
 
         public final String name;
-        public final String description;
 
         FileInfo(String name) {
             this.name = name;
-            this.description = "";
-        }
-
-        FileInfo(String name, String description) {
-            this.name = name;
-            this.description = description;
         }
 
         @Override
         public String toString() {
-            return description.isEmpty() ? name : name + ": " + description;
+            return name;
         }
     }
 
@@ -153,7 +145,7 @@ public class FormatConversion implements ICommand {
     }
 
     /** Iterates over an extension point to compile lists of the supported file extensions.
-     *	@return One list that contains all supported input file extensions (under the key: "input"), and one list that contains all supported output file extensions (key: "output".
+     *	@return One list that contains all supported input file extensions (under the key: "input"), and one list that contains all supported output file extensions (key: "output").
      */
     private static Map<String, List<String>> buildSupportedFileExtensions() {
 
@@ -381,7 +373,7 @@ public class FormatConversion implements ICommand {
                 if (overWriteOutputFile) {
                     FeatJAR.log()
                             .message("File already present at: " + outputPath + "\n\tContinuing to overwrite File.");
-                } else if (!overWriteOutputFile) {
+                } else {
                     FeatJAR.log()
                             .error("Saving outputModel in File unsuccessful: File already present at: " + outputPath
                                     + "\n\tTo overwrite present file add --overwrite");
