@@ -50,7 +50,7 @@ import java.util.Optional;
  */
 public class PrintStatistics extends ACommand {
 
-    enum AnalysesScope {
+    public enum AnalysesScope {
         ALL,
         TREE_RELATED,
         CONSTRAINT_RELATED
@@ -112,7 +112,7 @@ public class PrintStatistics extends ACommand {
 
     /**
      * writes statistics into a file, depending on file type
-     * @param path
+     * @param path: full path to output file
      * @param type: is extracted from provided output path, needs to be lower case
      */
     private void writeTo(Path path, String type) {
@@ -146,13 +146,13 @@ public class PrintStatistics extends ACommand {
 
     /**
      * method for collecting statistics of the provided feature model depending on specified scope of information (all, constraint related, tree related)
-     * @param model
-     * @param scope
+     * @param model: a feature model from which stats will be collected
+     * @param scope: describes whether only constraint-related, only tree-related, or both kinds of stats are to be collected
      * @return LinkedHashMap with stats data, keys are descriptive strings, values types depend on statistic (Integer, Float, HashMap)
      */
     public LinkedHashMap<String, Object> collectStats(FeatureModel model, AnalysesScope scope) {
 
-        LinkedHashMap<String, Object> data = new LinkedHashMap<String, Object>();
+        LinkedHashMap<String, Object> data = new LinkedHashMap<>();
 
         if (scope == AnalysesScope.ALL || scope == AnalysesScope.CONSTRAINT_RELATED) {
 
@@ -220,7 +220,7 @@ public class PrintStatistics extends ACommand {
 
     /**
      *
-     * @param data
+     * @param data Map of the gathered statistics. Keys name the respective stat, values save the stat value itself.
      */
     public void printStatsPretty(LinkedHashMap<String, Object> data) {
         FeatJAR.log().message("STATISTICS ABOUT THE FEATURE MODEL:\n" + buildStringPrettyStats(data));
@@ -228,8 +228,8 @@ public class PrintStatistics extends ACommand {
 
     /**
      *
-     * @param data
-     * @return
+     * @param data Map of the gathered statistics. Keys name the respective stat, values save the stat value itself.
+     * {@return StringBuilder with stats written into it in a pretty way}
      */
     public StringBuilder buildStringPrettyStats(LinkedHashMap<String, Object> data) {
         StringBuilder outputString = new StringBuilder();
@@ -237,7 +237,7 @@ public class PrintStatistics extends ACommand {
         for (Map.Entry<?, ?> entry : data.entrySet()) {
 
             if (entry.getKey().equals("Number of Atoms")) {
-                outputString.append(String.format("\n\t\t%-40s  %n", "CONSTRAINT RELATED STATS\n"));
+                outputString.append(String.format("\n                %-40s  %n", "CONSTRAINT RELATED STATS\n"));
 
             } else if (entry.getKey().equals("[Tree 1] Average Number of Children")) {
                 outputString.append(String.format("\n\t\t%-40s  %n", "TREE RELATED STATS\n"));
