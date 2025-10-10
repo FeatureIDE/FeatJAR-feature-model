@@ -29,8 +29,6 @@ import de.featjar.base.io.IO;
 import de.featjar.base.io.format.IFormat;
 import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.io.FeatureModelFormats;
-import de.featjar.feature.model.io.xml.GraphVizFeatureModelFormat;
-import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -363,30 +361,17 @@ public class FormatConversion implements ICommand {
      * @return
      */
     public int saveFile(Path outputPath, IFeatureModel model, String outputFileExtension, boolean overWriteOutputFile) {
-        IFormat<IFeatureModel> format;
 
-        List<IFormat<IFeatureModel>> outputFormats = FeatureModelFormats.getInstance().getExtensions().stream()
-                .filter(IFormat::supportsWrite)
-                .filter(formatTemp -> Objects.equals(outputFileExtension, formatTemp.getFileExtension()))
-                .collect(Collectors.toList());
+        IFormat<IFeatureModel> format = null;
 
-        System.out.println(outputFormats); //
-
-
-        switch (outputFileExtension) {     
-            case "xml":
-                format = new XMLFeatureModelFormat();
-                break;
-            case "dot":
-                format = new GraphVizFeatureModelFormat();
-                break;
-            case "uvl":
-                format = FeatureModelFormats.getInstance().getFormatList("uvl").get(0);
-                break;
-            default:
-                // this still catches errors if the switch case construct has not implemented all supported file types!
-                FeatJAR.log().error("Unsupported output file extension: " + outputFileExtension);
-                return 1;
+        try {
+            List<IFormat<IFeatureModel>> outputFormats = FeatureModelFormats.getInstance().getExtensions().stream()
+                    .filter(IFormat::supportsWrite)
+                    .filter(formatTemp -> Objects.equals(outputFileExtension, formatTemp.getFileExtension()))
+                    .collect(Collectors.toList());
+            format = outputFormats.get(0);
+        } catch (IndexOutOfBoundsException e) {
+            FeatJAR.log().error("Unsupported output file extension: " + outputFileExtension);
         }
 
         try {
