@@ -32,7 +32,15 @@ import de.featjar.feature.model.io.FeatureModelFormats;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.EnumMap;
+import java.util.HashMap;
+
+
+
 import java.util.stream.Collectors;
 
 /**
@@ -130,7 +138,6 @@ public class FormatConversion implements ICommand {
     public int run(OptionList optionParser) {
 
         if (!checkIfInputOutputIsPresent(optionParser)) {
-            System.out.println("HERE");
             return 1;
         }
         Path outputPath = optionParser.getResult(OUTPUT_OPTION).orElseThrow();
@@ -298,11 +305,9 @@ public class FormatConversion implements ICommand {
      */
     private boolean checkIfInputOutputIsPresent(OptionList optionParser) {
         if (!optionParser.getResult(INPUT_OPTION).isPresent()) {
-            System.out.println("HERE1");
             FeatJAR.log().error("No input path provided.");
             return false;
         } else if (!optionParser.getResult(OUTPUT_OPTION).isPresent()) {
-            System.out.println("HERE2");
             FeatJAR.log().error("No output path provided.");
             return false;
         }
