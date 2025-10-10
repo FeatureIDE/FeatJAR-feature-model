@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Prints statistics about a provided Feature Model.
@@ -41,9 +42,17 @@ import java.util.*;
  */
 public class FormatConversion implements ICommand {
 
-    private static final Map<String, List<String>> supportedFileExtensions = buildSupportedFileExtensions();
-    private static final List<String> supportedInputFileExtensions = supportedFileExtensions.get("input");
-    private static final List<String> supportedOutputFileExtensions = supportedFileExtensions.get("output");
+    private static final List<String> supportedInputFileExtensions = FeatureModelFormats.getInstance().getExtensions()
+            .stream()
+            .filter(IFormat::supportsParse)
+            .map(IFormat::getFileExtension)
+            .collect(Collectors.toList());
+
+    private static final List<String> supportedOutputFileExtensions = FeatureModelFormats.getInstance().getExtensions()
+            .stream()
+            .filter(IFormat::supportsWrite)
+            .map(IFormat::getFileExtension)
+            .collect(Collectors.toList());
 
     public static final Option<Path> INPUT_OPTION = Option.newOption("input", Option.PathParser)
             .setDescription("Path to input file. Accepted File Types: " + supportedInputFileExtensions)
@@ -146,52 +155,6 @@ public class FormatConversion implements ICommand {
         }
 
         return saveFile(outputPath, model, outputFileExtension, optionParser.get(OVERWRITE));
-    }
-
-    /** Iterates over an extension point to compile lists of the supported file extensions.
-     *	@return One list that contains all supported input file extensions (under the key: "input"), and one list that contains all supported output file extensions (key: "output").
-     */
-    private static Map<String, List<String>> buildSupportedFileExtensions() {
-
-        //        if (!FeatJAR.isInitialized()) {
-        //            FeatJAR.initialize();
-        //        }
-
-        //    	FeatureModelFormats.getInstance().getExtensions()
-        //	    	.stream()
-        //	    	.filter(ext -> ext.supportsParse())
-        //	    	.collect(Collectors.toList());
-        //
-        //    	FeatureModelFormats.getInstance().getExtensions()
-        //	    	.stream()
-        //	    	.filter(ext -> ext.supportsWrite())
-        //	    	.collect(Collectors.toList());
-
-        List<IFormat<IFeatureModel>> supportedFileExtensions = null;
-
-        try {
-            supportedFileExtensions = FeatureModelFormats.getInstance().getExtensions();
-        } catch (Exception e) {
-            FeatJAR.log().error(e);
-        }
-
-        List<String> supportedInputFileExtensions = new ArrayList<>();
-        List<String> supportedOutputFileExtensions = new ArrayList<>();
-
-        if (supportedFileExtensions != null) {
-            for (IFormat<IFeatureModel> ext : supportedFileExtensions) {
-                if (ext.supportsParse()) {
-                    supportedInputFileExtensions.add(ext.getFileExtension());
-                }
-                if (ext.supportsWrite()) {
-                    supportedOutputFileExtensions.add(ext.getFileExtension());
-                }
-            }
-        }
-
-        return Map.of(
-                "input", supportedInputFileExtensions,
-                "output", supportedOutputFileExtensions);
     }
 
     /**
