@@ -117,9 +117,9 @@ public class FormatConversion implements ICommand {
 
     /**
      * main function for handling format conversion
-     * @param OptionParser supplied by command line execution.
+     * @param optionParser supplied by command line execution.
      *
-     * @return 0 if success, 1 if input/output paths are invalid, 2 if IOException, 3 if no model could be parsed from input file.
+     * @return 0 on success, 1 if a file was already present and should not have been overwritten, 2 on IOException
      */
     @Override
     public int run(OptionList optionParser) {
@@ -189,18 +189,17 @@ public class FormatConversion implements ICommand {
     }
 
     /**
-     *
-     * @param iExt
-     * @param oExt
-     * @return 0 for no information loss. 1 for information loss, 2 on error due to unsupported input or
+     * Informs user about potential information loss occurring during file conversion
+     * @param inputFileExtension file extension of the input file (lower case, no leading dot)
+     * @param outputFileExtension file extension of the output file (lower case, no leading dot)
      */
-    private void infoLossMessage(String iExt, String oExt) {
+    private void infoLossMessage(String inputFileExtension, String outputFileExtension) {
 
-        String msg = "Info Loss:" + "\n\t\t\t\t\t\t" + iExt + " --> " + oExt + "\n";
+        String msg = "Info Loss:" + "\n\t\t\t\t\t\t" + inputFileExtension + " --> " + outputFileExtension + "\n";
         Map<String, Map<FileInfo, SupportLevel>> infoLossMap = buildInfoLossMap();
 
-        Map<FileInfo, SupportLevel> iSupports = infoLossMap.get(iExt); // xml
-        Map<FileInfo, SupportLevel> oSupports = infoLossMap.get(oExt);
+        Map<FileInfo, SupportLevel> iSupports = infoLossMap.get(inputFileExtension);
+        Map<FileInfo, SupportLevel> oSupports = infoLossMap.get(outputFileExtension);
 
         if (iSupports == null || oSupports == null) {
             return;
@@ -214,10 +213,10 @@ public class FormatConversion implements ICommand {
                 msg += "\t" + fileInfo + "  \t\t" + iSupportLevel + "\t" + oSupportLevel + "\n";
             }
         }
-        if (!msg.equals("Info Loss:" + "\n\t\t\t\t\t\t" + iExt + " --> " + oExt + "\n")) {
+        if (!msg.equals("Info Loss:" + "\n\t\t\t\t\t\t" + inputFileExtension + " --> " + outputFileExtension + "\n")) {
             FeatJAR.log().warning(msg);
         } else {
-            FeatJAR.log().message("No Information Loss from " + iExt + " to " + oExt + ".");
+            FeatJAR.log().message("No Information Loss from " + inputFileExtension + " to " + outputFileExtension + ".");
         }
     }
 
@@ -323,8 +322,8 @@ public class FormatConversion implements ICommand {
 
     /**
      *
-     * @param optionParser
-     * @return
+     * @param optionParser holds the command line parameters
+     * {@return true if an input and output path were provided, otherwise false}
      */
     private boolean checkIfInputOutputIsPresent(OptionList optionParser) {
         if (!optionParser.getResult(INPUT_OPTION).isPresent()) {
@@ -338,9 +337,9 @@ public class FormatConversion implements ICommand {
     }
 
     /**
-     *
-     * @param optionParser
-     * @return
+     * Attempts to extract a feature model from the input file.
+     * @param optionParser holds the command line parameters
+     * @return Feature Model read out from input file. Will be null on failure.
      */
     private IFeatureModel inputParser(OptionList optionParser) {
         Path inputPath = optionParser.getResult(INPUT_OPTION).orElseThrow();
@@ -355,12 +354,12 @@ public class FormatConversion implements ICommand {
     }
 
     /**
-     *
-     * @param outputPath
-     * @param model
-     * @param outputFileExtension
-     * @param overWriteOutputFile
-     * @return
+     * Saves the read feature model as the desired output file. Automatically fetches the appropriate format. Does error handling.
+     * @param outputPath Full path to output file.
+     * @param model Feature Model to be saved into the output file.
+     * @param outputFileExtension extension of the output file. Used to fetch appropriate format.
+     * @param overWriteOutputFile flag that decides whether existing output files with the same name should be overwritten.
+     * @return 0 on success, 1 if a file was already present and should not have been overwritten, 2 on IOException
      */
     public int saveFile(Path outputPath, IFeatureModel model, String outputFileExtension, boolean overWriteOutputFile) {
 
