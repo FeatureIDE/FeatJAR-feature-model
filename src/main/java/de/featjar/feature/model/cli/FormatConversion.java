@@ -370,7 +370,7 @@ public class FormatConversion implements ICommand {
                 .filter(formatTemp -> Objects.equals(outputFileExtension, formatTemp.getFileExtension()))
                 .collect(Collectors.toList());
 
-        System.out.println(outputFormats);
+        System.out.println(outputFormats); //
 
 
         switch (outputFileExtension) {     
