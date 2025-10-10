@@ -225,10 +225,11 @@ public class FormatConversion implements ICommand {
      *
      * @return
      */
+    /*
     private Map<String, Map<FileInfo, SupportLevel>> buildInfoLossMap() {
 
         Map<String, Map<FileInfo, SupportLevel>> supportMap = new HashMap<>();
-        
+
         String extension = "xml";
         supportMap.put(extension, new EnumMap<>(FileInfo.class)); // for each extension: add each feature
         supportMap.get(extension).put(FileInfo.basicHierarchy, SupportLevel.YES);
@@ -239,7 +240,7 @@ public class FormatConversion implements ICommand {
         supportMap.get(extension).put(FileInfo.booleanOperators, SupportLevel.YES);
         supportMap.get(extension).put(FileInfo.allOperators, SupportLevel.NO);
         supportMap.get(extension).put(FileInfo.parseable, SupportLevel.YES);
-        
+
         extension = "uvl";
         supportMap.put(extension, new EnumMap<>(FileInfo.class)); // for each extension: add each feature
         supportMap.get(extension).put(FileInfo.basicHierarchy, SupportLevel.YES);
@@ -270,6 +271,73 @@ public class FormatConversion implements ICommand {
         }
 
         return supportMap;
+    }
+    */
+
+    /**
+     *
+     * {@return information loss map that tracks how well a file extension supports any given piece of information}
+     */
+    private Map<String, Map<FileInfo, SupportLevel>> buildInfoLossMap() {
+        Map<String, Map<FileInfo, SupportLevel>> supportMap = new HashMap<>();
+
+        buildInfoLossMapRegisterExt("xml", Map.of(
+                FileInfo.basicHierarchy, SupportLevel.YES,
+                FileInfo.subgroupHierarchy, SupportLevel.NO,
+                FileInfo.featureDescription, SupportLevel.YES,
+                FileInfo.featureAttributes, SupportLevel.YES,
+                FileInfo.featureCardinality, SupportLevel.NO,
+                FileInfo.booleanOperators, SupportLevel.YES,
+                FileInfo.allOperators, SupportLevel.NO,
+                FileInfo.parseable, SupportLevel.YES
+        ), supportMap);
+
+        buildInfoLossMapRegisterExt("uvl", Map.of(
+                FileInfo.basicHierarchy, SupportLevel.YES,
+                FileInfo.subgroupHierarchy, SupportLevel.YES,
+                FileInfo.featureDescription, SupportLevel.YES,
+                FileInfo.featureAttributes, SupportLevel.YES,
+                FileInfo.featureCardinality, SupportLevel.YES,
+                FileInfo.booleanOperators, SupportLevel.YES,
+                FileInfo.allOperators, SupportLevel.YES,
+                FileInfo.parseable, SupportLevel.YES
+        ), supportMap);
+
+
+        buildInfoLossMapRegisterExt("dot", Map.of(
+                FileInfo.basicHierarchy, SupportLevel.YES,
+                FileInfo.subgroupHierarchy, SupportLevel.YES,
+                FileInfo.featureDescription, SupportLevel.YES,
+                FileInfo.featureAttributes, SupportLevel.YES,
+                FileInfo.featureCardinality, SupportLevel.YES,
+                FileInfo.booleanOperators, SupportLevel.YES,
+                FileInfo.allOperators, SupportLevel.YES,
+                FileInfo.parseable, SupportLevel.NO
+        ), supportMap);
+
+
+        // if user forgot to set FileInfos: Support Level is automatically set to NONE
+        for (String ext : supportMap.keySet()) {
+            for (FileInfo fileInfo : FileInfo.values()) {
+                supportMap.get(ext).putIfAbsent(fileInfo, SupportLevel.NO);
+            }
+        }
+
+        return supportMap;
+    }
+
+    /**
+     * Reinforces correct addition of infoLossMap entries
+     * @param extension file extension that will be added
+     * @param fileInfos pieces of file information as described in FileInfo enum
+     * @param supportMap the information loss map that's being updated
+     */
+    private void buildInfoLossMapRegisterExt(String extension, Map<FileInfo, SupportLevel> fileInfos, Map<String, Map<FileInfo, SupportLevel>> supportMap) {
+        if (fileInfos.size() != FileInfo.values().length) {
+            FeatJAR.log().error("Info Loss Map: " + extension + " was added with too many or too few FileInfos. Skipping this extension.");
+            return;
+        }
+        supportMap.put(extension, new EnumMap<>(fileInfos));
     }
 
     /**
