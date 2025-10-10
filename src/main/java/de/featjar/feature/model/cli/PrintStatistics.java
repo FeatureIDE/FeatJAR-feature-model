@@ -237,7 +237,7 @@ public class PrintStatistics extends ACommand {
         for (Map.Entry<?, ?> entry : data.entrySet()) {
 
             if (entry.getKey().equals("Number of Atoms")) {
-                outputString.append(String.format("\n\t\t%-40s  %n", "CONSTRAINT RELATED STATS\n"));
+                outputString.append(String.format("\n                %-40s  %n", "CONSTRAINT RELATED STATS\n"));
 
             } else if (entry.getKey().equals("[Tree 1] Average Number of Children")) {
                 outputString.append(String.format("\n\t\t%-40s  %n", "TREE RELATED STATS\n"));
