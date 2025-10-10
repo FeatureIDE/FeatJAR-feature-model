@@ -29,7 +29,6 @@ import de.featjar.base.io.IO;
 import de.featjar.base.log.Log.Verbosity;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -40,13 +39,11 @@ import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
 /**
+ * @throws IOException
  * @author Knut, Kilian & Benjamin
  */
 public class FormatConversionTest {
 
-    /**
-     * {@return example feature model for testing purposes}
-     */
     private FeatureModel generateModel() {
         FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
         featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
@@ -55,7 +52,6 @@ public class FormatConversionTest {
 
     private String inputPath = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
     private String outputPath;
-
 
     /**
      * Attempts to write model to an incompatible file format (.pdf) and checks whether it's rejected correctly.
@@ -78,7 +74,6 @@ public class FormatConversionTest {
     /**
      *
      *
-     * Attempts to read model from an incompatible file format (.pdf) and checks whether it's rejected correctly.
      */
     @Test
     void invalidInput() throws IOException {
@@ -95,7 +90,8 @@ public class FormatConversionTest {
     }
 
     /**
-     * Attempts to write model to an incompatible file format (.pdf) and checks whether it's rejected correctly.
+     *
+     *
      */
     @Test
     void invalidOutput() throws IOException {
@@ -122,29 +118,29 @@ public class FormatConversionTest {
 
         Files.deleteIfExists(Paths.get(outputPath));
 
-    	ByteArrayOutputStream out = new ByteArrayOutputStream();
-		PrintStream stream = new PrintStream(out);
-    	de.featjar.base.FeatJAR.Configuration config = FeatJAR.configure();
-		config
-    		.logConfig
-    		.logToStream(stream, "", Verbosity.MESSAGE, Verbosity.WARNING);
-    	FeatJAR.initialize(config);
 
-        FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", outputPath);
+        // Using FeatJAR logger
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintStream stream = new PrintStream(out);
+
+        de.featjar.base.FeatJAR.Configuration config = FeatJAR.configure();
+        config.logConfig.logToStream(stream, "", Verbosity.MESSAGE, Verbosity.WARNING);
+        FeatJAR.initialize(config);
+        FeatJAR.runInternally("formatConversion", "--input", inputPath, "--output", outputPath);
+
 
         byte[] byteArray = out.toByteArray();
-    	String string = new String(byteArray);
-    	// System.out.println(string); // to check what was written to logger
-    	String expected_output = "Info Loss:\n"
-    			+ "	 Supports Feature attributes and metadata\n"
-    			+ "   		xml: FULL\n"
-    			+ "  		dot: NONE\n"
-    			+ "	 Supports Mandatory and optional features\n"
-    			+ "   		xml: FULL\n"
-    			+ "  		dot: NONE\n";
-    	assertTrue(string.contains(expected_output));
+        String string = new String(byteArray);
 
-    	// assertEquals(expected_output, string);
+        String expected_output = "Info Loss:\n"
+                + "	 Supports Feature attributes and metadata\n"
+                + "   		xml: FULL\n"
+                + "  		dot: NONE\n"
+                + "	 Supports Mandatory and optional features\n"
+                + "   		xml: FULL\n"
+                + "  		dot: NONE\n"
+                + "";
+        assertTrue(string.startsWith(expected_output));
 
         Files.deleteIfExists(Paths.get(outputPath));
     }

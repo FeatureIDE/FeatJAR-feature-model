@@ -122,7 +122,7 @@ public class FormatConversion implements ICommand {
      */
     @Override
     public int run(OptionList optionParser) {
-    	
+
         if (!checkIfInputOutputIsPresent(optionParser)) {
             return 1;
         }
@@ -307,7 +307,7 @@ public class FormatConversion implements ICommand {
         return model;
     }
 
-    /** 
+    /**
      *
      * @param outputPath
      * @param model
