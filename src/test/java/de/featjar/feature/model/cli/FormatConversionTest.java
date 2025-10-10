@@ -106,32 +106,30 @@ public class FormatConversionTest {
     }
 
     /**
-    *
-    * 
-    */
+     *
+     *
+     */
     @Test
     void modelNotParsed() throws IOException {
-    	
-    	inputPath = "src/test/java/de/featjar/feature/model/cli/resources/emptyModel.xml";
+
+        inputPath = "src/test/java/de/featjar/feature/model/cli/resources/emptyModel.xml";
         outputPath = "model_modelNotParsed.xml";
-        
+
         int exit_code = FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", outputPath);
         assertEquals(3, exit_code);
-
     }
-    
+
     /**
-    *
-    * 
-    */
-//    @Test
-//    void modelPresentNoOverwrite() throws IOException {
-//    	        
-//        int exit_code = FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", inputPath);
-//        assertEquals(4, exit_code);
-//
-//    }
-    
+     *
+     *
+     */
+    @Test
+    void modelPresentNoOverwrite() throws IOException {
+
+        int exit_code = FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", inputPath);
+        assertEquals(4, exit_code);
+    }
+
     /**
      *
      * checks if an info loss message is produced
@@ -165,6 +163,7 @@ public class FormatConversionTest {
         assertTrue(string.startsWith(expected_output));
 
         Files.deleteIfExists(Paths.get(outputPath));
+        FeatJAR.deinitialize();
     }
 
     /**
@@ -173,6 +172,8 @@ public class FormatConversionTest {
      */
     @Test
     void testWriteAndOverwrite() throws IOException {
+
+        FeatJAR.initialize();
 
         Path outputPath = Paths.get("model_testWriteAndOverwrite.xml");
         FeatureModel model = generateModel();
@@ -189,5 +190,6 @@ public class FormatConversionTest {
         assertEquals(model, retrievedModel);
 
         Files.deleteIfExists(outputPath);
+        FeatJAR.deinitialize();
     }
 }

@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Prints statistics about a provided Feature Model.
@@ -114,7 +113,7 @@ public class FormatConversion implements ICommand {
      * @return 0 on success
      * 		   1 if output/input aren't present
      *         2 if input/output file type is invalid
-     *         3 if the model could not be parsed, 
+     *         3 if the model could not be parsed,
      *         4 if a file is already present at output path and no overwrite is specified
      *         5 on IOException
      */
@@ -122,7 +121,7 @@ public class FormatConversion implements ICommand {
     public int run(OptionList optionParser) {
 
         if (!checkIfInputOutputIsPresent(optionParser)) {
-        	System.out.println("HERE");
+            System.out.println("HERE");
             return 1;
         }
         Path outputPath = optionParser.getResult(OUTPUT_OPTION).orElseThrow();
@@ -146,7 +145,6 @@ public class FormatConversion implements ICommand {
             return 3;
         }
 
-
         return saveFile(outputPath, model, outputFileExtension, optionParser.get(OVERWRITE));
     }
 
@@ -155,19 +153,19 @@ public class FormatConversion implements ICommand {
      */
     private static Map<String, List<String>> buildSupportedFileExtensions() {
 
-//        if (!FeatJAR.isInitialized()) {
-//            FeatJAR.initialize();
-//        }
-    	
-//    	FeatureModelFormats.getInstance().getExtensions()
-//	    	.stream()
-//	    	.filter(ext -> ext.supportsParse())
-//	    	.collect(Collectors.toList());
-//    	
-//    	FeatureModelFormats.getInstance().getExtensions()
-//	    	.stream()
-//	    	.filter(ext -> ext.supportsWrite())
-//	    	.collect(Collectors.toList());
+        //        if (!FeatJAR.isInitialized()) {
+        //            FeatJAR.initialize();
+        //        }
+
+        //    	FeatureModelFormats.getInstance().getExtensions()
+        //	    	.stream()
+        //	    	.filter(ext -> ext.supportsParse())
+        //	    	.collect(Collectors.toList());
+        //
+        //    	FeatureModelFormats.getInstance().getExtensions()
+        //	    	.stream()
+        //	    	.filter(ext -> ext.supportsWrite())
+        //	    	.collect(Collectors.toList());
 
         List<IFormat<IFeatureModel>> supportedFileExtensions = null;
 
@@ -226,8 +224,7 @@ public class FormatConversion implements ICommand {
                 .equals("Info Loss:" + "\n\t\t\t\t\t\t" + inputFileExtension + " --> " + outputFileExtension + "\n")) {
             FeatJAR.log().warning(msg.toString());
         } else {
-            FeatJAR.log()
-                    .info("No Information Loss from " + inputFileExtension + " to " + outputFileExtension + ".");
+            FeatJAR.log().info("No Information Loss from " + inputFileExtension + " to " + outputFileExtension + ".");
         }
     }
 
@@ -338,11 +335,11 @@ public class FormatConversion implements ICommand {
      */
     private boolean checkIfInputOutputIsPresent(OptionList optionParser) {
         if (!optionParser.getResult(INPUT_OPTION).isPresent()) {
-        	System.out.println("HERE1");
+            System.out.println("HERE1");
             FeatJAR.log().error("No input path provided.");
             return false;
         } else if (!optionParser.getResult(OUTPUT_OPTION).isPresent()) {
-        	System.out.println("HERE2");
+            System.out.println("HERE2");
             FeatJAR.log().error("No output path provided.");
             return false;
         }
@@ -381,22 +378,21 @@ public class FormatConversion implements ICommand {
 
         IFormat<IFeatureModel> format = null;
 
-            Optional<IFormat<IFeatureModel>> outputFormats = FeatureModelFormats.getInstance().getExtensions().stream()
-                    .filter(IFormat::supportsWrite)
-                    .filter(formatTemp -> Objects.equals(outputFileExtension, formatTemp.getFileExtension()))
-                    .findFirst();
-            if (outputFormats.isEmpty()) {
-            	FeatJAR.log().error("Unsupported output file extension: " + outputFileExtension);
-            	return 2;
-            } else {
-            	format = outputFormats.get();
-            }
+        Optional<IFormat<IFeatureModel>> outputFormats = FeatureModelFormats.getInstance().getExtensions().stream()
+                .filter(IFormat::supportsWrite)
+                .filter(formatTemp -> Objects.equals(outputFileExtension, formatTemp.getFileExtension()))
+                .findFirst();
+        if (outputFormats.isEmpty()) {
+            FeatJAR.log().error("Unsupported output file extension: " + outputFileExtension);
+            return 2;
+        } else {
+            format = outputFormats.get();
+        }
 
         try {
             if (Files.exists(outputPath)) {
                 if (overWriteOutputFile) {
-                    FeatJAR.log()
-                            .info("File already present at: " + outputPath + "\n\tContinuing to overwrite File.");
+                    FeatJAR.log().info("File already present at: " + outputPath + "\n\tContinuing to overwrite File.");
                 } else {
                     FeatJAR.log()
                             .error("Saving outputModel in File unsuccessful: File already present at: " + outputPath
