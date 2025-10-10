@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Prints statistics about a provided Feature Model.
@@ -406,6 +407,14 @@ public class FormatConversion implements ICommand {
      */
     public int saveFile(Path outputPath, IFeatureModel model, String outputFileExtension, boolean overWriteOutputFile) {
         IFormat<IFeatureModel> format;
+
+        List<IFormat<IFeatureModel>> outputFormats = FeatureModelFormats.getInstance().getExtensions().stream()
+                .filter(IFormat::supportsWrite)
+                .filter(formatTemp -> Objects.equals(outputFileExtension, formatTemp.getFileExtension()))
+                .collect(Collectors.toList());
+
+        System.out.println(outputFormats);
+
         
         switch (outputFileExtension) {     
             case "xml":
