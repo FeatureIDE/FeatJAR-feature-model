@@ -262,6 +262,13 @@ public class FormatConversion implements ICommand {
         supportMap.get(extension).put(FileInfo.allOperators, SupportLevel.YES);
         supportMap.get(extension).put(FileInfo.parseable, SupportLevel.NO);
 
+        // if user forgot to set FileInfos: Support Level is automatically set to NONE
+        for (String ext : supportMap.keySet()) {
+            for (FileInfo fileInfo : FileInfo.values()) {
+                supportMap.get(ext).putIfAbsent(fileInfo, SupportLevel.NO);
+            }
+        }
+
         return supportMap;
     }
 
