@@ -29,7 +29,7 @@ import java.util.List;
  * Calculates the average amount of children per node in the tree.
  * Returns 0 if tree has no nodes.
  *
- * @author Sebastian Krieter
+ * @author Benjamin von Holt
  */
 public class TreeAvgChildrenCounter implements ITreeVisitor<ITree<?>, Double> {
     private int nodeCount = 0;
