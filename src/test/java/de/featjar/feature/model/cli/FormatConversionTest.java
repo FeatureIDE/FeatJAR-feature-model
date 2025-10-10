@@ -75,10 +75,10 @@ public class FormatConversionTest {
      *
      */
     @Test
-    void invalidInput() throws IOException {
+    void inputNotPresent() throws IOException {
 
         inputPath = "../formula/src/testFixtures/resources/Automotive02_V1/model.pdf";
-        outputPath = "model_invalidInput.xml";
+        outputPath = "model_inputNotPresent.xml";
 
         Files.deleteIfExists(Paths.get(outputPath));
 
@@ -105,6 +105,33 @@ public class FormatConversionTest {
         Files.deleteIfExists(Paths.get(outputPath));
     }
 
+    /**
+    *
+    * 
+    */
+    @Test
+    void modelNotParsed() throws IOException {
+    	
+    	inputPath = "src/test/java/de/featjar/feature/model/cli/resources/emptyModel.xml";
+        outputPath = "model_modelNotParsed.xml";
+        
+        int exit_code = FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", outputPath);
+        assertEquals(3, exit_code);
+
+    }
+    
+    /**
+    *
+    * 
+    */
+//    @Test
+//    void modelPresentNoOverwrite() throws IOException {
+//    	        
+//        int exit_code = FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", inputPath);
+//        assertEquals(4, exit_code);
+//
+//    }
+    
     /**
      *
      * checks if an info loss message is produced
