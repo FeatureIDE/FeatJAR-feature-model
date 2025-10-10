@@ -39,7 +39,6 @@ import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
 /**
- * @throws IOException
  * @author Knut, Kilian & Benjamin
  */
 public class FormatConversionTest {
@@ -134,9 +133,8 @@ public class FormatConversionTest {
                 + "						xml --> dot\n"
                 + "	File can be used for input  		YES	NO\n"
                 + "\n"
-                + "Output model saved at: model_invalidInput.dot\n"
-                + "";
-        assertEquals(string, expected_output);
+                + "Output model saved at: model_invalidInput.dot\n";
+        assertEquals(expected_output, string);
         assertTrue(string.startsWith(expected_output));
 
         Files.deleteIfExists(Paths.get(outputPath));
