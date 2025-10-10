@@ -22,7 +22,6 @@ package de.featjar.feature.model.analysis.visitor;
 
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.visitor.ITreeVisitor;
-import de.featjar.base.tree.visitor.ITreeVisitor.TraversalAction;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,7 +63,7 @@ public class AnalysisTreeVisitor implements ITreeVisitor<AnalysisTree<?>, HashMa
             currentMap.put(
                     node.getName(),
                     new ArrayList<Object>(Arrays.asList(
-                            node.getName(), node.getValue().getClass().toString(), node.getValue())));
+                            node.getName(), node.getValue().getClass().getName(), node.getValue())));
         } else {
             currentMap.put(node.getName(), new HashMap<String, Object>());
         }

@@ -26,9 +26,17 @@ import de.featjar.base.io.input.AInputMapper;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.analysis.visitor.AnalysisTreeVisitor;
+import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
 import java.util.HashMap;
 import org.yaml.snakeyaml.Yaml;
 
+/**
+ * An IFormat class that take an AnalysisTree as input and can serialize it into YAML String
+ * and from YAML String. For the exact build of the YAML String please look in {@link AnalysisTreeVisitor}.
+ *
+ * @author Mohammad Khair Almekkawi
+ * @author Florian Beese
+ */
 public class YAMLAnalysisFormat implements IFormat<AnalysisTree<?>> {
 
     @Override
@@ -63,6 +71,6 @@ public class YAMLAnalysisFormat implements IFormat<AnalysisTree<?>> {
         Yaml yaml = new Yaml();
         HashMap<String, Object> yamlHashMap =
                 (HashMap<String, Object>) yaml.load(inputMapper.get().text());
-        return Result.of(AnalysisTree.hashMapListYamlToTree(yamlHashMap));
+        return AnalysisTreeTransformer.yamlHashMapToTree(yamlHashMap);
     }
 }

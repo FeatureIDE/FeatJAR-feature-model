@@ -21,12 +21,7 @@
 package de.featjar.feature.model.analysis;
 
 import de.featjar.base.tree.structure.ATree;
-import de.featjar.feature.model.io.json.JSONAnalysisFormat;
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -47,9 +42,12 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
         this.value = value;
     }
 
-    public AnalysisTree(String name, AnalysisTree<?>... children) {
-        super(children.length);
-        if (children.length > 0) super.setChildren(Arrays.asList(children));
+    public AnalysisTree(String name, AnalysisTree<?> firstchild, AnalysisTree<?>... children) {
+        super(children.length + 1);
+        ArrayList<AnalysisTree<?>> allChildren = new ArrayList<>();
+        allChildren.add(firstchild);
+        java.util.Collections.addAll(allChildren, children);
+        if (allChildren.size() > 0) super.setChildren(allChildren);
         this.name = name;
     }
 
@@ -96,118 +94,13 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
         return Objects.hash(this.getClass(), this.name, this.value);
     }
 
-    /**
-     * Static function to convert a nested HashMap having integers, floats, doubles and other recursively defined HashMaps as value
-     * to its AnalysisTree representation.
-     *
-     * @param hashMap data to convert
-     * @param name specifies the name of root
-     * @return returns a recursively built tree including its children
-     */
-    public static AnalysisTree<?> hashMapToTree(HashMap<String, Object> hashMap, String name) {
-        AnalysisTree<Object> root = new AnalysisTree<>(name, (Object) null);
-        for (Iterator<String> iterator = hashMap.keySet().iterator(); iterator.hasNext(); ) {
-            String currentKey = iterator.next();
-            if (hashMap.get(currentKey) instanceof Integer) {
-                root.addChild(new AnalysisTree<>(currentKey, (int) hashMap.get(currentKey)));
-            } else if (hashMap.get(currentKey) instanceof Float) {
-                root.addChild(new AnalysisTree<>(currentKey, (float) hashMap.get(currentKey)));
-            } else if (hashMap.get(currentKey) instanceof Double) {
-                root.addChild(new AnalysisTree<>(currentKey, (double) hashMap.get(currentKey)));
-            } else if (hashMap.get(currentKey) instanceof HashMap) {
-                root.addChild(hashMapToTree((HashMap<String, Object>) hashMap.get(currentKey), currentKey));
-            } else {
-                // TODO Add handling for other types or errors if needed
-            }
-        }
-        return root;
-    }
-
-    /**
-     * Static function to convert a nested hashmap being processed by {@link JSONAnalysisFormat} into its AnalysisTree representation.
-     * This function is not supposed to be called initially, otherwise a root node with
-     * name having the whole tree as single child is returned.
-     *
-     * @param hashMap data to convert
-     * @param name name of the root
-     * @return returns the recursively built tree including its children
-     */
-    public static AnalysisTree<?> hashMapListToTree(HashMap<String, Object> hashMap, String name) {
-        AnalysisTree<Object> root = new AnalysisTree<>(name, (Object) null);
-        for (Iterator<String> iterator = hashMap.keySet().iterator(); iterator.hasNext(); ) {
-            String currentKey = iterator.next();
-            if (hashMap.get(currentKey) instanceof HashMap) {
-                root.addChild(hashMapListToTree((HashMap<String, Object>) hashMap.get(currentKey), currentKey));
-            } else if (hashMap.get(currentKey) instanceof ArrayList) {
-                ArrayList currentElement = (ArrayList) hashMap.get(currentKey);
-                if (currentElement.get(1).equals("class java.lang.Double")) {
-                    BigDecimal currentDeccimal = (BigDecimal) currentElement.get(2);
-                    root.addChild(new AnalysisTree<>(currentKey, currentDeccimal.doubleValue()));
-                } else if (currentElement.get(1).equals("class java.lang.Integer")) {
-                    root.addChild(new AnalysisTree<>(currentKey, (int) currentElement.get(2)));
-                } else if (currentElement.get(1).equals("class java.lang.Float")) {
-                    BigDecimal currentDeccimal = (BigDecimal) currentElement.get(2);
-                    root.addChild(new AnalysisTree<>(currentKey, currentDeccimal.floatValue()));
-                }
-            }
-        }
-        return root;
-    }
-
-    /**
-     * Static function to convert a nested hashmap being processed by {@link JSONAnalysisFormat} into its AnalysisTree representation.
-     * This function is specially suited to process a hashmap having only a single key in its first layer.
-     *
-     * @param hashMap data to convert
-     * @return returns the recursively built tree including its children, or an empty tree with an empty name in case of an error
-     */
-    public static AnalysisTree<?> hashMapListToTree(HashMap<String, Object> hashMap) {
-        if (hashMap.size() == 1) {
-            String key = hashMap.keySet().iterator().next();
-            return hashMapListToTree((HashMap<String, Object>) hashMap.get(key), key);
-        } else {
-            return new AnalysisTree<>("");
-        }
-    }
-
-    public static AnalysisTree<?> hashMapListYamlToTree(HashMap<String, Object> hashMap, String name) {
-        AnalysisTree<Object> root = new AnalysisTree<>(name, (Object) null);
-        for (Iterator<String> iterator = hashMap.keySet().iterator(); iterator.hasNext(); ) {
-            String currentKey = iterator.next();
-            if (hashMap.get(currentKey) instanceof HashMap) {
-                root.addChild(hashMapListYamlToTree((HashMap<String, Object>) hashMap.get(currentKey), currentKey));
-            } else if (hashMap.get(currentKey) instanceof ArrayList) {
-                ArrayList currentElement = (ArrayList) hashMap.get(currentKey);
-                if (currentElement.get(1).equals("class java.lang.Double")) {
-                    double currentDeccimal = (double) currentElement.get(2);
-                    root.addChild(new AnalysisTree<>(currentKey, currentDeccimal));
-                } else if (currentElement.get(1).equals("class java.lang.Integer")) {
-                    root.addChild(new AnalysisTree<>(currentKey, (int) currentElement.get(2)));
-                } else if (currentElement.get(1).equals("class java.lang.Float")) {
-                    double currentDouble = (double) currentElement.get(2);
-                    float currentDeccimal = (float) currentDouble;
-                    root.addChild(new AnalysisTree<>(currentKey, currentDeccimal));
-                }
-            }
-        }
-        return root;
-    }
-
-    public static AnalysisTree<?> hashMapListYamlToTree(HashMap<String, Object> hashMap) {
-        if (hashMap.size() == 1) {
-            String key = hashMap.keySet().iterator().next();
-            return hashMapListYamlToTree((HashMap<String, Object>) hashMap.get(key), key);
-        } else {
-            return new AnalysisTree<>("");
-        }
-    }
-
     @Override
     public String toString() {
         if (this.value == null) {
             return "Name: " + this.name + " - Value: " + this.value + " - Value class: " + "No class";
         } else {
-            return "Name: " + this.name + " - Value: " + this.value + " - Value class: " + this.value.getClass();
+            return "Name: " + this.name + " - Value: " + this.value + " - Value class: "
+                    + this.value.getClass().getName();
         }
     }
 }

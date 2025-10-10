@@ -18,40 +18,40 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
  */
-package de.featjar.feature.model.io.json;
+package de.featjar.feature.model.io.csv;
 
 import de.featjar.base.data.Result;
 import de.featjar.base.io.format.IFormat;
-import de.featjar.base.io.input.AInputMapper;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.analysis.AnalysisTree;
-import de.featjar.feature.model.analysis.visitor.AnalysisTreeVisitor;
-import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
-import java.util.HashMap;
-import org.json.JSONObject;
+import de.featjar.feature.model.analysis.visitor.AnalysisTreeVisitorCSV;
+import java.util.ArrayList;
+import java.util.Arrays;
+import tools.jackson.dataformat.csv.CsvMapper;
+import tools.jackson.dataformat.csv.CsvSchema;
 
 /**
- * An IFormat class that takes an AnalysisTree as input and can serialize it into JSON String
- * and from JSON String. For the exact build of the JSON String please look in {@link AnalysisTreeVisitor}.
+ * An IFormat class that take an AnalysisTree as input and can serialize it into CSV String.
+ * With the CSV having only four columns (AnalysisType, Name, Value, Class)
  *
  * @author Mohammad Khair Almekkawi
  * @author Florian Beese
  */
-public class JSONAnalysisFormat implements IFormat<AnalysisTree<?>> {
+public class CSVAnalysisFormat implements IFormat<AnalysisTree<?>> {
 
     @Override
     public String getName() {
-        return "JSON";
+        return "CSV";
     }
 
     @Override
     public String getFileExtension() {
-        return "json";
+        return "csv";
     }
 
     @Override
     public boolean supportsParse() {
-        return true;
+        return false;
     }
 
     @Override
@@ -61,15 +61,15 @@ public class JSONAnalysisFormat implements IFormat<AnalysisTree<?>> {
 
     @Override
     public Result<String> serialize(AnalysisTree<?> analysisTree) {
-        return Result.of(new JSONObject(
-                        Trees.traverse(analysisTree, new AnalysisTreeVisitor()).get())
-                .toString(1));
-    }
-
-    @Override
-    public Result<AnalysisTree<?>> parse(AInputMapper inputMapper) {
-        HashMap<String, Object> jsonMap =
-                (HashMap<String, Object>) new JSONObject(inputMapper.get().text()).toMap();
-        return AnalysisTreeTransformer.jsonHashMapToTree(jsonMap);
+        CsvMapper CSVMapper = new CsvMapper();
+        ArrayList<Object> nodesList = new ArrayList<Object>();
+        nodesList.add(Arrays.asList("AnalysisType", "Name", "Value", "Class"));
+        CsvSchema schema = CsvSchema.emptySchema()
+                .withColumnSeparator(';')
+                .withLineSeparator("\n")
+                .withoutQuoteChar();
+        nodesList.addAll(
+                Trees.traverse(analysisTree, new AnalysisTreeVisitorCSV()).get());
+        return Result.of(CSVMapper.writer(schema).writeValueAsString(nodesList));
     }
 }

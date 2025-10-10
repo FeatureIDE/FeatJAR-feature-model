@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.analysis.AnalysisTree;
+import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
 import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +35,8 @@ public class AnalysisTreeTest {
     @Test
     public void mapToTreeTest() {
         LinkedHashMap<String, Object> emptyMap = new LinkedHashMap<String, Object>();
-        AnalysisTree<?> returnedTree = AnalysisTree.hashMapToTree(emptyMap, "empty");
+        AnalysisTree<?> returnedTree =
+                AnalysisTreeTransformer.hashMapToTree(emptyMap, "empty").get();
 
         assertEquals(returnedTree.getName(), "empty");
         assertEquals(returnedTree.getChildrenCount(), 0);
@@ -44,7 +46,8 @@ public class AnalysisTreeTest {
         emptyMap.put("floatfirstLevel", (float) 42);
         emptyMap.put("doublefirstLevel", (double) 42);
 
-        returnedTree = AnalysisTree.hashMapToTree(emptyMap, "valuesFirstLevel");
+        returnedTree = AnalysisTreeTransformer.hashMapToTree(emptyMap, "valuesFirstLevel")
+                .get();
         assertEquals(returnedTree.getChildrenCount(), 3);
         assertTrue(returnedTree.getChild(0).isPresent());
         assertEquals(returnedTree.getChild(0).get().getName(), "intfirstLevel");
@@ -69,7 +72,8 @@ public class AnalysisTreeTest {
         firstLevelMap.put("map2secondLevel", secondLevelMap2);
         emptyMap.put("mapfirstLevel", firstLevelMap);
 
-        returnedTree = AnalysisTree.hashMapToTree(emptyMap, "nestedMaps");
+        returnedTree =
+                AnalysisTreeTransformer.hashMapToTree(emptyMap, "nestedMaps").get();
 
         assertEquals(returnedTree.getChildrenCount(), 4);
         AnalysisTree<?> mapfirstLevel = returnedTree.getChild(3).get();

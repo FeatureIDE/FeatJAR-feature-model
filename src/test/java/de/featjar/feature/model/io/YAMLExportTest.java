@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import de.featjar.base.io.IO;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.analysis.AnalysisTree;
+import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
 import de.featjar.feature.model.io.yaml.YAMLAnalysisFormat;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -72,7 +73,7 @@ public class YAMLExportTest {
     }
 
     @Test
-    public void JSONSerialize() throws IOException {
+    public void YAMLSerialize() throws IOException {
         LinkedHashMap<String, Object> innerMap = new LinkedHashMap<String, Object>();
         innerMap.put("xo", 3.3);
         innerMap.put("numOfLeafFeatures", (float) 12.4);
@@ -97,7 +98,8 @@ public class YAMLExportTest {
         Map<String, Object> map = (Map<String, Object>) loadedObject;
         HashMap<String, Object> loadedHashMap = (HashMap<String, Object>) map;
 
-        AnalysisTree<?> analsyisTreeAfterConversion = AnalysisTree.hashMapListYamlToTree(loadedHashMap);
+        AnalysisTree<?> analsyisTreeAfterConversion =
+                AnalysisTreeTransformer.yamlHashMapToTree(loadedHashMap).get();
 
         analsyisTree.sort();
         analsyisTreeAfterConversion.sort();

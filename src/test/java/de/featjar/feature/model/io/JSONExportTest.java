@@ -22,10 +22,12 @@ package de.featjar.feature.model.io;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.io.json.JSONAnalysisFormat;
+import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -72,14 +74,16 @@ public class JSONExportTest {
         data.put("numOfAtoms", 8);
         data.put("avgNumOfAsss", 4);
 
-        AnalysisTree<?> analsyisTree = AnalysisTree.hashMapToTree(data, "Analysis");
+        Result<AnalysisTree<?>> analsyisTreeResult = AnalysisTreeTransformer.hashMapToTree(data, "Analysis");
+        AnalysisTree<?> analsyisTree = analsyisTreeResult.get();
         JSONAnalysisFormat jsonFormat = new JSONAnalysisFormat();
         JSONObject firstJSONObject =
                 new JSONObject(jsonFormat.serialize(analsyisTree).get());
         String jsonString = firstJSONObject.toString();
         JSONObject secondJSONJsonObject = new JSONObject(jsonString);
         HashMap<String, Object> jsonAsMap = (HashMap<String, Object>) secondJSONJsonObject.toMap();
-        AnalysisTree<?> analsyisTreeAfterConversion = AnalysisTree.hashMapListToTree(jsonAsMap);
+        AnalysisTree<?> analsyisTreeAfterConversion =
+                AnalysisTreeTransformer.jsonHashMapToTree(jsonAsMap).get();
 
         analsyisTree.sort();
         analsyisTreeAfterConversion.sort();
