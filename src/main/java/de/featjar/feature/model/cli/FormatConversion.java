@@ -124,11 +124,7 @@ public class FormatConversion implements ICommand {
      */
     @Override
     public int run(OptionList optionParser) {
-//
-//    	IFormat<IFeatureModel> uvlObject = FeatureModelFormats.getInstance().getFormatList("uvl").get(0);
-//    	System.out.println(uvlObject.getName());
-//    	formatConversion --input ../formula/src/testFixtures/resources/Automotive02_V1/model.xml --output ../../Desktop/modelWritingTest.uvl --overwrite
-//    	
+    	
         if (!checkIfInputOutputIsPresent(optionParser)) {
             return 1;
         }
@@ -212,11 +208,8 @@ public class FormatConversion implements ICommand {
         for (FileInfo fileInfo : iSupports.keySet()) {
             SupportLevel iSupportLevel = iSupports.get(fileInfo);
             SupportLevel oSupportLevel = oSupports.get(fileInfo);
-//            if(oSupportLevel == SupportLevel.NONE && fileInfo == FileInfo.parseable) {
-//            	msg += "\t\t\t" + oExt + " is write only. " + oExt + " can NOT be parsed.\n";
-//            }
+
             if (oSupportLevel.isLessThan(iSupportLevel)) {
-            	// iExt +  " --> "  + oExt +":\n"
                 msg += "\t" + fileInfo + "  \t\t" + iSupportLevel + "\t" + oSupportLevel + "\n";
 
             }

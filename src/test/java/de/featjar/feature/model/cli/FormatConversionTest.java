@@ -134,14 +134,11 @@ public class FormatConversionTest {
 
         String expected_output = "Info Loss:\n"
         		+ "						xml --> dot\n"
-        		+ "	General hierarchial Structure  		FULL	NONE\n"
-        		+ "	Features with descriptions  		FULL	NONE\n"
-        		+ "	Features with attributes  		FULL	NONE\n"
-        		+ "	Features of boolean operators  		FULL	NONE\n"
-        		+ "	File content can be read  		FULL	NONE\n"
+        		+ "	File can be used for input  		YES	NO\n"
         		+ "\n"
         		+ "Output model saved at: model_invalidInput.dot\n"
         		+ "";
+        assertEquals(string, expected_output);
         assertTrue(string.startsWith(expected_output));
 
         Files.deleteIfExists(Paths.get(outputPath));
