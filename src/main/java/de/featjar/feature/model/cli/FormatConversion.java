@@ -172,12 +172,14 @@ public class FormatConversion implements ICommand {
         List<String> supportedInputFileExtensions = new ArrayList<>();
         List<String> supportedOutputFileExtensions = new ArrayList<>();
 
-        for (IFormat<IFeatureModel> ext : supportedFileExtensions) {
-            if (ext.supportsParse()) {
-                supportedInputFileExtensions.add(ext.getFileExtension());
-            }
-            if (ext.supportsWrite()) {
-                supportedOutputFileExtensions.add(ext.getFileExtension());
+        if (supportedFileExtensions != null) {
+            for (IFormat<IFeatureModel> ext : supportedFileExtensions) {
+                if (ext.supportsParse()) {
+                    supportedInputFileExtensions.add(ext.getFileExtension());
+                }
+                if (ext.supportsWrite()) {
+                    supportedOutputFileExtensions.add(ext.getFileExtension());
+                }
             }
         }
 
