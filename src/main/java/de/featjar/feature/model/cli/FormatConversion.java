@@ -51,7 +51,7 @@ public class FormatConversion implements ICommand {
             .setValidator(Option.PathValidator);
 
     public static final Option<Path> OUTPUT_OPTION = Option.newOption("output", Option.PathParser)
-            .setDescription("Path to output file. Accepted File Types: " + supportedInputFileExtensions);
+            .setDescription("Path to output file. Accepted File Types: " + supportedOutputFileExtensions);
 
     public static final Option<Boolean> OVERWRITE =
             Option.newFlag("overwrite").setDescription("Overwrite output file.");
@@ -216,7 +216,8 @@ public class FormatConversion implements ICommand {
         if (!msg.equals("Info Loss:" + "\n\t\t\t\t\t\t" + inputFileExtension + " --> " + outputFileExtension + "\n")) {
             FeatJAR.log().warning(msg);
         } else {
-            FeatJAR.log().message("No Information Loss from " + inputFileExtension + " to " + outputFileExtension + ".");
+            FeatJAR.log()
+                    .message("No Information Loss from " + inputFileExtension + " to " + outputFileExtension + ".");
         }
     }
 
