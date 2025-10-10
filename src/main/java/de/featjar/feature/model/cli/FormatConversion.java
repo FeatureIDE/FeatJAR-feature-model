@@ -339,7 +339,7 @@ public class FormatConversion implements ICommand {
      */
     public int saveFile(Path outputPath, IFeatureModel model, String outputFileExtension, boolean overWriteOutputFile) {
 
-        IFormat<IFeatureModel> format = null;
+        IFormat<IFeatureModel> format;
 
         Optional<IFormat<IFeatureModel>> outputFormats = FeatureModelFormats.getInstance().getExtensions().stream()
                 .filter(IFormat::supportsWrite)
