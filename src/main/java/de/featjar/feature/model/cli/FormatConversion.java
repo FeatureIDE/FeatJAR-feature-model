@@ -187,7 +187,8 @@ public class FormatConversion implements ICommand {
      */
     private void infoLossMessage(String inputFileExtension, String outputFileExtension) {
 
-        String msg = "Info Loss:" + "\n\t\t\t\t\t\t" + inputFileExtension + " --> " + outputFileExtension + "\n";
+        StringBuilder msg = new StringBuilder(
+                "Info Loss:" + "\n\t\t\t\t\t\t" + inputFileExtension + " --> " + outputFileExtension + "\n");
         Map<String, Map<FileInfo, SupportLevel>> infoLossMap = buildInfoLossMap();
 
         Map<FileInfo, SupportLevel> iSupports = infoLossMap.get(inputFileExtension);
@@ -202,11 +203,12 @@ public class FormatConversion implements ICommand {
             SupportLevel oSupportLevel = oSupports.get(fileInfo);
 
             if (oSupportLevel.isLessThan(iSupportLevel)) {
-                msg += "\t" + fileInfo + "  \t\t" + iSupportLevel + "\t" + oSupportLevel + "\n";
+                msg.append("\t" + fileInfo + "  \t\t" + iSupportLevel + "\t" + oSupportLevel + "\n");
             }
         }
-        if (!msg.equals("Info Loss:" + "\n\t\t\t\t\t\t" + inputFileExtension + " --> " + outputFileExtension + "\n")) {
-            FeatJAR.log().warning(msg);
+        if (!msg.toString()
+                .equals("Info Loss:" + "\n\t\t\t\t\t\t" + inputFileExtension + " --> " + outputFileExtension + "\n")) {
+            FeatJAR.log().warning(msg.toString());
         } else {
             FeatJAR.log()
                     .message("No Information Loss from " + inputFileExtension + " to " + outputFileExtension + ".");
