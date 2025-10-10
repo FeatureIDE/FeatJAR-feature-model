@@ -133,13 +133,15 @@ public class FormatConversionTest {
         String string = new String(byteArray);
 
         String expected_output = "Info Loss:\n"
-                + "	 Supports Feature attributes and metadata\n"
-                + "   		xml: FULL\n"
-                + "  		dot: NONE\n"
-                + "	 Supports Mandatory and optional features\n"
-                + "   		xml: FULL\n"
-                + "  		dot: NONE\n"
-                + "";
+        		+ "						xml --> dot\n"
+        		+ "	General hierarchial Structure  		FULL	NONE\n"
+        		+ "	Features with descriptions  		FULL	NONE\n"
+        		+ "	Features with attributes  		FULL	NONE\n"
+        		+ "	Features of boolean operators  		FULL	NONE\n"
+        		+ "	File content can be read  		FULL	NONE\n"
+        		+ "\n"
+        		+ "Output model saved at: model_invalidInput.dot\n"
+        		+ "";
         assertTrue(string.startsWith(expected_output));
 
         Files.deleteIfExists(Paths.get(outputPath));
