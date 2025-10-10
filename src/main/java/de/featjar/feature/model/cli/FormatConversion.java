@@ -68,9 +68,9 @@ public class FormatConversion implements ICommand {
      * For info loss map; indicates whether a feature is supported fully, partially, or not at all.
      */
     private enum SupportLevel {
-        NONE(0),
+        NO(0),
         PARTIAL(1),
-        FULL(2);
+        YES(2);
 
         public final int rank;
 
@@ -238,36 +238,36 @@ public class FormatConversion implements ICommand {
         
         String extension = "xml";
         supportMap.put(extension, new EnumMap<>(FileInfo.class)); // for each extension: add each feature
-        supportMap.get(extension).put(FileInfo.basicHierarchy, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.subgroupHierarchy, SupportLevel.NONE);
-        supportMap.get(extension).put(FileInfo.featureDescription, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.featureAttributes, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.featureCardinality, SupportLevel.NONE);
-        supportMap.get(extension).put(FileInfo.booleanOperators, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.allOperators, SupportLevel.NONE);
-        supportMap.get(extension).put(FileInfo.parseable, SupportLevel.FULL);
+        supportMap.get(extension).put(FileInfo.basicHierarchy, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.subgroupHierarchy, SupportLevel.NO);
+        supportMap.get(extension).put(FileInfo.featureDescription, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.featureAttributes, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.featureCardinality, SupportLevel.NO);
+        supportMap.get(extension).put(FileInfo.booleanOperators, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.allOperators, SupportLevel.NO);
+        supportMap.get(extension).put(FileInfo.parseable, SupportLevel.YES);
         
         extension = "uvl";
         supportMap.put(extension, new EnumMap<>(FileInfo.class)); // for each extension: add each feature
-        supportMap.get(extension).put(FileInfo.basicHierarchy, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.subgroupHierarchy, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.featureDescription, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.featureAttributes, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.featureCardinality, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.booleanOperators, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.allOperators, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.parseable, SupportLevel.FULL);
+        supportMap.get(extension).put(FileInfo.basicHierarchy, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.subgroupHierarchy, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.featureDescription, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.featureAttributes, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.featureCardinality, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.booleanOperators, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.allOperators, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.parseable, SupportLevel.YES);
 
         extension = "dot";
         supportMap.put(extension, new EnumMap<>(FileInfo.class)); // for each extension: add each feature
-        supportMap.get(extension).put(FileInfo.basicHierarchy, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.subgroupHierarchy, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.featureDescription, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.featureAttributes, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.featureCardinality, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.booleanOperators, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.allOperators, SupportLevel.FULL);
-        supportMap.get(extension).put(FileInfo.parseable, SupportLevel.NONE);
+        supportMap.get(extension).put(FileInfo.basicHierarchy, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.subgroupHierarchy, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.featureDescription, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.featureAttributes, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.featureCardinality, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.booleanOperators, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.allOperators, SupportLevel.YES);
+        supportMap.get(extension).put(FileInfo.parseable, SupportLevel.NO);
 
         return supportMap;
     }
