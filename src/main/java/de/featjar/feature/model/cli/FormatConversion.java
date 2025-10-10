@@ -89,15 +89,15 @@ public class FormatConversion implements ICommand {
      * Saving name as well as a description in case we need to explain it to the user later.
      */
     private enum FileInfo {
-    	basicHierarchy("General hierarchial Structure"),
-    	subgroupHierarchy("Hierarchy with supgroups"),
-    	featureDescription("Features with descriptions"),
-    	featureAttributes("Features with attributes"),
-    	featureCardinality("Cardinality of features"),
-    	booleanOperators("Features of boolean operators"),
-    	allOperators("Features of all operators"),
-    	parseable("File can be used for input");
-    	
+        basicHierarchy("General hierarchial Structure"),
+        subgroupHierarchy("Hierarchy with supgroups"),
+        featureDescription("Features with descriptions"),
+        featureAttributes("Features with attributes"),
+        featureCardinality("Cardinality of features"),
+        booleanOperators("Features of boolean operators"),
+        allOperators("Features of all operators"),
+        parseable("File can be used for input");
+
         public final String name;
         public final String description;
 
@@ -125,7 +125,7 @@ public class FormatConversion implements ICommand {
      */
     @Override
     public int run(OptionList optionParser) {
-    	
+
         if (!checkIfInputOutputIsPresent(optionParser)) {
             return 1;
         }
@@ -196,7 +196,7 @@ public class FormatConversion implements ICommand {
      */
     private void infoLossMessage(String iExt, String oExt) {
 
-        String msg = "Info Loss:" + "\n\t\t\t\t\t\t" + iExt +  " --> "  + oExt + "\n";
+        String msg = "Info Loss:" + "\n\t\t\t\t\t\t" + iExt + " --> " + oExt + "\n";
         Map<String, Map<FileInfo, SupportLevel>> infoLossMap = buildInfoLossMap();
 
         Map<FileInfo, SupportLevel> iSupports = infoLossMap.get(iExt); // xml
@@ -212,10 +212,9 @@ public class FormatConversion implements ICommand {
 
             if (oSupportLevel.isLessThan(iSupportLevel)) {
                 msg += "\t" + fileInfo + "  \t\t" + iSupportLevel + "\t" + oSupportLevel + "\n";
-
             }
         }
-        if (!msg.equals("Info Loss:" + "\n\t\t\t\t\t\t" + iExt +  " --> "  + oExt + "\n")) {
+        if (!msg.equals("Info Loss:" + "\n\t\t\t\t\t\t" + iExt + " --> " + oExt + "\n")) {
             FeatJAR.log().warning(msg);
         } else {
             FeatJAR.log().message("No Information Loss from " + iExt + " to " + oExt + ".");
@@ -224,98 +223,49 @@ public class FormatConversion implements ICommand {
 
     /**
      *
-     * @return
-     */
-    /*
-    private Map<String, Map<FileInfo, SupportLevel>> buildInfoLossMap() {
-
-        Map<String, Map<FileInfo, SupportLevel>> supportMap = new HashMap<>();
-
-        String extension = "xml";
-        supportMap.put(extension, new EnumMap<>(FileInfo.class)); // for each extension: add each feature
-        supportMap.get(extension).put(FileInfo.basicHierarchy, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.subgroupHierarchy, SupportLevel.NO);
-        supportMap.get(extension).put(FileInfo.featureDescription, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.featureAttributes, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.featureCardinality, SupportLevel.NO);
-        supportMap.get(extension).put(FileInfo.booleanOperators, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.allOperators, SupportLevel.NO);
-        supportMap.get(extension).put(FileInfo.parseable, SupportLevel.YES);
-
-        extension = "uvl";
-        supportMap.put(extension, new EnumMap<>(FileInfo.class)); // for each extension: add each feature
-        supportMap.get(extension).put(FileInfo.basicHierarchy, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.subgroupHierarchy, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.featureDescription, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.featureAttributes, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.featureCardinality, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.booleanOperators, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.allOperators, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.parseable, SupportLevel.YES);
-
-        extension = "dot";
-        supportMap.put(extension, new EnumMap<>(FileInfo.class)); // for each extension: add each feature
-        supportMap.get(extension).put(FileInfo.basicHierarchy, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.subgroupHierarchy, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.featureDescription, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.featureAttributes, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.featureCardinality, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.booleanOperators, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.allOperators, SupportLevel.YES);
-        supportMap.get(extension).put(FileInfo.parseable, SupportLevel.NO);
-
-        // if user forgot to set FileInfos: Support Level is automatically set to NONE
-        for (String ext : supportMap.keySet()) {
-            for (FileInfo fileInfo : FileInfo.values()) {
-                supportMap.get(ext).putIfAbsent(fileInfo, SupportLevel.NO);
-            }
-        }
-
-        return supportMap;
-    }
-    */
-
-    /**
-     *
      * {@return information loss map that tracks how well a file extension supports any given piece of information}
      */
     private Map<String, Map<FileInfo, SupportLevel>> buildInfoLossMap() {
         Map<String, Map<FileInfo, SupportLevel>> supportMap = new HashMap<>();
 
-        buildInfoLossMapRegisterExt("xml", Map.of(
-                FileInfo.basicHierarchy, SupportLevel.YES,
-                FileInfo.subgroupHierarchy, SupportLevel.NO,
-                FileInfo.featureDescription, SupportLevel.YES,
-                FileInfo.featureAttributes, SupportLevel.YES,
-                FileInfo.featureCardinality, SupportLevel.NO,
-                FileInfo.booleanOperators, SupportLevel.YES,
-                FileInfo.allOperators, SupportLevel.NO,
-                FileInfo.parseable, SupportLevel.YES
-        ), supportMap);
+        buildInfoLossMapRegisterExt(
+                "xml",
+                Map.of(
+                        FileInfo.basicHierarchy, SupportLevel.YES,
+                        FileInfo.subgroupHierarchy, SupportLevel.NO,
+                        FileInfo.featureDescription, SupportLevel.YES,
+                        FileInfo.featureAttributes, SupportLevel.YES,
+                        FileInfo.featureCardinality, SupportLevel.NO,
+                        FileInfo.booleanOperators, SupportLevel.YES,
+                        FileInfo.allOperators, SupportLevel.NO,
+                        FileInfo.parseable, SupportLevel.YES),
+                supportMap);
 
-        buildInfoLossMapRegisterExt("uvl", Map.of(
-                FileInfo.basicHierarchy, SupportLevel.YES,
-                FileInfo.subgroupHierarchy, SupportLevel.YES,
-                FileInfo.featureDescription, SupportLevel.YES,
-                FileInfo.featureAttributes, SupportLevel.YES,
-                FileInfo.featureCardinality, SupportLevel.YES,
-                FileInfo.booleanOperators, SupportLevel.YES,
-                FileInfo.allOperators, SupportLevel.YES,
-                FileInfo.parseable, SupportLevel.YES
-        ), supportMap);
+        buildInfoLossMapRegisterExt(
+                "uvl",
+                Map.of(
+                        FileInfo.basicHierarchy, SupportLevel.YES,
+                        FileInfo.subgroupHierarchy, SupportLevel.YES,
+                        FileInfo.featureDescription, SupportLevel.YES,
+                        FileInfo.featureAttributes, SupportLevel.YES,
+                        FileInfo.featureCardinality, SupportLevel.YES,
+                        FileInfo.booleanOperators, SupportLevel.YES,
+                        FileInfo.allOperators, SupportLevel.YES,
+                        FileInfo.parseable, SupportLevel.YES),
+                supportMap);
 
-
-        buildInfoLossMapRegisterExt("dot", Map.of(
-                FileInfo.basicHierarchy, SupportLevel.YES,
-                FileInfo.subgroupHierarchy, SupportLevel.YES,
-                FileInfo.featureDescription, SupportLevel.YES,
-                FileInfo.featureAttributes, SupportLevel.YES,
-                FileInfo.featureCardinality, SupportLevel.YES,
-                FileInfo.booleanOperators, SupportLevel.YES,
-                FileInfo.allOperators, SupportLevel.YES,
-                FileInfo.parseable, SupportLevel.NO
-        ), supportMap);
-
+        buildInfoLossMapRegisterExt(
+                "dot",
+                Map.of(
+                        FileInfo.basicHierarchy, SupportLevel.YES,
+                        FileInfo.subgroupHierarchy, SupportLevel.YES,
+                        FileInfo.featureDescription, SupportLevel.YES,
+                        FileInfo.featureAttributes, SupportLevel.YES,
+                        FileInfo.featureCardinality, SupportLevel.YES,
+                        FileInfo.booleanOperators, SupportLevel.YES,
+                        FileInfo.allOperators, SupportLevel.YES,
+                        FileInfo.parseable, SupportLevel.NO),
+                supportMap);
 
         // if user forgot to set FileInfos: Support Level is automatically set to NONE
         for (String ext : supportMap.keySet()) {
@@ -333,9 +283,14 @@ public class FormatConversion implements ICommand {
      * @param fileInfos pieces of file information as described in FileInfo enum
      * @param supportMap the information loss map that's being updated
      */
-    private void buildInfoLossMapRegisterExt(String extension, Map<FileInfo, SupportLevel> fileInfos, Map<String, Map<FileInfo, SupportLevel>> supportMap) {
+    private void buildInfoLossMapRegisterExt(
+            String extension,
+            Map<FileInfo, SupportLevel> fileInfos,
+            Map<String, Map<FileInfo, SupportLevel>> supportMap) {
         if (fileInfos.size() != FileInfo.values().length) {
-            FeatJAR.log().error("Info Loss Map: " + extension + " was added with too many or too few FileInfos. Skipping this extension.");
+            FeatJAR.log()
+                    .error("Info Loss Map: " + extension
+                            + " was added with too many or too few FileInfos. Skipping this extension.");
             return;
         }
         supportMap.put(extension, new EnumMap<>(fileInfos));
@@ -349,16 +304,18 @@ public class FormatConversion implements ICommand {
      */
     private boolean checkIfFileExtensionsValid(String inputFileExtension, String outputFileExtension) {
         if (!supportedInputFileExtensions.contains(inputFileExtension)) {
-            FeatJAR.log().error("Unsupported input file extension.\n"
-            		+ "Received extension: " + inputFileExtension + "\nSupported extensions: "
-                    + supportedInputFileExtensions);
+            FeatJAR.log()
+                    .error("Unsupported input file extension.\n"
+                            + "Received extension: " + inputFileExtension + "\nSupported extensions: "
+                            + supportedInputFileExtensions);
             return false;
         }
 
         if (!supportedOutputFileExtensions.contains(outputFileExtension)) {
-            FeatJAR.log().error("Unsupported output file extension.\n"
-            		+ "Received extension: " + outputFileExtension + "\nSupported extensions: "
-                    + supportedOutputFileExtensions);
+            FeatJAR.log()
+                    .error("Unsupported output file extension.\n"
+                            + "Received extension: " + outputFileExtension + "\nSupported extensions: "
+                            + supportedOutputFileExtensions);
             return false;
         }
         return true;
@@ -415,7 +372,7 @@ public class FormatConversion implements ICommand {
 
         System.out.println(outputFormats);
 
-        
+
         switch (outputFileExtension) {     
             case "xml":
                 format = new XMLFeatureModelFormat();
@@ -424,15 +381,14 @@ public class FormatConversion implements ICommand {
                 format = new GraphVizFeatureModelFormat();
                 break;
             case "uvl":
-            	format = FeatureModelFormats.getInstance().getFormatList("uvl").get(0);
-            	break;
+                format = FeatureModelFormats.getInstance().getFormatList("uvl").get(0);
+                break;
             default:
                 // this still catches errors if the switch case construct has not implemented all supported file types!
                 FeatJAR.log().error("Unsupported output file extension: " + outputFileExtension);
                 return 1;
         }
-        
-        
+
         try {
             if (Files.exists(outputPath)) {
                 if (overWriteOutputFile) {
