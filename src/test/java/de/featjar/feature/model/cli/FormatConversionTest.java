@@ -71,8 +71,7 @@ public class FormatConversionTest {
     }
 
     /**
-     *
-     *
+     * Checks if appropriate error code is thrown when the input file does not exist.
      */
     @Test
     void inputNotPresent() throws IOException {
@@ -89,8 +88,7 @@ public class FormatConversionTest {
     }
 
     /**
-     *
-     *
+     * Checks if appropriate error code is thrown when the output file path has an invalid extension.
      */
     @Test
     void invalidOutput() throws IOException {
@@ -106,11 +104,10 @@ public class FormatConversionTest {
     }
 
     /**
-     *
-     *
+     * Checks if appropriate error code is thrown when no model can be extracted from an input file.
      */
     @Test
-    void modelNotParsed() throws IOException {
+    void modelNotParsed() {
 
         inputPath = "src/test/java/de/featjar/feature/model/cli/resources/emptyModel.xml";
         outputPath = "model_modelNotParsed.xml";
@@ -120,19 +117,17 @@ public class FormatConversionTest {
     }
 
     /**
-     *
-     *
+     * Checks if appropriate error code is thrown when a file is already present at output path and no overwrite is specified
      */
     @Test
-    void modelPresentNoOverwrite() throws IOException {
-
+    void modelPresentNoOverwrite() {
         int exit_code = FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", inputPath);
         assertEquals(4, exit_code);
     }
 
     /**
      *
-     * checks if an info loss message is produced
+     * checks if appropriate information loss messages are being produced
      */
     @Test
     void infoLossMapTestTriggers() throws IOException {
@@ -168,7 +163,6 @@ public class FormatConversionTest {
 
     /**
      * Tests whether the converter can do an XML -> XML round trip with a basic feature model.
-     *
      */
     @Test
     void testWriteAndOverwrite() throws IOException {
