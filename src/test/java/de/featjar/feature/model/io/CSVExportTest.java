@@ -22,9 +22,11 @@ package de.featjar.feature.model.io;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import de.featjar.base.io.IO;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.io.csv.CSVAnalysisFormat;
 import java.io.IOException;
+import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
 public class CSVExportTest {
@@ -32,7 +34,7 @@ public class CSVExportTest {
     public AnalysisTree<?> createDefaultTree() {
         AnalysisTree<?> innereanalysisTree = new AnalysisTree<>(
                 "avgNumOfAtomsPerConstraints",
-                new AnalysisTree<>("xo", 3.3),
+                new AnalysisTree<>("test property", 3.3),
                 new AnalysisTree<>("numOfLeafFeatures", (float) 12.4));
 
         AnalysisTree<?> analysisTree = new AnalysisTree<>(
@@ -53,18 +55,19 @@ public class CSVExportTest {
     public void CSVTest() throws IOException {
         CSVAnalysisFormat csvAnalysisFormat = new CSVAnalysisFormat();
         String csvString = csvAnalysisFormat.serialize(createDefaultTree()).orElseThrow();
+        IO.save(createDefaultTree(), Paths.get("file.csv"), csvAnalysisFormat);
         assertEquals(
                 csvString,
-                "AnalysisType;Name;Value;Class\n"
-                        + "Analysis;numOfLeafFeatures;12.4;java.lang.Float\n"
-                        + "Analysis;numOfTopFeatures;3.3;java.lang.Double\n"
-                        + "Analysis;treeDepth;3;java.lang.Integer\n"
-                        + "Analysis;avgNumOfChildren;3;java.lang.Integer\n"
-                        + "Analysis;numInOrGroups;7;java.lang.Integer\n"
-                        + "Analysis;numInAltGroups;5;java.lang.Integer\n"
-                        + "Analysis;numOfAtoms;8;java.lang.Integer\n"
-                        + "Analysis;avgNumOfAsss;4;java.lang.Integer\n"
-                        + "avgNumOfAtomsPerConstraints;xo;3.3;java.lang.Double\n"
-                        + "avgNumOfAtomsPerConstraints;numOfLeafFeatures;12.4;java.lang.Float\n");
+                "AnalysisType;Name;Class;Value\n"
+                        + "Analysis;numOfLeafFeatures;java.lang.Float;12.4\n"
+                        + "Analysis;numOfTopFeatures;java.lang.Double;3.3\n"
+                        + "Analysis;treeDepth;java.lang.Integer;3\n"
+                        + "Analysis;avgNumOfChildren;java.lang.Integer;3\n"
+                        + "Analysis;numInOrGroups;java.lang.Integer;7\n"
+                        + "Analysis;numInAltGroups;java.lang.Integer;5\n"
+                        + "Analysis;numOfAtoms;java.lang.Integer;8\n"
+                        + "Analysis;avgNumOfAsss;java.lang.Integer;4\n"
+                        + "avgNumOfAtomsPerConstraints;test property;java.lang.Double;3.3\n"
+                        + "avgNumOfAtomsPerConstraints;numOfLeafFeatures;java.lang.Float;12.4\n");
     }
 }

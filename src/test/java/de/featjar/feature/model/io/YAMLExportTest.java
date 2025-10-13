@@ -28,6 +28,7 @@ import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
 import de.featjar.feature.model.io.yaml.YAMLAnalysisFormat;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -70,6 +71,7 @@ public class YAMLExportTest {
         assertTrue(
                 Trees.equals(analysisTree, outputAnalysisTree),
                 "firstTree\n" + analysisTree.print() + "\nsecond tree\n" + outputAnalysisTree.print());
+        Files.deleteIfExists(Paths.get("filename.yaml"));
     }
 
     @Test
