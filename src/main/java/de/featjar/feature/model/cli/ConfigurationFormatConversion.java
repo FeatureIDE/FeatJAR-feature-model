@@ -29,8 +29,6 @@ import de.featjar.base.io.IO;
 import de.featjar.base.io.format.IFormat;
 import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.io.FeatureModelFormats;
-import de.featjar.formula.assignment.BooleanAssignmentValueMap;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,7 +46,7 @@ import java.util.stream.Collectors;
  * @author Knut, Kilian & Benjamin
  */
 
-// BooleanAssignmentValueMapFormat implements IFormat<BooleanAssignmentValueMap> 
+// BooleanAssignmentValueMapFormat implements IFormat<BooleanAssignmentValueMap>
 
 public class ConfigurationFormatConversion implements ICommand {
 
