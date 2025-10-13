@@ -9,6 +9,7 @@ dependencies {
     implementation 'org.json:json:20240303'
     implementation 'org.yaml:snakeyaml:2.5'
 	implementation 'tools.jackson.dataformat:jackson-dataformat-csv:3.0.0'
+	implementation 'org.knowm.xchart:xchart:3.8.8'
 }
 
 license {
