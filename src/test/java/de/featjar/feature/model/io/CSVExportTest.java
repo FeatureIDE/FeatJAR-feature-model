@@ -32,7 +32,7 @@ public class CSVExportTest {
     public AnalysisTree<?> createDefaultTree() {
         AnalysisTree<?> innereanalysisTree = new AnalysisTree<>(
                 "avgNumOfAtomsPerConstraints",
-                new AnalysisTree<>("xo", 3.3),
+                new AnalysisTree<>("test property", 3.3),
                 new AnalysisTree<>("numOfLeafFeatures", (float) 12.4));
 
         AnalysisTree<?> analysisTree = new AnalysisTree<>(
@@ -64,7 +64,7 @@ public class CSVExportTest {
                         + "Analysis;numInAltGroups;5;java.lang.Integer\n"
                         + "Analysis;numOfAtoms;8;java.lang.Integer\n"
                         + "Analysis;avgNumOfAsss;4;java.lang.Integer\n"
-                        + "avgNumOfAtomsPerConstraints;xo;3.3;java.lang.Double\n"
+                        + "avgNumOfAtomsPerConstraints;test property;3.3;java.lang.Double\n"
                         + "avgNumOfAtomsPerConstraints;numOfLeafFeatures;12.4;java.lang.Float\n");
     }
 }
