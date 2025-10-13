@@ -27,7 +27,6 @@ import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.io.csv.CSVAnalysisFormat;
 import java.io.IOException;
 import java.nio.file.Paths;
-
 import org.junit.jupiter.api.Test;
 
 public class CSVExportTest {
@@ -60,15 +59,15 @@ public class CSVExportTest {
         assertEquals(
                 csvString,
                 "AnalysisType;Name;Class;Value\n"
-                + "Analysis;numOfLeafFeatures;java.lang.Float;12.4\n"
-                + "Analysis;numOfTopFeatures;java.lang.Double;3.3\n"
-                + "Analysis;treeDepth;java.lang.Integer;3\n"
-                + "Analysis;avgNumOfChildren;java.lang.Integer;3\n"
-                + "Analysis;numInOrGroups;java.lang.Integer;7\n"
-                + "Analysis;numInAltGroups;java.lang.Integer;5\n"
-                + "Analysis;numOfAtoms;java.lang.Integer;8\n"
-                + "Analysis;avgNumOfAsss;java.lang.Integer;4\n"
-                + "avgNumOfAtomsPerConstraints;test property;java.lang.Double;3.3\n"
-                + "avgNumOfAtomsPerConstraints;numOfLeafFeatures;java.lang.Float;12.4\n");
+                        + "Analysis;numOfLeafFeatures;java.lang.Float;12.4\n"
+                        + "Analysis;numOfTopFeatures;java.lang.Double;3.3\n"
+                        + "Analysis;treeDepth;java.lang.Integer;3\n"
+                        + "Analysis;avgNumOfChildren;java.lang.Integer;3\n"
+                        + "Analysis;numInOrGroups;java.lang.Integer;7\n"
+                        + "Analysis;numInAltGroups;java.lang.Integer;5\n"
+                        + "Analysis;numOfAtoms;java.lang.Integer;8\n"
+                        + "Analysis;avgNumOfAsss;java.lang.Integer;4\n"
+                        + "avgNumOfAtomsPerConstraints;test property;java.lang.Double;3.3\n"
+                        + "avgNumOfAtomsPerConstraints;numOfLeafFeatures;java.lang.Float;12.4\n");
     }
 }
