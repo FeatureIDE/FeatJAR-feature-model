@@ -36,6 +36,7 @@ import de.featjar.feature.model.computation.ComputeAverageConstraint;
 import de.featjar.feature.model.computation.ComputeFeatureDensity;
 import de.featjar.feature.model.computation.ComputeOperatorDistribution;
 import de.featjar.feature.model.io.FeatureModelFormats;
+import de.featjar.feature.model.analysis.AnalysisTree;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -97,7 +98,7 @@ public class PrintStatistics extends ACommand {
         if (optionParser.getResult(OUTPUT_OPTION).isPresent()) {
             Path outputPath = optionParser.get(OUTPUT_OPTION);
             String fileExtension = IO.getFileExtension(outputPath);
-            writeTo(optionParser.getResult(OUTPUT_OPTION).get(), fileExtension);
+            writeTo(optionParser.getResult(OUTPUT_OPTION).get(), fileExtension, data);
         }
 
         // printing statistics to console if no output file is specified
@@ -115,12 +116,15 @@ public class PrintStatistics extends ACommand {
      * @param path: full path to output file
      * @param type: is extracted from provided output path, needs to be lower case
      */
-    private void writeTo(Path path, String type) {
+    private void writeTo(Path path, String type,LinkedHashMap<String, Object> data) {
 
         switch (type) {
             case "xml":
                 // TODO future Story Card: Write to XML
                 // IO.save(new Object(data), path, new XMLFeatureModelFormat());
+            	AnalysisTree<?> tree = AnalysisTree.hashMapToTree(data, type);
+            	System.out.println(tree.toString());
+            	
                 break;
             case "csv":
                 // TODO future Story Card: Write to CSV
