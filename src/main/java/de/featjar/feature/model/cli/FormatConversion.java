@@ -32,15 +32,12 @@ import de.featjar.feature.model.io.FeatureModelFormats;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.EnumMap;
-import java.util.HashMap;
-
-
-
 import java.util.stream.Collectors;
 
 /**
@@ -50,17 +47,17 @@ import java.util.stream.Collectors;
  */
 public class FormatConversion implements ICommand {
 
-    private static final List<String> supportedInputFileExtensions = FeatureModelFormats.getInstance().getExtensions()
-            .stream()
-            .filter(IFormat::supportsParse)
-            .map(IFormat::getFileExtension)
-            .collect(Collectors.toList());
+    private static final List<String> supportedInputFileExtensions =
+            FeatureModelFormats.getInstance().getExtensions().stream()
+                    .filter(IFormat::supportsParse)
+                    .map(IFormat::getFileExtension)
+                    .collect(Collectors.toList());
 
-    private static final List<String> supportedOutputFileExtensions = FeatureModelFormats.getInstance().getExtensions()
-            .stream()
-            .filter(IFormat::supportsWrite)
-            .map(IFormat::getFileExtension)
-            .collect(Collectors.toList());
+    private static final List<String> supportedOutputFileExtensions =
+            FeatureModelFormats.getInstance().getExtensions().stream()
+                    .filter(IFormat::supportsWrite)
+                    .map(IFormat::getFileExtension)
+                    .collect(Collectors.toList());
 
     public static final Option<Path> INPUT_OPTION = Option.newOption("input", Option.PathParser)
             .setDescription("Path to input file. Accepted File Types: " + supportedInputFileExtensions)
@@ -171,8 +168,9 @@ public class FormatConversion implements ICommand {
      */
     private void infoLossMessage(String inputFileExtension, String outputFileExtension) {
 
-        StringBuilder msg = new StringBuilder(
-                "Info Loss:" + "\n\t\t\t\t\t\t" + inputFileExtension + " --> " + outputFileExtension + "\n");
+        StringBuilder msg = new StringBuilder();
+        msg.append("Info Loss:\n");
+
         Map<String, Map<FileInfo, SupportLevel>> infoLossMap = buildInfoLossMap();
 
         Map<FileInfo, SupportLevel> iSupports = infoLossMap.get(inputFileExtension);
@@ -181,17 +179,22 @@ public class FormatConversion implements ICommand {
         if (iSupports == null || oSupports == null) {
             return;
         }
-
+        boolean infoLossPresent = false;
         for (FileInfo fileInfo : iSupports.keySet()) {
             SupportLevel iSupportLevel = iSupports.get(fileInfo);
             SupportLevel oSupportLevel = oSupports.get(fileInfo);
 
             if (oSupportLevel.isLessThan(iSupportLevel)) {
-                msg.append("\t" + fileInfo + "  \t\t" + iSupportLevel + "\t" + oSupportLevel + "\n");
+                if (!infoLossPresent) {
+                    msg.append(String.format(
+                            "%-46s  %s%n", "", inputFileExtension + " --> " + outputFileExtension + "\n"));
+                    infoLossPresent = true;
+                }
+
+                msg.append(String.format("%-36s %14s  %5s%n", "    " + fileInfo, iSupportLevel, oSupportLevel));
             }
         }
-        if (!msg.toString()
-                .equals("Info Loss:" + "\n\t\t\t\t\t\t" + inputFileExtension + " --> " + outputFileExtension + "\n")) {
+        if (infoLossPresent) {
             FeatJAR.log().warning(msg.toString());
         } else {
             FeatJAR.log().info("No Information Loss from " + inputFileExtension + " to " + outputFileExtension + ".");
@@ -360,11 +363,11 @@ public class FormatConversion implements ICommand {
         try {
             if (Files.exists(outputPath)) {
                 if (overWriteOutputFile) {
-                    FeatJAR.log().info("File already present at: " + outputPath + "\n\tContinuing to overwrite File.");
+                    FeatJAR.log().info("File already present at: " + outputPath + ". Continuing to overwrite File.");
                 } else {
                     FeatJAR.log()
                             .error("Saving outputModel in File unsuccessful: File already present at: " + outputPath
-                                    + "\n\tTo overwrite present file add --overwrite");
+                                    + ". To overwrite present file add --overwrite");
                     return 4;
                 }
             }

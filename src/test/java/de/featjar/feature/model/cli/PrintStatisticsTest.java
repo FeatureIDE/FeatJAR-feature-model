@@ -141,16 +141,17 @@ public class PrintStatisticsTest {
 
         String comparison = "Normal Entry                             : 10\n"
                 + "HashMap Entry                           \n"
-                + "	   Nested Entry 1                : 5\n"
-                + "	   Nested Entry 2                : 6\n"
+                + "           Nested Entry 1                : 5\n"
+                + "           Nested Entry 2                : 6\n"
                 + "\n"
-                + "		CONSTRAINT RELATED STATS\n"
+                + "                CONSTRAINT RELATED STATS\n"
                 + "                 \n"
                 + "Number of Atoms                          : \n"
                 + "\n"
-                + "		TREE RELATED STATS\n"
+                + "                TREE RELATED STATS\n"
                 + "                       \n"
-                + "[Tree 1] Average Number of Children      : \n";
+                + "[Tree 1] Average Number of Children      : \n"
+                + "";
 
         assertEquals(comparison, printStats.buildStringPrettyStats(testData).toString());
     }

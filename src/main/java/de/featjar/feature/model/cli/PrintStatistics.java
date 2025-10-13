@@ -240,7 +240,7 @@ public class PrintStatistics extends ACommand {
                 outputString.append(String.format("\n                %-40s  %n", "CONSTRAINT RELATED STATS\n"));
 
             } else if (entry.getKey().equals("[Tree 1] Average Number of Children")) {
-                outputString.append(String.format("\n\t\t%-40s  %n", "TREE RELATED STATS\n"));
+                outputString.append(String.format("\n                %-40s  %n", "TREE RELATED STATS\n"));
             }
             if (entry.getValue() instanceof Map) {
                 Map<?, ?> nestedMap = (Map<?, ?>) entry.getValue();
@@ -248,8 +248,8 @@ public class PrintStatistics extends ACommand {
                 outputString.append(String.format("%-40s%n", entry.getKey()));
 
                 for (Map.Entry<?, ?> nestedEntry : nestedMap.entrySet()) {
-                    outputString.append(
-                            String.format("%-33s : %s%n", "\t   " + nestedEntry.getKey(), nestedEntry.getValue()));
+                    outputString.append(String.format(
+                            "%-40s : %s%n", "           " + nestedEntry.getKey(), nestedEntry.getValue()));
                 }
             } else {
                 outputString.append(String.format("%-40s : %s%n", entry.getKey(), entry.getValue()));
