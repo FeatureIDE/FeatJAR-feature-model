@@ -63,7 +63,7 @@ public class CSVAnalysisFormat implements IFormat<AnalysisTree<?>> {
     public Result<String> serialize(AnalysisTree<?> analysisTree) {
         CsvMapper CSVMapper = new CsvMapper();
         ArrayList<Object> nodesList = new ArrayList<Object>();
-        nodesList.add(Arrays.asList("AnalysisType", "Name", "Value", "Class"));
+        nodesList.add(Arrays.asList("AnalysisType", "Name", "Class", "Value"));
         CsvSchema schema = CsvSchema.emptySchema()
                 .withColumnSeparator(';')
                 .withLineSeparator("\n")

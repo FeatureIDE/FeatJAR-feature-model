@@ -40,9 +40,9 @@ public class YAMLExportTest {
     LinkedHashMap<String, Object> data = new LinkedHashMap<String, Object>();
 
     public AnalysisTree<?> createDefaultTree() {
-        AnalysisTree<?> innereanalysisTree = new AnalysisTree<>(
+        AnalysisTree<?> innereAnalysisTree = new AnalysisTree<>(
                 "avgNumOfAtomsPerConstraints",
-                new AnalysisTree<>("xo", 3.3),
+                new AnalysisTree<>("test property", 3.3),
                 new AnalysisTree<>("numOfLeafFeatures", (float) 12.4));
 
         AnalysisTree<?> analysisTree = new AnalysisTree<>(
@@ -55,7 +55,7 @@ public class YAMLExportTest {
                 new AnalysisTree<>("numInAltGroups", 5),
                 new AnalysisTree<>("numOfAtoms", 8),
                 new AnalysisTree<>("avgNumOfAsss", 4),
-                innereanalysisTree);
+                innereAnalysisTree);
         return analysisTree;
     }
 
@@ -75,7 +75,7 @@ public class YAMLExportTest {
     @Test
     public void YAMLSerialize() throws IOException {
         LinkedHashMap<String, Object> innerMap = new LinkedHashMap<String, Object>();
-        innerMap.put("xo", 3.3);
+        innerMap.put("test property", 3.3);
         innerMap.put("numOfLeafFeatures", (float) 12.4);
         data.put("numOfTopFeatures", 3.3);
         data.put("numOfLeafFeatures", (float) 12.4);
@@ -98,18 +98,18 @@ public class YAMLExportTest {
         Map<String, Object> map = (Map<String, Object>) loadedObject;
         HashMap<String, Object> loadedHashMap = (HashMap<String, Object>) map;
 
-        AnalysisTree<?> analsyisTreeAfterConversion =
+        AnalysisTree<?> analysisTreeAfterConversion =
                 AnalysisTreeTransformer.yamlHashMapToTree(loadedHashMap).get();
 
         analsyisTree.sort();
-        analsyisTreeAfterConversion.sort();
+        analysisTreeAfterConversion.sort();
         assertTrue(
-                Trees.equals(analsyisTree, analsyisTreeAfterConversion),
-                "firstTree\n" + analsyisTree.print() + "\nsecond tree\n" + analsyisTreeAfterConversion.print());
+                Trees.equals(analsyisTree, analysisTreeAfterConversion),
+                "firstTree\n" + analsyisTree.print() + "\nsecond tree\n" + analysisTreeAfterConversion.print());
         AnalysisTree<?> manualAnalysisTree = createDefaultTree();
         manualAnalysisTree.sort();
         assertTrue(
-                Trees.equals(manualAnalysisTree, analsyisTreeAfterConversion),
-                "firstTree\n" + manualAnalysisTree.print() + "\nsecond tree\n" + analsyisTreeAfterConversion.print());
+                Trees.equals(manualAnalysisTree, analysisTreeAfterConversion),
+                "firstTree\n" + manualAnalysisTree.print() + "\nsecond tree\n" + analysisTreeAfterConversion.print());
     }
 }

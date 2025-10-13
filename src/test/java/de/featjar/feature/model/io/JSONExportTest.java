@@ -42,7 +42,7 @@ public class JSONExportTest {
     public AnalysisTree<?> createDefaultTree() {
         AnalysisTree<?> innereanalysisTree = new AnalysisTree<>(
                 "avgNumOfAtomsPerConstraints",
-                new AnalysisTree<>("xo", 3.3),
+                new AnalysisTree<>("test property", 3.3),
                 new AnalysisTree<>("numOfLeafFeatures", (float) 12.4));
 
         AnalysisTree<?> analysisTree = new AnalysisTree<>(
@@ -62,7 +62,7 @@ public class JSONExportTest {
     @Test
     public void JSONSerialize() throws IOException {
         LinkedHashMap<String, Object> innerMap = new LinkedHashMap<String, Object>();
-        innerMap.put("xo", 3.3);
+        innerMap.put("test property", 3.3);
         innerMap.put("numOfLeafFeatures", (float) 12.4);
         data.put("numOfTopFeatures", 3.3);
         data.put("numOfLeafFeatures", (float) 12.4);
@@ -80,8 +80,8 @@ public class JSONExportTest {
         JSONObject firstJSONObject =
                 new JSONObject(jsonFormat.serialize(analsyisTree).get());
         String jsonString = firstJSONObject.toString();
-        JSONObject secondJSONJsonObject = new JSONObject(jsonString);
-        HashMap<String, Object> jsonAsMap = (HashMap<String, Object>) secondJSONJsonObject.toMap();
+        JSONObject secondJSONObject = new JSONObject(jsonString);
+        HashMap<String, Object> jsonAsMap = (HashMap<String, Object>) secondJSONObject.toMap();
         AnalysisTree<?> analsyisTreeAfterConversion =
                 AnalysisTreeTransformer.jsonHashMapToTree(jsonAsMap).get();
 

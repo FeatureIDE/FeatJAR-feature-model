@@ -27,6 +27,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Enumerates all leafs containing data in order to be processed by CSV formats.
+ * Each leaf is represented by a list containing parent name, its name, value, type.
+ *
+ * @author Mohammad Khair Almekkawi
+ * @author Florian Beese
+ */
 public class AnalysisTreeVisitorCSV implements ITreeVisitor<AnalysisTree<?>, ArrayList<Object>> {
     ArrayList<Object> nodesList = new ArrayList<Object>();
 
@@ -36,10 +43,7 @@ public class AnalysisTreeVisitorCSV implements ITreeVisitor<AnalysisTree<?>, Arr
         if (node.getChildrenCount() == 0 && ITreeVisitor.getParentNode(path).isPresent()) {
             final AnalysisTree<?> parent = ITreeVisitor.getParentNode(path).get();
             nodesList.add(Arrays.asList(
-                    parent.getName(),
-                    node.getName(),
-                    node.getValue(),
-                    node.getValue().getClass().getName()));
+                    parent.getName(), node.getName(), node.getValue().getClass().getName(), node.getValue()));
         }
         return TraversalAction.CONTINUE;
     }
