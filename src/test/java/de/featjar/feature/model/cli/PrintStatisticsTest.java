@@ -28,7 +28,6 @@ import de.featjar.base.data.identifier.IIdentifiable;
 import de.featjar.base.data.identifier.Identifiers;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.cli.PrintStatistics.AnalysesScope;
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +48,7 @@ public class PrintStatisticsTest {
     }
 
     @Test
-    void inputTest() throws IOException {
+    void inputTest() {
 
         int exit_code = FeatJAR.runTest(
                 "printStats", "--input", "../formula/src/testFixtures/resources/Automotive02_V1/model.xml");
@@ -57,14 +56,14 @@ public class PrintStatisticsTest {
     }
 
     @Test
-    void noInput() throws IOException {
+    void noInput() {
 
         assertEquals(1, FeatJAR.runTest("printStats", "--input"));
         assertEquals(1, FeatJAR.runTest("printStats"));
     }
 
     @Test
-    void outputWithFileValidExtension() throws IOException {
+    void outputWithFileValidExtension() {
 
         int exit_code = FeatJAR.runTest(
                 "printStats",
@@ -76,7 +75,7 @@ public class PrintStatisticsTest {
     }
 
     @Test
-    void outputWithFileInvalidExtension() throws IOException {
+    void outputWithFileInvalidExtension() {
 
         int exit_code = FeatJAR.runTest(
                 "printStats",
@@ -88,7 +87,7 @@ public class PrintStatisticsTest {
     }
 
     @Test
-    void outputWithoutFileExtension() throws IOException {
+    void outputWithoutFileExtension() {
 
         int exit_code = FeatJAR.runTest(
                 "printStats",
@@ -100,7 +99,7 @@ public class PrintStatisticsTest {
     }
 
     @Test
-    void scopeAll() throws IOException {
+    void scopeAll() {
         String content =
                 "{Number of Atoms=0, Feature Density=0.0, Average Constraints=NaN, Operator Distribution={}, [Tree 1] Average Number of Children=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
         String comparison =
@@ -109,7 +108,8 @@ public class PrintStatisticsTest {
     }
 
     @Test
-    void scopeTreeRelated() throws IOException {
+    void scopeTreeRelated() {
+
         String content =
                 "{[Tree 1] Average Number of Children=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
         String comparison = printStats
@@ -119,7 +119,7 @@ public class PrintStatisticsTest {
     }
 
     @Test
-    void scopeConstraintRelated() throws IOException {
+    void scopeConstraintRelated() {
         String content = "{Number of Atoms=0, Feature Density=0.0, Average Constraints=NaN, Operator Distribution={}}";
         String comparison = printStats
                 .collectStats(minimalModel, AnalysesScope.CONSTRAINT_RELATED)
@@ -128,7 +128,7 @@ public class PrintStatisticsTest {
     }
 
     @Test
-    void prettyStringBuilder() throws IOException {
+    void prettyStringBuilder() {
 
         LinkedHashMap<String, Object> testData = new LinkedHashMap<>();
         testData.put("Normal Entry", 10);
@@ -139,8 +139,7 @@ public class PrintStatisticsTest {
         testData.put("Number of Atoms", "");
         testData.put("[Tree 1] Average Number of Children", "");
 
-        StringBuilder comparison = new StringBuilder();
-        comparison.append("Normal Entry                             : 10\n"
+        String comparison = "Normal Entry                             : 10\n"
                 + "HashMap Entry                           \n"
                 + "	   Nested Entry 1                : 5\n"
                 + "	   Nested Entry 2                : 6\n"
@@ -151,8 +150,8 @@ public class PrintStatisticsTest {
                 + "\n"
                 + "		TREE RELATED STATS\n"
                 + "                       \n"
-                + "[Tree 1] Average Number of Children      : \n");
+                + "[Tree 1] Average Number of Children      : \n";
 
-        assertEquals(printStats.buildStringPrettyStats(testData).toString(), comparison.toString());
+        assertEquals(comparison, printStats.buildStringPrettyStats(testData).toString());
     }
 }
