@@ -6,5 +6,6 @@
     </point>
     <point id="de.featjar.base.cli.Commands">
 		<extension id="de.featjar.feature.model.cli.PrintStatistics" />
+		<extension id="de.featjar.feature.model.cli.FormatConversion" />
 	</point>
 </extensions>
