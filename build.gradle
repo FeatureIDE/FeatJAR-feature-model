@@ -6,6 +6,7 @@ plugins {
 dependencies {
     api 'de.featjar:formula'
     api testFixtures('de.featjar:formula')
+	implementation 'org.knowm.xchart:xchart:3.8.8'
 }
 
 license {
