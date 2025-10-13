@@ -21,18 +21,40 @@
 package de.featjar.feature.model.analysis;
 
 import de.featjar.base.tree.structure.ATree;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
+/**
+ * A tree of nodes with a given name and some data.
+ *
+ * @param <T> type of value this node holds
+ * @author Mohammad Khair Almekkawi
+ * @author Florian Beese
+ */
 public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
 
-    String name;
-    T value;
+    private String name;
+    private T value;
 
     public AnalysisTree(String name, T value) {
         this.name = name;
         this.value = value;
+    }
+
+    public AnalysisTree(String name, AnalysisTree<?> firstchild, AnalysisTree<?>... children) {
+        super(children.length + 1);
+        ArrayList<AnalysisTree<?>> allChildren = new ArrayList<>();
+        allChildren.add(firstchild);
+        java.util.Collections.addAll(allChildren, children);
+        if (allChildren.size() > 0) super.setChildren(allChildren);
+        this.name = name;
+    }
+
+    public AnalysisTree(String name, List<? extends AnalysisTree<?>> children) {
+        super(children.size());
+        super.setChildren(children);
+        this.name = name;
     }
 
     public String getName() {
@@ -50,41 +72,35 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
 
     @Override
     public AnalysisTree<?> cloneNode() {
-        // TODO Auto-generated method stub
         return new AnalysisTree<>(this);
     }
 
     @Override
     public boolean equalsNode(AnalysisTree<?> other) {
+        if (other.value == null && this.value != null) {
+            return false;
+        }
+        if (other.value != null && this.value == null) {
+            return false;
+        }
+        if (this.value == null && other.value == null) {
+            return this.name.equals(other.name);
+        }
         return this.name.equals(other.name) && this.value.equals(other.value);
     }
 
     @Override
     public int hashCodeNode() {
-        return Objects.hash(this.getClass(), this.name, this.value.getClass(), this.value);
-    }
-
-    public static AnalysisTree<?> hashMapToTree(HashMap<String, Object> hashMap, String name) {
-        AnalysisTree<Object> root = new AnalysisTree<>(name, (Object) null);
-        for (Iterator<String> iterator = hashMap.keySet().iterator(); iterator.hasNext(); ) {
-            String currentKey = iterator.next();
-            if (hashMap.get(currentKey) instanceof Integer) {
-                root.addChild(new AnalysisTree<>(currentKey, (int) hashMap.get(currentKey)));
-            } else if (hashMap.get(currentKey) instanceof Float) {
-                root.addChild(new AnalysisTree<>(currentKey, (float) hashMap.get(currentKey)));
-            } else if (hashMap.get(currentKey) instanceof Double) {
-                root.addChild(new AnalysisTree<>(currentKey, (double) hashMap.get(currentKey)));
-            } else if (hashMap.get(currentKey) instanceof HashMap) {
-                root.addChild(hashMapToTree((HashMap<String, Object>) hashMap.get(currentKey), currentKey));
-            } else {
-                // TODO Add handling for other types or errors if needed
-            }
-        }
-        return root;
+        return Objects.hash(this.getClass(), this.name, this.value);
     }
 
     @Override
     public String toString() {
-        return "" + this.getClass() + " " + this.name;
+        if (this.value == null) {
+            return "Name: " + this.name + " - Value: " + this.value + " - Value class: " + "No class";
+        } else {
+            return "Name: " + this.name + " - Value: " + this.value + " - Value class: "
+                    + this.value.getClass().getName();
+        }
     }
 }
