@@ -75,7 +75,8 @@ public class ComputeAverageConstraint extends AComputation<Float> {
                                             COUNTBOOLEAN.get(dependencyList)))
                             .orElse(0);
         }
-        return Result.of(
-                (float) atomsSum / (float) featureModel.getConstraints().size());
+        int numberOfConstraints = featureModel.getConstraints().size();
+        float averageConstraint = (numberOfConstraints == 0)? 0 : (float) atomsSum / (float) numberOfConstraints;
+        return Result.of(averageConstraint);
     }
 }
