@@ -20,7 +20,7 @@ import java.util.*;
 public abstract class AVisualizeFeatureModelStats {
 
     final protected AnalysisTree<?> analysisTree;
-    protected HashMap<String, Object> analysisTreeData = null;
+    protected HashMap<String, Object> analysisTreeData = null; // todo maybe make this a linked hash map if we sort trees alphabetically and want to remember the order
     private Chart<?, ?> chart;
 
     private String chartTitle = "Chart";
