@@ -155,16 +155,27 @@ public class ConfigurationFormatConversion implements ICommand {
     		BooleanAssignmentListSimpleTextFormat
     		BooleanAssignmentListTextFormat
     	*/
-    	   	
-    	Path path = Paths.get("src/test/java/de/featjar/feature/model/cli/resources/BooleanAssignmentLists/sample.csv");
-        Result<BooleanAssignmentList> load = IO.load(path, BooleanAssignmentListFormats.getInstance());
-        System.out.println(load.get());
+
+    	String outputFileExtension =
+              IO.getFileExtension(optionParser.getResult(OUTPUT_OPTION).get());
     	
+    	   	
+    	IO.getFileExtension(optionParser.getResult(OUTPUT_OPTION).orElseThrow());
+    	
+        Result<BooleanAssignmentList> load = IO.load(optionParser.getResult(INPUT_OPTION).orElseThrow(), BooleanAssignmentListFormats.getInstance());
+
+        Optional<IFormat<BooleanAssignmentList>> outputFormats = BooleanAssignmentListFormats.getInstance().getExtensions().stream()
+                .filter(IFormat::supportsWrite)
+                .filter(formatTemp -> Objects.equals(outputFileExtension, formatTemp.getFileExtension()))
+                .findFirst();
         try {
-        	IO.save(load.get(), optionParser.getResult(OUTPUT_OPTION).orElseThrow(), new BooleanAssignmentListCSVFormat());
+        	IO.save(load.get(), optionParser.getResult(OUTPUT_OPTION).orElseThrow(), outputFormats.get());
         } catch (Exception e) {
-        	FeatJAR.log().error(e);
+        	System.out.println(e);
         }
+        
+        saveFile(optionParser.getResult(OUTPUT_OPTION).orElseThrow(), outputFileExtension, optionParser.get(OVERWRITE));
+        
 //
 //        
 //        
@@ -391,39 +402,54 @@ public class ConfigurationFormatConversion implements ICommand {
      *         4 if a file is already present at output path and no overwrite is specified
      *         5 on IOException
      */
-    public int saveFile(Path outputPath, IFeatureModel model, String outputFileExtension, boolean overWriteOutputFile) {
+    public int saveFile(Path outputPath, String outputFileExtension, boolean overWriteOutputFile) {
+      	
+      	   	
+      	IO.getFileExtension(outputPath);
+      	
+          Result<BooleanAssignmentList> load = IO.load(outputPath, BooleanAssignmentListFormats.getInstance());
 
-        IFormat<IFeatureModel> format;
-
-        Optional<IFormat<IFeatureModel>> outputFormats = FeatureModelFormats.getInstance().getExtensions().stream()
-                .filter(IFormat::supportsWrite)
-                .filter(formatTemp -> Objects.equals(outputFileExtension, formatTemp.getFileExtension()))
-                .findFirst();
-        if (outputFormats.isEmpty()) {
-            FeatJAR.log().error("Unsupported output file extension: " + outputFileExtension);
-            return 2;
-        } else {
-            format = outputFormats.get();
-        }
-
-        try {
-            if (Files.exists(outputPath)) {
-                if (overWriteOutputFile) {
-                    FeatJAR.log().info("File already present at: " + outputPath + ". Continuing to overwrite File.");
-                } else {
-                    FeatJAR.log()
-                            .error("Saving outputModel in File unsuccessful: File already present at: " + outputPath
-                                    + ". To overwrite present file add --overwrite");
-                    return 4;
-                }
-            }
-            IO.save(model, outputPath, format);
-
-        } catch (IOException e) {
-            FeatJAR.log().error(e);
-            return 5;
-        }
-        FeatJAR.log().message("Output model saved at: " + outputPath);
+          Optional<IFormat<BooleanAssignmentList>> outputFormats = BooleanAssignmentListFormats.getInstance().getExtensions().stream()
+                  .filter(IFormat::supportsWrite)
+                  .filter(formatTemp -> Objects.equals(outputFileExtension, formatTemp.getFileExtension()))
+                  .findFirst();
+          try {
+          	IO.save(load.get(), outputPath, outputFormats.get());
+          } catch (Exception e) {
+          	System.out.println(e);
+          }
+          
+//        IFormat<IFeatureModel> format;
+//
+//        Optional<IFormat<IFeatureModel>> outputFormats = FeatureModelFormats.getInstance().getExtensions().stream()
+//                .filter(IFormat::supportsWrite)
+//                .filter(formatTemp -> Objects.equals(outputFileExtension, formatTemp.getFileExtension()))
+//                .findFirst();
+//        if (outputFormats.isEmpty()) {
+//            FeatJAR.log().error("Unsupported output file extension: " + outputFileExtension);
+//            return 2;
+//        } else {
+//            format = outputFormats.get();
+//        }
+//
+//        try {
+//            if (Files.exists(outputPath)) {
+//                if (overWriteOutputFile) {
+//                    FeatJAR.log().info("File already present at: " + outputPath + ". Continuing to overwrite File.");
+//                } else {
+//                    FeatJAR.log()
+//                            .error("Saving outputModel in File unsuccessful: File already present at: " + outputPath
+//                                    + ". To overwrite present file add --overwrite");
+//                    return 4;
+//                }
+//            }
+//            IO.save(model, outputPath, format);
+//
+//        } catch (IOException e) {
+//            FeatJAR.log().error(e);
+//            return 5;
+//        }
+//        FeatJAR.log().message("Output model saved at: " + outputPath);
         return 0;
     }
 
