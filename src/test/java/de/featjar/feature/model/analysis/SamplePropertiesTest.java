@@ -69,6 +69,22 @@ public class SamplePropertiesTest {
                 new BooleanAssignment());
         return booleanAssignmentList;
     }
+    
+    public BooleanAssignmentList createAssignmentListUniformity() {
+        LinkedList<String> variableNames = new LinkedList<String>();
+        variableNames.add("Root");
+        variableNames.add("A");
+        variableNames.add("B");
+        VariableMap variableMap = new VariableMap(variableNames);
+
+        BooleanAssignmentList booleanAssignmentList = new BooleanAssignmentList(
+                variableMap,
+                new BooleanAssignment(2),
+                new BooleanAssignment(3),
+                new BooleanAssignment(-2),
+                new BooleanAssignment(-3));
+        return booleanAssignmentList;
+    }
 
     @Test
     public void computeDistributionFeaturesSelectionsTest() {
@@ -144,7 +160,7 @@ public class SamplePropertiesTest {
         		, FeatureModelFormats.getInstance()).get());
         System.out.println(featureModelFormatResult.get().getNumberOfConstraints());*/
     	IComputation<HashMap<String, Float>> computation = Computations.of(IO.load(Paths.get("../formula/src/testFixtures/resources/testFeatureModels/basic.xml"),
-		FeatureModelFormats.getInstance()).get()).map(ComputeUniformity::new);
+		FeatureModelFormats.getInstance()).get()).map(ComputeUniformity::new).set(ComputeUniformity.BOOLEAN_ASSIGMENT_LIST, createAssignmentListUniformity());
     	
     	//IComputation<HashMap<String, Float>> computation = Computations.of(()).map(ComputeUniformity::new);
     	HashMap<String, Float> result = computation.compute(); 
