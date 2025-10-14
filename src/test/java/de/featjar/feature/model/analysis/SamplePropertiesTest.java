@@ -22,15 +22,23 @@ package de.featjar.feature.model.analysis;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import de.featjar.base.FeatJAR;
 import de.featjar.base.computation.Computations;
 import de.featjar.base.computation.IComputation;
+import de.featjar.base.data.Result;
+import de.featjar.base.io.IO;
+import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.analysis.ComputeDistributionFeatureSelections;
 import de.featjar.feature.model.analysis.ComputeFeatureCounter;
 import de.featjar.feature.model.analysis.ComputeNumberConfigurations;
 import de.featjar.feature.model.analysis.ComputeNumberVariables;
+import de.featjar.feature.model.io.FeatureModelFormats;
 import de.featjar.formula.VariableMap;
 import de.featjar.formula.assignment.BooleanAssignment;
 import de.featjar.formula.assignment.BooleanAssignmentList;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedList;
 import org.junit.jupiter.api.Test;
@@ -115,5 +123,20 @@ public class SamplePropertiesTest {
         IComputation<Integer> computational =
                 Computations.of(booleanAssignmentList).map(ComputeNumberVariables::new);
         assertEquals(7, computational.compute());
+    }
+    
+    @Test
+    public void computeUniformity() {
+        FeatJAR.initialize();
+        if (Files.exists(Paths.get("../formula/src/testFixtures/resources/Automotive02_V1"))) {
+            System.out.println("The file exists.");
+        } else {
+            System.out.println("The file does not exist.");
+        }
+        
+        Result<IFeatureModel> featureModelFormatResult = Result.empty();
+        featureModelFormatResult.of(IO.load(Paths.get("../formula/src/testFixtures/resources/Automotive02_V1")
+        		, FeatureModelFormats.getInstance()).get());
+        System.out.println(featureModelFormatResult.get().getNumberOfConstraints());
     }
 }
