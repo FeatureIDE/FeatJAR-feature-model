@@ -27,13 +27,23 @@ import de.featjar.base.cli.OptionList;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
 import de.featjar.base.io.format.IFormat;
+import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.io.FeatureModelFormats;
+import de.featjar.formula.assignment.BooleanAssignmentList;
+import de.featjar.formula.io.BooleanAssignmentListFormats;
+import de.featjar.formula.io.IBooleanAssignmentListFormat;
+import de.featjar.formula.io.binary.BooleanAssignmentListBinaryFormat;
+import de.featjar.formula.io.csv.BooleanAssignmentListCSVFormat;
+import de.featjar.formula.io.dimacs.BooleanAssignmentListDimacsFormat;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,7 +53,7 @@ import java.util.stream.Collectors;
 /**
  * Prints statistics about a provided Feature Model.
  *
- * @author Knut, Kilian & Benjamin
+ * @author Knut & Kilian
  */
 
 // BooleanAssignmentValueMapFormat implements IFormat<BooleanAssignmentValueMap>
@@ -51,13 +61,13 @@ import java.util.stream.Collectors;
 public class ConfigurationFormatConversion implements ICommand {
 
     private static final List<String> supportedInputFileExtensions =
-            FeatureModelFormats.getInstance().getExtensions().stream()
+    		BooleanAssignmentListFormats.getInstance().getExtensions().stream()
                     .filter(IFormat::supportsParse)
                     .map(IFormat::getFileExtension)
                     .collect(Collectors.toList());
 
     private static final List<String> supportedOutputFileExtensions =
-            FeatureModelFormats.getInstance().getExtensions().stream()
+    		BooleanAssignmentListFormats.getInstance().getExtensions().stream()
                     .filter(IFormat::supportsWrite)
                     .map(IFormat::getFileExtension)
                     .collect(Collectors.toList());
@@ -137,31 +147,63 @@ public class ConfigurationFormatConversion implements ICommand {
     @Override
     public int run(OptionList optionParser) {
 
-        if (!checkIfInputOutputIsPresent(optionParser)) {
-            return 1;
+    	/*
+    	Possible IBooleanAssignmentListFormats:
+    		BooleanAssignmentListBinaryFormat
+    		BooleanAssignmentListCSVFormat
+    		BooleanAssignmentListDimacsFormat
+    		BooleanAssignmentListSimpleTextFormat
+    		BooleanAssignmentListTextFormat
+    	*/
+    	   	
+    	Path path = Paths.get("src/test/java/de/featjar/feature/model/cli/resources/BooleanAssignmentLists/sample.csv");
+        Result<BooleanAssignmentList> load = IO.load(path, BooleanAssignmentListFormats.getInstance());
+        System.out.println(load.get());
+    	
+        try {
+        	IO.save(load.get(), optionParser.getResult(OUTPUT_OPTION).orElseThrow(), new BooleanAssignmentListCSVFormat());
+        } catch (Exception e) {
+        	FeatJAR.log().error(e);
         }
-        Path outputPath = optionParser.getResult(OUTPUT_OPTION).orElseThrow();
+//
+//        
+//        
+        
+        
+//        
+//        if (!checkIfInputOutputIsPresent(optionParser)) {
+//            return 1;
+//        }
+//        Path outputPath = optionParser.getResult(OUTPUT_OPTION).orElseThrow();
+//
+//        // check if provided file extensions are supported
+//        String inputFileExtension =
+//                IO.getFileExtension(optionParser.getResult(INPUT_OPTION).get());
+//        String outputFileExtension =
+//                IO.getFileExtension(optionParser.getResult(OUTPUT_OPTION).get());
+//        if (!checkIfFileExtensionsValid(inputFileExtension, outputFileExtension)) {
+//            return 2;
+//        }
+//        
+//        System.out.println(Files.exists(optionParser.getResult(INPUT_OPTION).orElseThrow()));
+//
+//        // informing user about information loss during conversion between file formats
+//        //infoLossMessage(inputFileExtension, outputFileExtension);
+//
+//        // check if model was corrected extracted from input
+//        Result<BooleanAssignmentList> load = inputParser(optionParser);
+//        if (load == null) {
+//            FeatJAR.log().error("No model parsed from input file!");
+//            return 3;
+//        }
+////        try {
+////            IO.save(load.get(), optionParser.getResult(OUTPUT_OPTION).orElseThrow(), new BooleanAssignmentListCSVFormat());
+////
+////        } catch (Exception e) {
+////        	FeatJAR.log().error(e);
+////        }
 
-        // check if provided file extensions are supported
-        String inputFileExtension =
-                IO.getFileExtension(optionParser.getResult(INPUT_OPTION).get());
-        String outputFileExtension =
-                IO.getFileExtension(optionParser.getResult(OUTPUT_OPTION).get());
-        if (!checkIfFileExtensionsValid(inputFileExtension, outputFileExtension)) {
-            return 2;
-        }
-
-        // informing user about information loss during conversion between file formats
-        infoLossMessage(inputFileExtension, outputFileExtension);
-
-        // check if model was corrected extracted from input
-        IFeatureModel model = inputParser(optionParser);
-        if (model == null) {
-            FeatJAR.log().error("No model parsed from input file!");
-            return 3;
-        }
-
-        return saveFile(outputPath, model, outputFileExtension, optionParser.get(OVERWRITE));
+        return 0 /*saveFile(outputPath, model, outputFileExtension, optionParser.get(OVERWRITE))*/;
     }
 
     /**
@@ -325,16 +367,17 @@ public class ConfigurationFormatConversion implements ICommand {
      * @param optionParser holds the command line parameters
      * @return Feature Model read out from input file. Will be null on failure.
      */
-    private IFeatureModel inputParser(OptionList optionParser) {
-        Path inputPath = optionParser.getResult(INPUT_OPTION).orElseThrow();
-        IFeatureModel model = null;
-        try {
-            Result<IFeatureModel> load = IO.load(inputPath, FeatureModelFormats.getInstance());
-            model = load.get();
+    private Result<BooleanAssignmentList> inputParser(OptionList optionParser) {
+    	Path inputPath = optionParser.getResult(INPUT_OPTION).orElseThrow();
+      Result<BooleanAssignmentList> load = null;
+      try {
+          load = IO.load(inputPath, BooleanAssignmentListFormats.getInstance());
+          //load.get();
+
         } catch (Exception e) {
             FeatJAR.log().error(e.getMessage());
         }
-        return model;
+        return load;
     }
 
     /**
