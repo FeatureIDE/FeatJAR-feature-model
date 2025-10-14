@@ -101,7 +101,8 @@ public abstract class AVisualizeFeatureModelStats {
             if (attributeResult instanceof Map) {
                 // todo instead of transferring the whole map, only transfer its get(2) value
                 @SuppressWarnings("unchecked")
-                HashMap<String, Object> nestedMap = (HashMap<String, Object>) this.analysisTreeData.get(key);
+                // attributeResult.get() oder nur attributeResult?
+                HashMap<String, Object> nestedMap = (HashMap<String, Object>) attributeResult.get();
                 Set<String> groupKeys = nestedMap.keySet();
                 // TODO sort keys for trees and in alphabetical order
                 //nicht getestet //Set<String> sortedGroupKeys = FeatJAR.sortSetAlphabetically(groupKeys);
