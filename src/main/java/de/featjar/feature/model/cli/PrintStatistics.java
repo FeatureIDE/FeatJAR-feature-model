@@ -142,9 +142,8 @@ public class PrintStatistics extends ACommand {
      */
     private void writeTo(Path path, LinkedHashMap<String, Object> data) {
         String type = IO.getFileExtension(path);
-
         Result<AnalysisTree<?>> tree = AnalysisTreeTransformer.hashMapToTree(data, type);
-        
+
         try {
             switch (type) {
                 case "csv":
@@ -191,9 +190,13 @@ public class PrintStatistics extends ACommand {
             data.put(
                     "Average Constraints",
                     Computations.of(model).map(ComputeAverageConstraint::new).compute());
+
             HashMap<String, Integer> computational_opDensity =
                     Computations.of(model).map(ComputeOperatorDistribution::new).compute();
-            data.put("Operator Distribution", computational_opDensity);
+
+            if (computational_opDensity.size() != 0) {
+                data.put("Operator Distribution", computational_opDensity);
+            }
         }
 
         if ((scope == AnalysesScope.ALL || scope == AnalysesScope.TREE_RELATED)) {
@@ -251,7 +254,7 @@ public class PrintStatistics extends ACommand {
         StringBuilder outputString = new StringBuilder();
 
         for (Map.Entry<?, ?> entry : data.entrySet()) {
-        	if (entry.getKey().equals("Number of Atoms")) {
+            if (entry.getKey().equals("Number of Atoms")) {
                 outputString.append(String.format("\n                %-40s  %n", "CONSTRAINT RELATED STATS\n"));
             } else if (entry.getKey().equals("[Tree 1] Average Number of Children")) {
                 outputString.append(String.format("\n                %-40s  %n", "TREE RELATED STATS\n"));
