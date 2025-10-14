@@ -100,7 +100,18 @@ public abstract class AVisualizeFeatureModelStats {
 
             if (attributeResult instanceof Map) {
                 // todo instead of transferring the whole map, only transfer its get(2) value
-                analysisTreeData.put(key, attributeResult);
+                @SuppressWarnings("unchecked")
+                HashMap<String, Object> nestedMap = (HashMap<String, Object>) this.analysisTreeData.get(key);
+                Set<String> groupKeys = nestedMap.keySet();
+                // TODO sort keys for trees and in alphabetical order
+                //nicht getestet //Set<String> sortedGroupKeys = FeatJAR.sortSetAlphabetically(groupKeys);
+                for (String groupKey : groupKeys) {
+                    ArrayList<?> groupResult = (ArrayList<?>) nestedMap.get(groupKey);
+                    String resultKey = key + " " + groupKey;
+                    // TODO check if index 2 is always correct, or if there is a better way to access the value
+                    analysisTreeData.put(resultKey, groupResult.get(2));
+
+                }
             } else if (attributeResult instanceof ArrayList) {
                 analysisTreeData.put(key, ((ArrayList<?>) attributeResult).get(2));
             } else {

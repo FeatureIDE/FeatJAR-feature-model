@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class VisualizeFeatureGroupDistribution extends AVisualizeFeatureModelStats{
     public VisualizeFeatureGroupDistribution(AnalysisTree<?> analysisTree) {
-        super(analysisTree);
+        super(analysisTree, "Group Distribution");
     }
 
     public VisualizeFeatureGroupDistribution(AnalysisTree<?> analysisTree, String chartTitle) {
@@ -37,7 +37,13 @@ public class VisualizeFeatureGroupDistribution extends AVisualizeFeatureModelSta
 
         PieChart chart1 = new PieChartBuilder().build();
 
-        // todo sort keys for trees and in alphabetical order
+        for (String key : this.analysisTreeData.keySet()) { // für jede "gruppe pro Baum"
+            chart1.addSeries(key, (Integer) this.analysisTreeData.get(key));
+        }
+        
+        
+        
+        /*
         for (String key : this.analysisTreeData.keySet()) { // für jeden Baum
             @SuppressWarnings("unchecked")
             HashMap<String, Object> nestedMap = (HashMap<String, Object>) this.analysisTreeData.get(key);
@@ -47,7 +53,7 @@ public class VisualizeFeatureGroupDistribution extends AVisualizeFeatureModelSta
                 ArrayList<?> groupResult = (ArrayList<?>) nestedMap.get(groupKey);
                 chart1.addSeries(groupKey, (Integer) groupResult.get(2));
             }
-        }
+        }*/
 
         // placeholder
         /*
