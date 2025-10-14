@@ -49,7 +49,7 @@ public class FormatConversionTest {
         return featureModel;
     }
 
-    private String inputPath = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
+    private String inputPath = "src/test/java/de/featjar/feature/model/cli/resources/simpleTestModel.xml";
     private String outputPath;
 
     /**
@@ -76,7 +76,7 @@ public class FormatConversionTest {
     @Test
     void inputNotPresent() throws IOException {
 
-        inputPath = "../formula/src/testFixtures/resources/Automotive02_V1/model.pdf";
+        inputPath = "src/test/java/de/featjar/feature/model/cli/resources/simpleTestModel.pdf";
         outputPath = "model_inputNotPresent.xml";
 
         Files.deleteIfExists(Paths.get(outputPath));
@@ -132,7 +132,6 @@ public class FormatConversionTest {
     @Test
     void infoLossMapTestTriggers() throws IOException {
 
-        inputPath = "../formula/src/testFixtures/resources/Automotive02_V1/model.xml";
         outputPath = "model_invalidInput.dot";
 
         Files.deleteIfExists(Paths.get(outputPath));
