@@ -99,6 +99,7 @@ public abstract class AVisualizeFeatureModelStats {
             assert attributeResult != null : "Could not retrieve data called " + key + " from AnalysisTree.";
 
             if (attributeResult instanceof Map) {
+                // todo instead of transferring the whole map, only transfer its get(2) value
                 analysisTreeData.put(key, attributeResult);
             } else if (attributeResult instanceof ArrayList) {
                 analysisTreeData.put(key, ((ArrayList<?>) attributeResult).get(2));
