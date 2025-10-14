@@ -26,8 +26,12 @@ import de.featjar.base.FeatJAR;
 import de.featjar.base.computation.Computations;
 import de.featjar.base.computation.IComputation;
 import de.featjar.base.data.Result;
+import de.featjar.base.data.identifier.Identifiers;
 import de.featjar.base.io.IO;
+import de.featjar.feature.model.FeatureModel;
+import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureModel;
+import de.featjar.feature.model.IFeatureTree;
 import de.featjar.feature.model.analysis.ComputeDistributionFeatureSelections;
 import de.featjar.feature.model.analysis.ComputeFeatureCounter;
 import de.featjar.feature.model.analysis.ComputeNumberConfigurations;
@@ -127,7 +131,8 @@ public class SamplePropertiesTest {
     
     @Test
     public void computeUniformity() {
-        FeatJAR.initialize();
+    	FeatJAR.initialize();
+    	/*  
         if (Files.exists(Paths.get("../formula/src/testFixtures/resources/Automotive02_V1"))) {
             System.out.println("The file exists.");
         } else {
@@ -137,6 +142,44 @@ public class SamplePropertiesTest {
         Result<IFeatureModel> featureModelFormatResult = Result.empty();
         featureModelFormatResult.of(IO.load(Paths.get("../formula/src/testFixtures/resources/Automotive02_V1")
         		, FeatureModelFormats.getInstance()).get());
-        System.out.println(featureModelFormatResult.get().getNumberOfConstraints());
+        System.out.println(featureModelFormatResult.get().getNumberOfConstraints());*/
+    	IComputation<HashMap<String, Float>> computation = Computations.of(IO.load(Paths.get("../formula/src/testFixtures/resources/testFeatureModels/basic.xml"),
+		FeatureModelFormats.getInstance()).get()).map(ComputeUniformity::new);
+    	
+    	//IComputation<HashMap<String, Float>> computation = Computations.of(()).map(ComputeUniformity::new);
+    	HashMap<String, Float> result = computation.compute(); 
+    	System.out.println(result);
+    }
+    
+    private IFeatureTree generateMediumTree() {
+        FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFeatureTree treeRoot =
+                featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("ConfigDB"));
+
+        IFeature featureAPI = featureModel.mutate().addFeature("API");
+        IFeatureTree treeAPI = treeRoot.mutate().addFeatureBelow(featureAPI);
+        treeAPI.isMandatory();
+        IFeature featureGet = featureModel.mutate().addFeature("Get");
+        treeAPI.mutate().addFeatureBelow(featureGet);
+        IFeature featurePut = featureModel.mutate().addFeature("Put");
+        treeAPI.mutate().addFeatureBelow(featurePut);
+        IFeature featureDelete = featureModel.mutate().addFeature("Delete");
+        treeAPI.mutate().addFeatureBelow(featureDelete);
+        treeAPI.mutate().toOrGroup();
+
+        IFeature featureOS = featureModel.mutate().addFeature("OS");
+        IFeatureTree treeOS = treeRoot.mutate().addFeatureBelow(featureOS);
+        treeOS.isMandatory();
+        IFeature featureWindows = featureModel.mutate().addFeature("Windows");
+        treeOS.mutate().addFeatureBelow(featureWindows);
+        IFeature featureLinux = featureModel.mutate().addFeature("Linux");
+        treeOS.mutate().addFeatureBelow(featureLinux);
+        treeOS.mutate().toAlternativeGroup();
+
+        IFeature featureTransactions = featureModel.mutate().addFeature("Transactions");
+        IFeatureTree treeTransactions = treeRoot.mutate().addFeatureBelow(featureTransactions);
+        treeTransactions.isOptional();
+
+        return treeRoot;
     }
 }
