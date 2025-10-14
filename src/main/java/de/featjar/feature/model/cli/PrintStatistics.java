@@ -30,12 +30,23 @@ import de.featjar.base.io.IO;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.IFeatureTree;
-import de.featjar.feature.model.analysis.*;
+import de.featjar.feature.model.analysis.AnalysisTree;
+import de.featjar.feature.model.analysis.ComputeFeatureAverageNumberOfChildren;
+import de.featjar.feature.model.analysis.ComputeFeatureFeaturesCounter;
+import de.featjar.feature.model.analysis.ComputeFeatureGroupDistribution;
+import de.featjar.feature.model.analysis.ComputeFeatureTopFeatures;
+import de.featjar.feature.model.analysis.ComputeFeatureTreeDepth;
 import de.featjar.feature.model.computation.ComputeAtomsCount;
 import de.featjar.feature.model.computation.ComputeAverageConstraint;
 import de.featjar.feature.model.computation.ComputeFeatureDensity;
 import de.featjar.feature.model.computation.ComputeOperatorDistribution;
 import de.featjar.feature.model.io.FeatureModelFormats;
+import de.featjar.feature.model.io.csv.CSVAnalysisFormat;
+import de.featjar.feature.model.io.json.JSONAnalysisFormat;
+import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
+import de.featjar.feature.model.io.yaml.YAMLAnalysisFormat;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -58,12 +69,14 @@ public class PrintStatistics extends ACommand {
 
     private int exit_status = 0;
 
-    // command line options for user customization
     public static final Option<AnalysesScope> ANALYSES_SCOPE =
             Option.newEnumOption("scope", AnalysesScope.class).setDescription("Specifies scope of statistics");
 
     public static final Option<Boolean> PRETTY_PRINT =
             Option.newFlag("pretty").setDescription("Pretty prints the numbers");
+
+    public static final Option<Boolean> OVERWRITE =
+            Option.newFlag("overwrite").setDescription("Overwrite output file.");
 
     /**
      * main method for gathering, printing and writing statistics of a feature model
@@ -74,6 +87,7 @@ public class PrintStatistics extends ACommand {
     @Override
     public int run(OptionList optionParser) {
 
+        // checking if input model has been specified
         if (!optionParser.getResult(INPUT_OPTION).isPresent()) {
             FeatJAR.log().error("No Input file attached");
             return 1;
@@ -83,7 +97,6 @@ public class PrintStatistics extends ACommand {
         Path path = optionParser.getResult(INPUT_OPTION).orElseThrow();
         Result<IFeatureModel> load = IO.load(path, FeatureModelFormats.getInstance());
         LinkedHashMap<String, Object> data;
-
         FeatureModel model = (FeatureModel) load.orElseThrow();
 
         // collecting statistics of the model, checking if scope is specified
@@ -93,62 +106,73 @@ public class PrintStatistics extends ACommand {
             data = collectStats(model, AnalysesScope.ALL);
         }
 
-        // if output path is specified, write statistics to file
-        if (optionParser.getResult(OUTPUT_OPTION).isPresent()) {
-            Path outputPath = optionParser.get(OUTPUT_OPTION);
-            String fileExtension = IO.getFileExtension(outputPath);
-            writeTo(optionParser.getResult(OUTPUT_OPTION).get(), fileExtension);
-        }
-
-        // printing statistics to console if no output file is specified
+        // printing pretty if PRETTY flag specified, printing only compact if there is no output specified
         if (optionParser.get(PRETTY_PRINT)) {
             printStatsPretty(data);
         } else if (!optionParser.getResult(OUTPUT_OPTION).isPresent()) {
             printStats(data);
         }
 
+        // if output path is specified, write statistics to file
+        if (optionParser.getResult(OUTPUT_OPTION).isPresent()) {
+
+            Path outputPath = optionParser.get(OUTPUT_OPTION);
+
+            if (Files.exists(outputPath)) {
+                if (optionParser.get(OVERWRITE)) {
+                    FeatJAR.log().info("File already present at: " + outputPath + ". Continuing to overwrite File.");
+                } else {
+                    FeatJAR.log()
+                            .error("Saving outputModel in File unsuccessful: File already present at: " + outputPath
+                                    + ".\nTo overwrite present file add --overwrite");
+                    return 1;
+                }
+            }
+            writeTo(outputPath, data);
+            FeatJAR.log().message("Feature Model saved at: " + outputPath);
+        }
         return exit_status;
     }
 
     /**
      * writes statistics into a file, depending on file type
-     * @param path: full path to output file
-     * @param type: is extracted from provided output path, needs to be lower case
+     * @param path: full path to output file. can be "csv", "yaml" or "json"
+     * @param data: expects data about a feature model as LinkedHashMap<Strong, Object> but will be converted to Result<AnalysisTree<?>>
+     * @throws IOException
      */
-    private void writeTo(Path path, String type) {
+    private void writeTo(Path path, LinkedHashMap<String, Object> data) {
+        String type = IO.getFileExtension(path);
+        Result<AnalysisTree<?>> tree = AnalysisTreeTransformer.hashMapToTree(data, type);
 
-        switch (type) {
-            case "xml":
-                // TODO future Story Card: Write to XML
-                // IO.save(new Object(data), path, new XMLFeatureModelFormat());
-                break;
-            case "csv":
-                // TODO future Story Card: Write to CSV
-                break;
-            case "yaml":
-                // TODO future Story Card: Write to YAML
-                break;
-            case "json":
-                // TODO future Story Card: Write to JSON
-                break;
-            case "txt":
-                // TODO future Story Card: Write to TXT
-                break;
-            case "":
-                FeatJAR.log().error("Output file does not include file type.");
-                exit_status = 1;
-                break;
-            default:
-                FeatJAR.log().error("File type not valid: " + type);
-                exit_status = 1;
+        try {
+            switch (type) {
+                case "csv":
+                    IO.save(tree.get(), path, new CSVAnalysisFormat());
+                    break;
+                case "yaml":
+                    IO.save(tree.get(), path, new YAMLAnalysisFormat());
+                    break;
+                case "json":
+                    IO.save(tree.get(), path, new JSONAnalysisFormat());
+                    break;
+                case "":
+                    FeatJAR.log().error("Output file does not include file type.");
+                    exit_status = 1;
+                    break;
+                default:
+                    FeatJAR.log().error("File type not valid: " + type);
+                    exit_status = 1;
+            }
+        } catch (Exception e) {
+            FeatJAR.log().error(e);
         }
     }
 
     /**
      * method for collecting statistics of the provided feature model depending on specified scope of information (all, constraint related, tree related)
-     * @param model: a feature model from which stats will be collected
-     * @param scope: describes whether only constraint-related, only tree-related, or both kinds of stats are to be collected
-     * @return LinkedHashMap with stats data, keys are descriptive strings, values types depend on statistic (Integer, Float, HashMap)
+     * @param model: a feature model from which statistics will be collected
+     * @param scope: describes whether only constraint-related, only tree-related, or both kinds of statistics are to be collected
+     * @return LinkedHashMap with statistics data, keys are descriptive strings, values types depend on statistic (Integer, Float, HashMap)
      */
     public LinkedHashMap<String, Object> collectStats(FeatureModel model, AnalysesScope scope) {
 
@@ -170,43 +194,38 @@ public class PrintStatistics extends ACommand {
             HashMap<String, Integer> computational_opDensity =
                     Computations.of(model).map(ComputeOperatorDistribution::new).compute();
 
-            data.put("Operator Distribution", computational_opDensity);
+            if (computational_opDensity.size() != 0) {
+                data.put("Operator Distribution", computational_opDensity);
+            }
         }
 
         if ((scope == AnalysesScope.ALL || scope == AnalysesScope.TREE_RELATED)) {
 
             // fetching tree related statistics
-
             List<IFeatureTree> trees = model.getRoots();
             String treePrefix;
 
             for (int i = 0; i < trees.size(); i++) {
                 treePrefix = "[Tree " + (i + 1) + "] ";
-
                 IFeatureTree tree = trees.get(i);
-
                 data.put(
                         treePrefix + "Average Number of Children",
                         Computations.of(tree)
                                 .map(ComputeFeatureAverageNumberOfChildren::new)
                                 .compute());
-
                 data.put(
                         treePrefix + "Number of Top Features",
                         Computations.of(tree)
                                 .map(ComputeFeatureTopFeatures::new)
                                 .compute());
-
                 data.put(
                         treePrefix + "Number of Leaf Features",
                         Computations.of(tree)
                                 .map(ComputeFeatureFeaturesCounter::new)
                                 .compute());
-
                 data.put(
                         treePrefix + "Tree Depth",
                         Computations.of(tree).map(ComputeFeatureTreeDepth::new).compute());
-
                 data.put(
                         treePrefix + "Group Distribution",
                         Computations.of(tree)
@@ -235,21 +254,17 @@ public class PrintStatistics extends ACommand {
         StringBuilder outputString = new StringBuilder();
 
         for (Map.Entry<?, ?> entry : data.entrySet()) {
-
             if (entry.getKey().equals("Number of Atoms")) {
                 outputString.append(String.format("\n                %-40s  %n", "CONSTRAINT RELATED STATS\n"));
-
             } else if (entry.getKey().equals("[Tree 1] Average Number of Children")) {
-                outputString.append(String.format("\n\t\t%-40s  %n", "TREE RELATED STATS\n"));
+                outputString.append(String.format("\n                %-40s  %n", "TREE RELATED STATS\n"));
             }
             if (entry.getValue() instanceof Map) {
                 Map<?, ?> nestedMap = (Map<?, ?>) entry.getValue();
-
                 outputString.append(String.format("%-40s%n", entry.getKey()));
-
                 for (Map.Entry<?, ?> nestedEntry : nestedMap.entrySet()) {
-                    outputString.append(
-                            String.format("%-33s : %s%n", "\t   " + nestedEntry.getKey(), nestedEntry.getValue()));
+                    outputString.append(String.format(
+                            "%-40s : %s%n", "           " + nestedEntry.getKey(), nestedEntry.getValue()));
                 }
             } else {
                 outputString.append(String.format("%-40s : %s%n", entry.getKey(), entry.getValue()));
