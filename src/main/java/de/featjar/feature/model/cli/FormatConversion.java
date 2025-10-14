@@ -32,15 +32,12 @@ import de.featjar.feature.model.io.FeatureModelFormats;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.EnumMap;
-import java.util.HashMap;
-
-
-
 import java.util.stream.Collectors;
 
 /**
@@ -50,17 +47,17 @@ import java.util.stream.Collectors;
  */
 public class FormatConversion implements ICommand {
 
-    private static final List<String> supportedInputFileExtensions = FeatureModelFormats.getInstance().getExtensions()
-            .stream()
-            .filter(IFormat::supportsParse)
-            .map(IFormat::getFileExtension)
-            .collect(Collectors.toList());
+    private static final List<String> supportedInputFileExtensions =
+            FeatureModelFormats.getInstance().getExtensions().stream()
+                    .filter(IFormat::supportsParse)
+                    .map(IFormat::getFileExtension)
+                    .collect(Collectors.toList());
 
-    private static final List<String> supportedOutputFileExtensions = FeatureModelFormats.getInstance().getExtensions()
-            .stream()
-            .filter(IFormat::supportsWrite)
-            .map(IFormat::getFileExtension)
-            .collect(Collectors.toList());
+    private static final List<String> supportedOutputFileExtensions =
+            FeatureModelFormats.getInstance().getExtensions().stream()
+                    .filter(IFormat::supportsWrite)
+                    .map(IFormat::getFileExtension)
+                    .collect(Collectors.toList());
 
     public static final Option<Path> INPUT_OPTION = Option.newOption("input", Option.PathParser)
             .setDescription("Path to input file. Accepted File Types: " + supportedInputFileExtensions)
