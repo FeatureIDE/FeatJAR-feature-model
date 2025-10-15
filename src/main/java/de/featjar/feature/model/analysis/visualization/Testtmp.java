@@ -97,7 +97,7 @@ public class Testtmp {
         );
         AnalysisTree<?> mediumAnalysisTree = AnalysisTreeTransformer.hashMapToTree(map, "Analysis").get();
 
-        Path path = Paths.get("src/main/java/de/featjar/feature/model/analysis/visualization/model.xml");
+        Path path = Paths.get("src/test/java/de/featjar/feature/model/visualization/model.xml");
         Result<IFeatureModel> load = IO.load(path, new XMLFeatureModelFormat());
         FeatureModel model = (FeatureModel) load.orElseThrow();
         map = printStatistics.collectStats(
@@ -113,7 +113,7 @@ public class Testtmp {
         //VisualizeFeatureGroupDistribution viz = new VisualizeFeatureGroupDistribution(generateEmptyTree());
 
         //viz.displayChart();
-        viz2.exportChartToPDF(99, "export.pdf");
+        viz2.displayChart();
 
     }
 }
