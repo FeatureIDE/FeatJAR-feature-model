@@ -20,6 +20,7 @@
  */
 package de.featjar.feature.model.analysis.visitor;
 
+import de.featjar.base.FeatJAR;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.visitor.ITreeVisitor;
 import de.featjar.feature.model.analysis.AnalysisTree;
@@ -59,13 +60,15 @@ public class AnalysisTreeVisitor implements ITreeVisitor<AnalysisTree<?>, HashMa
             }
         }
 
-        if (node.getChildrenCount() == 0) {
+        if (node.getChildrenCount() == 0 && node.getValue() != null) {
             currentMap.put(
                     node.getName(),
                     new ArrayList<Object>(Arrays.asList(
                             node.getName(), node.getValue().getClass().getName(), node.getValue())));
-        } else {
+        } else if (node.getChildrenCount() != 0) {
             currentMap.put(node.getName(), new HashMap<String, Object>());
+        } else {
+            FeatJAR.log().warning("cannot add terminal node without value");
         }
 
         return TraversalAction.CONTINUE;

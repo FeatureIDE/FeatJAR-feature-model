@@ -30,6 +30,7 @@ import de.featjar.base.io.IO;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.cli.PrintStatistics.AnalysesScope;
+import de.featjar.feature.model.io.json.JSONAnalysisFormat;
 import de.featjar.feature.model.io.yaml.YAMLAnalysisFormat;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -194,30 +195,32 @@ public class PrintStatisticsTest {
         assertEquals(comparison, printStats.buildStringPrettyStats(testData).toString());
     }
     // TODO implement this test once the jsonHashMapToTree() function works in AnalysisTreeTransformer
-    //    /**
-    //     *  Testing whether JSON output creates correct file
-    //     */
-    //    @Test
-    //    void jsonOuputTest() throws IOException {
-    //
-    //    	int exit_code = FeatJAR.runTest(
-    //                "printStats",
-    //                "--input",
-    //                "src/test/java/de/featjar/feature/model/cli/resources/simpleTestModel.xml",
-    //                "--output",
-    //                "model_jsonOuputTest.json",
-    //                "--overwrite");
-    //
-    //    	AnalysisTree<?> tree = IO.load(Paths.get("model_jsonOuputTest.json"), new JSONAnalysisFormat()).get();
-    //    	AnalysisTree<?> tree_expected =
-    // IO.load(Paths.get("src/test/java/de/featjar/feature/model/cli/resources/expected_jsonOuputTest.json"), new
-    // YAMLAnalysisFormat()).get();
-    //
-    //    	assertEquals(tree.print(), tree_expected.print());
-    //        assertEquals(0, exit_code);
-    //
-    //        Files.deleteIfExists(Paths.get("model_jsonOuputTest.json"));
-    //    }
+    /**
+     *  Testing whether JSON output creates correct file
+     */
+    @Test
+    void jsonOuputTest() throws IOException {
+
+        int exit_code = FeatJAR.runTest(
+                "printStats",
+                "--input",
+                "src/test/java/de/featjar/feature/model/cli/resources/simpleTestModel.xml",
+                "--output",
+                "model_jsonOuputTest.json",
+                "--overwrite");
+
+        AnalysisTree<?> tree = IO.load(Paths.get("model_jsonOuputTest.json"), new JSONAnalysisFormat())
+                .get();
+        AnalysisTree<?> tree_expected = IO.load(
+                        Paths.get("src/test/java/de/featjar/feature/model/cli/resources/expected_jsonOutputTest.json"),
+                        new JSONAnalysisFormat())
+                .get();
+
+        assertEquals(tree.print(), tree_expected.print());
+        assertEquals(0, exit_code);
+
+        Files.deleteIfExists(Paths.get("model_jsonOutputTest.json"));
+    }
 
     /**
      *  Testing whether YAML output creates correct file

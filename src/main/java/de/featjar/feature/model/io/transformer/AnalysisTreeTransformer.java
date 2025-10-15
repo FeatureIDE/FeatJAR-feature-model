@@ -129,13 +129,27 @@ public class AnalysisTreeTransformer {
                 }
 
                 if (currentElement.get(1).equals("java.lang.Double")) {
-                    BigDecimal currentDeccimal = (BigDecimal) currentElement.get(2);
-                    root.addChild(new AnalysisTree<>(currentKey, currentDeccimal.doubleValue()));
+                    if (currentElement.get(2) instanceof BigDecimal) {
+                        BigDecimal currentDeccimal = (BigDecimal) currentElement.get(2);
+                        root.addChild(new AnalysisTree<>(currentKey, currentDeccimal.doubleValue()));
+                    } else if (currentElement.get(2) instanceof Integer) {
+                        Integer intValue = (Integer) currentElement.get(2);
+                        root.addChild(new AnalysisTree<>(currentKey, intValue.doubleValue()));
+                    } else {
+                        return Result.empty();
+                    }
                 } else if (currentElement.get(1).equals("java.lang.Integer")) {
                     root.addChild(new AnalysisTree<>(currentKey, (int) currentElement.get(2)));
                 } else if (currentElement.get(1).equals("java.lang.Float")) {
-                    BigDecimal currentDeccimal = (BigDecimal) currentElement.get(2);
-                    root.addChild(new AnalysisTree<>(currentKey, currentDeccimal.floatValue()));
+                    if (currentElement.get(2) instanceof BigDecimal) {
+                        BigDecimal currentDeccimal = (BigDecimal) currentElement.get(2);
+                        root.addChild(new AnalysisTree<>(currentKey, currentDeccimal.floatValue()));
+                    } else if (currentElement.get(2) instanceof Integer) {
+                        Integer intValue = (Integer) currentElement.get(2);
+                        root.addChild(new AnalysisTree<>(currentKey, intValue.floatValue()));
+                    } else {
+                        return Result.empty();
+                    }
                 }
             }
         }
@@ -202,7 +216,6 @@ public class AnalysisTreeTransformer {
                     return Result.empty();
                 }
                 if (!(currentElement.get(2) instanceof Double || currentElement.get(2) instanceof Integer)) {
-                    System.out.println(currentElement.get(2).getClass());
                     FeatJAR.log()
                             .error("The third element of an innermost element of the Map/YAML data structure "
                                     + "was not from the type String");
