@@ -119,13 +119,14 @@ public class Testtmp {
          */
 
 
-        VisualizeGroupDistribution viz = new VisualizeGroupDistribution(bigAnalysisTree);
-        VisualizeConstraintOperatorDistribution viz2 = new VisualizeConstraintOperatorDistribution(bigAnalysisTree);
+        //VisualizeGroupDistribution viz = new VisualizeGroupDistribution(bigAnalysisTree);
+        //VisualizeConstraintOperatorDistribution viz2 = new VisualizeConstraintOperatorDistribution(bigAnalysisTree);
+        VisualizeAverageNumberOfChildren viz3 = new VisualizeAverageNumberOfChildren(bigAnalysisTree);
         //VisualizeFeatureGroupDistribution viz = new VisualizeFeatureGroupDistribution(createDefaultTree());
         //VisualizeFeatureGroupDistribution viz = new VisualizeFeatureGroupDistribution(generateEmptyTree());
 
         //viz.displayChart();
-        Integer retval = viz2.displayChart();
+        Integer retval = viz3.displayChart();
         System.out.println(retval);
 
     }

@@ -11,9 +11,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.util.Matrix;
-import org.knowm.xchart.PieChart;
-import org.knowm.xchart.PieChartBuilder;
-import org.knowm.xchart.SwingWrapper;
+import org.knowm.xchart.*;
 import org.knowm.xchart.internal.chartpart.Chart;
 
 import javax.swing.*;
@@ -184,6 +182,35 @@ public abstract class AVisualizeFeatureModelStats {
 
             HashMap<String, Object> treeData = analysisTreeData.get(treeKey);
             treeData.forEach((key, value) -> chart.addSeries(key, (Integer) value));
+
+            charts.add(chart);
+        }
+        return charts;
+    }
+
+    /**
+     * Premade builder for box charts that you can use when implementing buildCharts().
+     * @return list containing one chart per tree in the feature model
+     */
+    protected ArrayList<Chart<?, ?>> buildBoxCharts() {
+        ArrayList<Chart<?, ?>> charts = new ArrayList<>();
+        // in averagenumberofchildren only one double is provided instead of an double array, so I used testdata to test die BoxPlot
+        // for example not the average number of children, but the number of children for every node as a double or int array is needed to plot a boxplot for the average number of children
+        double[] testdata = {0.9, 1.5, 2.22};
+
+        for (String treeKey : this.analysisTreeData.keySet()) {
+            // Momentan bauen wir pro Tree einen Chart mit einer Box mit mehreren Werten
+            // Wäre es für Boxplots nicht sinnvoller einen Chart für alle Trees zu machen,
+            // mit je eine Box pro Tree?
+            BoxChart chart = new BoxChartBuilder()
+                    .width(getWidth())
+                    .height(getHeight())
+                    .build();
+            chart.setTitle(treeKey);
+
+            HashMap<String, Object> treeData = analysisTreeData.get(treeKey);
+
+            treeData.forEach((key, value) -> chart.addSeries(key, testdata));
 
             charts.add(chart);
         }
