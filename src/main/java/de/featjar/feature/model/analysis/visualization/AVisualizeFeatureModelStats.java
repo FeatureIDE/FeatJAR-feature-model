@@ -3,7 +3,6 @@ package de.featjar.feature.model.analysis.visualization;
 import de.featjar.base.FeatJAR;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
-import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.analysis.visitor.AnalysisTreeVisitor;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
@@ -17,9 +16,11 @@ import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.internal.chartpart.Chart;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +38,9 @@ public abstract class AVisualizeFeatureModelStats {
 
     private Integer chartWidth = 800;
     private Integer chartHeight = 600;
+    protected Font fontTitle = new Font(Font.SANS_SERIF, Font.BOLD, 30);
+    protected Font fontLabels = new Font(Font.SANS_SERIF, Font.BOLD, 20);
+    protected Font fontLegend = new Font(Font.SANS_SERIF, Font.PLAIN, 20);
 
     public AVisualizeFeatureModelStats(AnalysisTree<?> analysisTree) {
         this.analysisTree = analysisTree;
@@ -181,6 +185,9 @@ public abstract class AVisualizeFeatureModelStats {
                     .height(getHeight())
                     .build();
             chart.setTitle(treeKey);
+            chart.getStyler().setChartTitleFont(fontTitle);
+            chart.getStyler().setLabelsFont(fontLabels);
+            chart.getStyler().setLegendFont(fontLegend);
 
             HashMap<String, Object> treeData = analysisTreeData.get(treeKey);
             treeData.forEach((key, value) -> chart.addSeries(key, (Integer) value));
