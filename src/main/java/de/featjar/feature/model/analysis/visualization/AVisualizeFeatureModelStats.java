@@ -311,7 +311,7 @@ public abstract class AVisualizeFeatureModelStats {
      * @return 0 on success, 1 on general errors, 2 if there are no internal charts to use.
      */
     public int exportChartToPDF(Integer index, String path) {
-        if (chartsAreEmptyDisplay()) {return 2;}
+        if (chartsAreEmptyPDF()) {return 2;}
         try {
             return exportChartToPDF(charts.get(index), path);
         } catch (IndexOutOfBoundsException e) {
@@ -326,7 +326,7 @@ public abstract class AVisualizeFeatureModelStats {
      * @return 0 on success, 1 on general errors, 2 if there are no internal charts to use.
      */
     public int exportChartToPDF(String path) {
-        if (chartsAreEmptyDisplay()) {return 2;}
+        if (chartsAreEmptyPDF()) {return 2;}
         return exportChartToPDF(0, path);
     }
 
@@ -363,7 +363,7 @@ public abstract class AVisualizeFeatureModelStats {
      * @return 0 on success, 1 on general errors, 2 if there are no internal charts to use.
      */
     public int exportAllChartsToPDF(String path) {
-        if (chartsAreEmptyDisplay()) {return 2;}
+        if (chartsAreEmptyPDF()) {return 2;}
         return exportAllChartsToPDF(charts, path);
     }
 
