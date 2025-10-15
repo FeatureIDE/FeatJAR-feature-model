@@ -88,8 +88,12 @@ public class ComputeUniformity extends AComputation<LinkedHashMap<String, Float>
         String assignmentsSamplePrefix = "_AssignmentsSample";
 
         for (String varName : fmVariableMap.getVariableNames()) {
-            returnedMap.put(varName + featureModelPrefix, (float) 0);
-            returnedMap.put(varName + assignmentsSamplePrefix, (float) 0);
+            returnedMap.put(varName + featureModelPrefix + "_selected", (float) 0);
+            returnedMap.put(varName + assignmentsSamplePrefix + "_selected", (float) 0);
+            returnedMap.put(varName + featureModelPrefix + "_deselected", (float) 0);
+            returnedMap.put(varName + assignmentsSamplePrefix + "_deselected", (float) 0);
+            returnedMap.put(varName + featureModelPrefix + "_undefined", (float) 0);
+            returnedMap.put(varName + assignmentsSamplePrefix + "_undefined", (float) 0);
         }
 
         // Calculate the number of valid configurations per feature in the full featureModel.
@@ -101,7 +105,24 @@ public class ComputeUniformity extends AComputation<LinkedHashMap<String, Float>
                     .map(ComputeNNFFormula::new)
                     .compute();
             returnedMap.replace(
-                    varName + featureModelPrefix,
+                    varName + featureModelPrefix + "_selected",
+                    Computations.of(NNFFormula)
+                            .map(ComputeCNFFormula::new)
+                            .map(ComputeSolutionCount::new)
+                            .compute()
+                            .floatValue());
+        }
+
+        // Calculate the number of valid configurations per feature in the full featureModel.
+        for (String varName : fmVariableMap.getVariableNames()) {
+            Reference currentFormula =
+                    new Reference(new And((IFormula) fmFormula.getChildren().get(0), new Not(new Literal(varName))));
+            currentFormula.setFreeVariables(((Reference) fmFormula).getFreeVariables());
+            IFormula NNFFormula = Computations.of((IFormula) currentFormula)
+                    .map(ComputeNNFFormula::new)
+                    .compute();
+            returnedMap.replace(
+                    varName + featureModelPrefix + "_deselected",
                     Computations.of(NNFFormula)
                             .map(ComputeCNFFormula::new)
                             .map(ComputeSolutionCount::new)
@@ -113,12 +134,16 @@ public class ComputeUniformity extends AComputation<LinkedHashMap<String, Float>
         int assignmentSolutionsCount = 0;
         for (BooleanAssignment booleanAssignment : booleanAssignmentList.getAll()) {
             LinkedList<IFormula> allLiterals = new LinkedList<IFormula>();
-            List<String> currentAssignmentVariables = new LinkedList<String>();
+            List<String> currentSelectedAssignmentVariables = new LinkedList<String>();
+            List<String> currentDeselectedAssignmentVariables = new LinkedList<String>();
             for (int index : booleanAssignment.get()) {
                 if (fmVariableMap.get(index).isPresent()) {
                     allLiterals.add(new Literal(fmVariableMap.get(index).get()));
-                    currentAssignmentVariables.add(fmVariableMap.get(index).get());
+                    currentSelectedAssignmentVariables.add(
+                            fmVariableMap.get(index).get());
                 } else if (fmVariableMap.get(Math.abs(index)).isPresent()) {
+                    currentDeselectedAssignmentVariables.add(
+                            fmVariableMap.get(Math.abs(index)).get());
                     allLiterals.add(new Not(
                             new Literal(fmVariableMap.get(Math.abs(index)).get())));
                 } else {
@@ -135,20 +160,56 @@ public class ComputeUniformity extends AComputation<LinkedHashMap<String, Float>
                     .map(ComputeSatisfiability::new)
                     .compute()) {
                 assignmentSolutionsCount++;
-                for (String key : currentAssignmentVariables) {
+                for (String key : currentSelectedAssignmentVariables) {
                     returnedMap.replace(
-                            key + assignmentsSamplePrefix, returnedMap.get(key + assignmentsSamplePrefix) + 1);
+                            key + assignmentsSamplePrefix + "_selected",
+                            returnedMap.get(key + assignmentsSamplePrefix + "_selected") + 1);
+                }
+
+                for (String key : currentDeselectedAssignmentVariables) {
+                    returnedMap.replace(
+                            key + assignmentsSamplePrefix + "_deselected",
+                            returnedMap.get(key + assignmentsSamplePrefix + "_deselected") + 1);
                 }
             }
         }
 
+        for (String varName : fmVariableMap.getVariableNames()) {
+            returnedMap.replace(
+                    varName + assignmentsSamplePrefix + "_undefined",
+                    assignmentSolutionsCount
+                            - returnedMap.get(varName + assignmentsSamplePrefix + "_selected")
+                            - returnedMap.get(varName + assignmentsSamplePrefix + "_deselected"));
+            returnedMap.replace(
+                    varName + featureModelPrefix + "_undefined",
+                    solutionsCount
+                            - returnedMap.get(varName + featureModelPrefix + "_selected")
+                            - returnedMap.get(varName + featureModelPrefix + "_deselected"));
+        }
+
         if (ANALYSIS.get(dependencyList)) {
             for (String varName : fmVariableMap.getVariableNames()) {
-                float sampleShare = returnedMap.get(varName + assignmentsSamplePrefix) / assignmentSolutionsCount;
-                float featureShare = returnedMap.get(varName + featureModelPrefix) / solutionsCount;
-                returnedMap.remove(varName + assignmentsSamplePrefix);
-                returnedMap.remove(varName + featureModelPrefix);
-                returnedMap.put(varName, sampleShare - featureShare);
+                float sampleShareSelected =
+                        returnedMap.get(varName + assignmentsSamplePrefix + "_selected") / assignmentSolutionsCount;
+                float featureShareSelected =
+                        returnedMap.get(varName + featureModelPrefix + "_selected") / solutionsCount;
+                float sampleShareDeselected =
+                        returnedMap.get(varName + assignmentsSamplePrefix + "_deselected") / assignmentSolutionsCount;
+                float featureShareDeselected =
+                        returnedMap.get(varName + featureModelPrefix + "_deselected") / solutionsCount;
+                float sampleShareUndefined =
+                        returnedMap.get(varName + assignmentsSamplePrefix + "_undefined") / assignmentSolutionsCount;
+                float featureShareUndefined =
+                        returnedMap.get(varName + featureModelPrefix + "_undefined") / solutionsCount;
+                returnedMap.remove(varName + assignmentsSamplePrefix + "_selected");
+                returnedMap.remove(varName + featureModelPrefix + "_selected");
+                returnedMap.remove(varName + assignmentsSamplePrefix + "_deselected");
+                returnedMap.remove(varName + featureModelPrefix + "_deselected");
+                returnedMap.remove(varName + assignmentsSamplePrefix + "_undefined");
+                returnedMap.remove(varName + featureModelPrefix + "_undefined");
+                returnedMap.put(varName + "_selected", sampleShareSelected - featureShareSelected);
+                returnedMap.put(varName + "_deselected", sampleShareDeselected - featureShareDeselected);
+                returnedMap.put(varName + "_undefined", sampleShareUndefined - featureShareUndefined);
             }
         } else {
             returnedMap.put("FeatureModel Valid", solutionsCount);
