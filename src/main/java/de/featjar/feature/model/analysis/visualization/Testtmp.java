@@ -1,13 +1,20 @@
 package de.featjar.feature.model.analysis.visualization;
 
+import de.featjar.base.data.Result;
 import de.featjar.base.data.identifier.Identifiers;
+import de.featjar.base.io.IO;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IFeature;
+import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.IFeatureTree;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.cli.PrintStatistics;
+import de.featjar.feature.model.io.FeatureModelFormats;
 import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
+import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 
 public class Testtmp {
@@ -89,11 +96,23 @@ public class Testtmp {
                 generateMediumTree(),
                 PrintStatistics.AnalysesScope.ALL
         );
-        AnalysisTree<?> analysisTree = AnalysisTreeTransformer.hashMapToTree(map, "Analysis").get();
+        AnalysisTree<?> mediumAnalysisTree = AnalysisTreeTransformer.hashMapToTree(map, "Analysis").get();
 
-        VisualizeFeatureGroupDistribution viz = new VisualizeFeatureGroupDistribution(analysisTree);
+        Path path = Paths.get("src/main/java/de/featjar/feature/model/analysis/visualization/model.xml");
+        Result<IFeatureModel> load = IO.load(path, new XMLFeatureModelFormat());
+        FeatureModel model = (FeatureModel) load.orElseThrow();
+        map = printStatistics.collectStats(
+                model,
+                PrintStatistics.AnalysesScope.ALL
+        );
+        AnalysisTree<?> bigAnalysisTree = AnalysisTreeTransformer.hashMapToTree(map, "Analysis").get();
+
+
+        VisualizeGroupDistribution viz = new VisualizeGroupDistribution(bigAnalysisTree);
+        //VisualizeConstraintOperatorDistribution viz = new VisualizeConstraintOperatorDistribution(bigAnalysisTree);
         //VisualizeFeatureGroupDistribution viz = new VisualizeFeatureGroupDistribution(createDefaultTree());
         //VisualizeFeatureGroupDistribution viz = new VisualizeFeatureGroupDistribution(generateEmptyTree());
+
         viz.displayChart();
 
     }
