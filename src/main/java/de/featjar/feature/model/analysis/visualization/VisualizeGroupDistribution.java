@@ -5,19 +5,17 @@ import org.knowm.xchart.internal.chartpart.Chart;
 
 import java.util.ArrayList;
 
-public class VisualizeFeatureGroupDistribution extends AVisualizeFeatureModelStats{
-    public VisualizeFeatureGroupDistribution(AnalysisTree<?> analysisTree) {
+public class VisualizeGroupDistribution extends AVisualizeFeatureModelStats{
+    public VisualizeGroupDistribution(AnalysisTree<?> analysisTree) {
         super(analysisTree);
     }
 
     /**
-     *
      * {@return String key used to fetch data from the Analysis Tree.}
      */
     @Override
     protected String getAnalysisTreeDataName() {
-        return "Number of Top Features";
-        //return "Group Distribution";
+        return "Group Distribution";
     }
 
     /**
