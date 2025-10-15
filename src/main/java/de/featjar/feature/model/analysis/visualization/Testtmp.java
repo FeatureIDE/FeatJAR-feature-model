@@ -89,7 +89,7 @@ public class Testtmp {
         return featureModel;
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         PrintStatistics printStatistics = new PrintStatistics();
         LinkedHashMap<String, Object> map = printStatistics.collectStats(
                 generateMediumTree(),
@@ -105,6 +105,18 @@ public class Testtmp {
                 PrintStatistics.AnalysesScope.ALL
         );
         AnalysisTree<?> bigAnalysisTree = AnalysisTreeTransformer.hashMapToTree(map, "Analysis").get();
+
+        /*
+        FeatureModel doubleTroubleModel = generateMediumTree();
+        IFeatureTree clonedRoot = doubleTroubleModel.clone().getRoots().get(0);
+        doubleTroubleModel.mutate().addFeatureTreeRoot(clonedRoot);
+        map = printStatistics.collectStats(
+                doubleTroubleModel,
+                PrintStatistics.AnalysesScope.ALL
+        );
+        AnalysisTree<?> doubleTree = AnalysisTreeTransformer.hashMapToTree(map, "Analysis").get();
+
+         */
 
 
         VisualizeGroupDistribution viz = new VisualizeGroupDistribution(bigAnalysisTree);

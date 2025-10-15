@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class VisualizeFeatureModelStatsTest {
     AnalysisTree<?> bigTree = getBigAnalysisTree();
     AnalysisTree<?> mediumTree = getMediumAnalysisTree();
+    AnalysisTree<?> doubleTree = getDoubleTree();
+
     String defaultExportName = "src/test/java/de/featjar/feature/model/visualization/model.pdf";
 
     /**
@@ -93,36 +95,43 @@ public class VisualizeFeatureModelStatsTest {
         return analysisTreeFromXML(Paths.get("src/test/java/de/featjar/feature/model/visualization/model.xml"));
     }
 
+    /**
+     * Warning: this tree does not have Constraint Operators
+     */
     public AnalysisTree<?> getMediumAnalysisTree() {
         return analysisTreeFromFeatureModel(buildMediumFeatureModel());
     }
 
-    // todo Tests für FeatureModels mit mehreren Bäumen -> need custom feature model
-
     /**
-     * This Test may have to be disabled or restructured if it creates confusing momentary popups on every gradle build
+     * {@return Feature Model with two identical trees.}
      */
-    @Test
-    void regularLivePreview() {
-        VisualizeGroupDistribution vizGroup;
-        vizGroup = new VisualizeGroupDistribution(mediumTree);
-        assertEquals(0, vizGroup.displayChart());
-        vizGroup = new VisualizeGroupDistribution(bigTree);
-        assertEquals(0, vizGroup.displayChart());
+    public AnalysisTree<?> getDoubleTree() {
+        FeatureModel featureModel = buildMediumFeatureModel();
+        featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("ConfigDB"));
+        return analysisTreeFromFeatureModel(featureModel);
+    }
 
-        VisualizeConstraintOperatorDistribution vizOpDis;
-        vizOpDis = new VisualizeConstraintOperatorDistribution(bigTree);
-        assertEquals(0, vizOpDis.displayChart());
+    // todo test for other polymorph display or export methods
+
+    @Test
+    void twoPagePDFExport() {
+        VisualizeGroupDistribution vizGroup;
+        vizGroup = new VisualizeGroupDistribution(doubleTree);
+        assertEquals(2, vizGroup.getCharts().size());
+        assertEquals(0, vizGroup.exportAllChartsToPDF(defaultExportName));
     }
 
     @Test
-    void pdfValidIndex() {
+    void pdfValidIndexGroupDistribution() {
         VisualizeGroupDistribution vizGroup;
         vizGroup = new VisualizeGroupDistribution(mediumTree);
         assertEquals(0, vizGroup.exportChartToPDF(0, defaultExportName));
         vizGroup = new VisualizeGroupDistribution(bigTree);
         assertEquals(0, vizGroup.exportChartToPDF(0, defaultExportName));
+    }
 
+    @Test
+    void pdfValidIndexOperatorDistribution() {
         VisualizeConstraintOperatorDistribution vizOpDis;
         vizOpDis = new VisualizeConstraintOperatorDistribution(bigTree);
         assertEquals(0, vizOpDis.exportChartToPDF(0, defaultExportName));
