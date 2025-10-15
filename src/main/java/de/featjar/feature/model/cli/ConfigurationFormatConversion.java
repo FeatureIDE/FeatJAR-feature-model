@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 public class ConfigurationFormatConversion implements ICommand {
 
     public enum TypeTXT {
-        SIMPLE_TXT("simple text"),
+        SIMPLE_TXT("simple_text"),
         DEFAULT_TXT("text");
 
         public final String description;
@@ -69,18 +69,25 @@ public class ConfigurationFormatConversion implements ICommand {
                     .filter(IFormat::supportsWrite)
                     .map(IFormat::getFileExtension)
                     .collect(Collectors.toList());
+    
+    private static final List<String> supportedOutputFileNames =
+            BooleanAssignmentListFormats.getInstance().getExtensions().stream()
+                    .filter(IFormat::supportsWrite)
+                    .map(f -> f.getName() + " (" + f.getFileExtension() + ")")
+                    .collect(Collectors.toList());
 
     public static final Option<Path> INPUT_OPTION = Option.newOption("input", Option.PathParser)
             .setDescription("Path to input file. Accepted File Types: " + supportedInputFileExtensions);
 
     public static final Option<Path> OUTPUT_OPTION = Option.newOption("output", Option.PathParser)
-            .setDescription("Path to output file. Accepted File Types: " + supportedOutputFileExtensions);
+            .setDescription("Path to output file. Accepted File Types: " + supportedOutputFileNames);
 
     public static final Option<Boolean> OVERWRITE =
             Option.newFlag("overwrite").setDescription("Overwrite existing file at output path.");
 
-    public static final Option<TypeTXT> TYPE_TXT = Option.newEnumOption("typeTXT", TypeTXT.class)
-            .setDescription("Specification necessary if output is desired to be .txt");
+    public static final Option<TypeTXT> FORMAT_TYPE = Option.newEnumOption("format", TypeTXT.class)
+            .setDescription("Specification necessary if output is desired to be .txt"); //TODO change to list object supportedOutputFileExtensions. 
+    // man soll extension angeben können und in die datei, die bei output angegeben sind unabhängig von der angegebenen extension im output path speichern können
 
     /**
      * @return all options registered for the calling class.
@@ -119,12 +126,12 @@ public class ConfigurationFormatConversion implements ICommand {
 
         // --input and --typeTXT allow for conflicting file formats to be specified, in that case a warning is printed.
         // In that case format of typeTXT is prioritized.
-        if (outputFileExtension != "list" && optionParser.getResult(TYPE_TXT).isPresent()) {
+        if (outputFileExtension != "list" && optionParser.getResult(FORMAT_TYPE).isPresent()) {
             FeatJAR.log()
                     .warning("Conflicting command line options: " + outputFileExtension.toLowerCase()
                             + " file type in Path and .txt file type due to --typeTXT.\n         "
                             + "Continuing to write with "
-                            + optionParser.getResult(TYPE_TXT).get().description + " format into ."
+                            + optionParser.getResult(FORMAT_TYPE).get().description + " format into ."
                             + outputFileExtension.toLowerCase() + " file.");
             FeatJAR.log()
                     .warning(

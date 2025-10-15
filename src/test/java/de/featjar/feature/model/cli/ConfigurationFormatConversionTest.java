@@ -317,14 +317,14 @@ public class ConfigurationFormatConversionTest {
         String OriginalInputPath =
                 "src/test/java/de/featjar/feature/model/cli/resources/BooleanAssignmentLists/BooleanAssignmentList.";
         String OriginalInputPathCSV = OriginalInputPath + "csv";
-        String OriginalInputPathTXT = OriginalInputPath + "txt"; // invalid
+        String OriginalInputPathTXT = OriginalInputPath + "txt"; // invalid input path
         String OriginalInputPathBIN = OriginalInputPath + "bin";
-        String OriginalInputPathXML = OriginalInputPath + "xml"; // invalid
+        String OriginalInputPathXML = OriginalInputPath + "xml"; // invalid input path
 
         String outputPath = "list_csvToBinaryRoundTrip.";
         String outputPathCSV = outputPath + "csv";
         String outputPathBIN = outputPath + "bin";
-        String outputPathXML = outputPath + "xml"; // invalid
+        String outputPathXML = outputPath + "xml"; // invalid output path
 
         assertEquals(
                 1,
