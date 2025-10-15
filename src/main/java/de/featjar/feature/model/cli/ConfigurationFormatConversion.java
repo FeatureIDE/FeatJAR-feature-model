@@ -29,6 +29,7 @@ import de.featjar.base.io.IO;
 import de.featjar.base.io.format.IFormat;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IFeatureModel;
+import de.featjar.feature.model.cli.PrintStatistics.AnalysesScope;
 import de.featjar.feature.model.io.FeatureModelFormats;
 import de.featjar.formula.assignment.BooleanAssignmentList;
 import de.featjar.formula.io.BooleanAssignmentListFormats;
@@ -36,6 +37,8 @@ import de.featjar.formula.io.IBooleanAssignmentListFormat;
 import de.featjar.formula.io.binary.BooleanAssignmentListBinaryFormat;
 import de.featjar.formula.io.csv.BooleanAssignmentListCSVFormat;
 import de.featjar.formula.io.dimacs.BooleanAssignmentListDimacsFormat;
+import de.featjar.formula.io.textual.BooleanAssignmentListSimpleTextFormat;
+import de.featjar.formula.io.textual.BooleanAssignmentListTextFormat;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -59,6 +62,11 @@ import java.util.stream.Collectors;
 // BooleanAssignmentValueMapFormat implements IFormat<BooleanAssignmentValueMap>
 
 public class ConfigurationFormatConversion implements ICommand {
+	
+    public enum TypeTXT {
+        SIMPLETXT,
+        TXT,
+    }
 
     private static final List<String> supportedInputFileExtensions =
     		BooleanAssignmentListFormats.getInstance().getExtensions().stream()
@@ -81,6 +89,9 @@ public class ConfigurationFormatConversion implements ICommand {
 
     public static final Option<Boolean> OVERWRITE =
             Option.newFlag("overwrite").setDescription("Overwrite output file.");
+    
+    public static final Option<TypeTXT> TypeTXT =
+            Option.newEnumOption("typetxt", TypeTXT.class).setDescription("Necessary if output is desired to be .list");
 
     /**
      * @return all options registered for the calling class.
@@ -147,34 +158,30 @@ public class ConfigurationFormatConversion implements ICommand {
     @Override
     public int run(OptionList optionParser) {
 
-    	/*
-    	Possible IBooleanAssignmentListFormats:
-    		BooleanAssignmentListBinaryFormat
-    		BooleanAssignmentListCSVFormat
-    		BooleanAssignmentListDimacsFormat
-    		BooleanAssignmentListSimpleTextFormat
-    		BooleanAssignmentListTextFormat
-    	*/
 
-    	String outputFileExtension =
-              IO.getFileExtension(optionParser.getResult(OUTPUT_OPTION).get());
-    	
-    	   	
-    	IO.getFileExtension(optionParser.getResult(OUTPUT_OPTION).orElseThrow());
-    	
-        Result<BooleanAssignmentList> load = IO.load(optionParser.getResult(INPUT_OPTION).orElseThrow(), BooleanAssignmentListFormats.getInstance());
-
-        Optional<IFormat<BooleanAssignmentList>> outputFormats = BooleanAssignmentListFormats.getInstance().getExtensions().stream()
-                .filter(IFormat::supportsWrite)
-                .filter(formatTemp -> Objects.equals(outputFileExtension, formatTemp.getFileExtension()))
-                .findFirst();
-        try {
-        	IO.save(load.get(), optionParser.getResult(OUTPUT_OPTION).orElseThrow(), outputFormats.get());
-        } catch (Exception e) {
-        	System.out.println(e);
-        }
+//    	String outputFileExtension;
+//    	
+//        if (optionParser.getResult(TypeTXT).isPresent()) {
+//        	outputFileExtension = optionParser.getResult(TypeTXT).get().toString();
+//        } else {
+//        	outputFileExtension =
+//                    IO.getFileExtension(optionParser.getResult(OUTPUT_OPTION).get());
+//        }
         
-        saveFile(optionParser.getResult(OUTPUT_OPTION).orElseThrow(), outputFileExtension, optionParser.get(OVERWRITE));
+        String outputFileExtension = IO.getFileExtension(optionParser.getResult(OUTPUT_OPTION).get().toString());
+        
+        if(outputFileExtension != "list" && optionParser.getResult(TypeTXT).isPresent()){
+        	FeatJAR.log().warning("Conflicting CLI options: " + outputFileExtension + " format in Path and TXT format due to --typetxt.\n         Continuing to use TXT format...");
+        }
+
+    	if(!checkIfInputOutputIsPresent(optionParser)) {
+    		return 1;
+    	};
+    	    	
+    	
+        BooleanAssignmentList model = IO.load(optionParser.getResult(INPUT_OPTION).orElseThrow(),  BooleanAssignmentListFormats.getInstance()).get();
+
+        saveFile(optionParser.getResult(OUTPUT_OPTION).orElseThrow(), model, outputFileExtension, optionParser.get(OVERWRITE));
         
 //
 //        
@@ -402,22 +409,43 @@ public class ConfigurationFormatConversion implements ICommand {
      *         4 if a file is already present at output path and no overwrite is specified
      *         5 on IOException
      */
-    public int saveFile(Path outputPath, String outputFileExtension, boolean overWriteOutputFile) {
-      	
-      	   	
-      	IO.getFileExtension(outputPath);
-      	
-          Result<BooleanAssignmentList> load = IO.load(outputPath, BooleanAssignmentListFormats.getInstance());
+    public int saveFile(Path outputPath, BooleanAssignmentList model, String outputFileExtension, boolean overWriteOutputFile) {
+      	  IFormat<BooleanAssignmentList> format;
 
           Optional<IFormat<BooleanAssignmentList>> outputFormats = BooleanAssignmentListFormats.getInstance().getExtensions().stream()
                   .filter(IFormat::supportsWrite)
                   .filter(formatTemp -> Objects.equals(outputFileExtension, formatTemp.getFileExtension()))
                   .findFirst();
+          
+        if (outputFormats.isEmpty() && !outputFileExtension.equals("TXT") && !outputFileExtension.equals("SIMPLETXT")) {
+        FeatJAR.log().error("Unsupported output file extension: " + outputFileExtension);
+        return 2;
+    } else if (outputFileExtension.equals("TXT")){
+    	outputPath = changeOutputExtension(outputPath, "txt");
+        format = new BooleanAssignmentListTextFormat();
+    } else if (outputFileExtension.equals("SIMPLETXT")) {
+    	outputPath = changeOutputExtension(outputPath, "txt");
+        format = new BooleanAssignmentListSimpleTextFormat();
+    } else {
+        format = outputFormats.get();
+    }
           try {
-          	IO.save(load.get(), outputPath, outputFormats.get());
+        	  if(Files.exists(outputPath)) {
+        		  if (overWriteOutputFile) {
+        			  FeatJAR.log().info("File already present at: \" + outputPath + \". Continuing to overwrite File.");
+        		  } else {
+        			  FeatJAR.log()
+                    .error("Saving outputModel in File unsuccessful: File already present at: " + outputPath
+                            + ". To overwrite present file add --overwrite");
+        			  return 4;
+        		  }
+        	  }
+          	IO.save(model, outputPath, format);
+          	
           } catch (Exception e) {
-          	System.out.println(e);
+          FeatJAR.log().error(e);
           }
+          FeatJAR.log().message("Output model saved at: " + outputPath);
           
 //        IFormat<IFeatureModel> format;
 //
@@ -453,6 +481,12 @@ public class ConfigurationFormatConversion implements ICommand {
         return 0;
     }
 
+    public Path changeOutputExtension(Path path, String extension) {
+    	String s = path.toString().replace(IO.getFileExtension(path), extension.toLowerCase());
+    	return Paths.get(s);
+    }
+    
+    
     /**
      *
      * {@return brief description of this class}
