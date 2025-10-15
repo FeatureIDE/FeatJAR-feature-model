@@ -35,11 +35,19 @@ public class VisualizeFeatureGroupDistribution extends AVisualizeFeatureModelSta
     @Override
     Chart<?, ?> buildChart() {
 
-        PieChart chart1 = new PieChartBuilder().build();
+        ArrayList<Chart<?, ?>> charts = new ArrayList<>();
+        for (String treeKey : this.analysisTreeData.keySet()) {
+            PieChart chart = new PieChartBuilder().build();
+            HashMap<String, Object> treeData = analysisTreeData.get(treeKey);
+            for (String key: treeData.keySet()) {
+                chart.addSeries(key, (Integer) treeData.get(key));
+            }
+            chart.setTitle(treeKey);
 
-        for (String key : this.analysisTreeData.keySet()) { // für jede "gruppe pro Baum"
-            chart1.addSeries(key, (Integer) this.analysisTreeData.get(key));
+            charts.add(chart);
         }
+
+        return charts.get(0);
         
         
         
@@ -66,7 +74,5 @@ public class VisualizeFeatureGroupDistribution extends AVisualizeFeatureModelSta
 
         // data that we actually want to use
         // System.out.println(this.analysisTreeData);
-
-        return chart1;
     }
 }

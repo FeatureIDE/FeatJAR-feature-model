@@ -20,7 +20,7 @@ import java.util.*;
 public abstract class AVisualizeFeatureModelStats {
 
     final protected AnalysisTree<?> analysisTree;
-    protected HashMap<String, Object> analysisTreeData = null; // todo maybe make this a linked hash map if we sort trees alphabetically and want to remember the order
+    protected LinkedHashMap<String, LinkedHashMap<String, Object>> analysisTreeData;
     private Chart<?, ?> chart;
 
     private String chartTitle = "Chart";
@@ -31,8 +31,9 @@ public abstract class AVisualizeFeatureModelStats {
     public AVisualizeFeatureModelStats(AnalysisTree<?> analysisTree) {
         this.analysisTree = analysisTree;
         try {
-            this.extractAnalysisTree();
+            this.analysisTreeData = extractAnalysisTree();
         } catch (Exception e) {
+            FeatJAR.log().error(e);
             System.out.println(e);
         }
         this.chart = buildChart();
@@ -72,55 +73,66 @@ public abstract class AVisualizeFeatureModelStats {
     /**
      * uses internal analysisTree and getAnalysisTreeDataName() to fetch the needed piece of data.
      */
-    public void extractAnalysisTree() throws RuntimeException {
+    public LinkedHashMap<String, LinkedHashMap<String, Object>> extractAnalysisTree() throws RuntimeException {
         // traverse tree to extract the general HashMap that more specific information is stored in.
+        // could probably be its own method
         AnalysisTreeVisitor visitor = new AnalysisTreeVisitor();
         Result<HashMap<String, Object>> result = Trees.traverse(analysisTree, visitor);
         HashMap<String, Object> receivedResult = result.get();
         assert receivedResult != null: "Analysis Tree Visitor failed to produce a result.";
         @SuppressWarnings("unchecked")
-        HashMap<String, Object> analysisMap = (HashMap<String, Object>) receivedResult.get("Analysis");
+        HashMap<String, Object> analysisMap = (HashMap<String, Object>) receivedResult.get("Analysis"); // we currently trust that this is always "Analysis"
         assert analysisMap != null: "Received no \"Analysis\" HashMap from AnalysisTree";
 
         // build keys for each tree
+        // example: [Tree 1] Group Distribution, [Tree 2] Group Distribution, ...
+        // could probably be its own method
         String statName = this.getAnalysisTreeDataName();
-        Set<String> analysisMapKeys = analysisMap.keySet();
-        ArrayList<String> relevantKeys = new ArrayList<>();
-        for (String key : analysisMapKeys) {
+
+        List<String> sortedAnalysisMapKeys = new ArrayList<>(analysisMap.keySet());
+        Collections.sort(sortedAnalysisMapKeys);
+        ArrayList<String> featureTreeDataKeys = new ArrayList<>();
+        for (String key : sortedAnalysisMapKeys) {
             if (key.contains(statName)) {
-                relevantKeys.add(key);
+                featureTreeDataKeys.add(key);
             }
         }
 
+        // this works better with lists than arrays for some reason
+        LinkedHashMap<String, LinkedHashMap<String, Object>> analysisTreeData = new LinkedHashMap<>();
+
         // for each tree
-        HashMap<String, Object>  analysisTreeData = new HashMap<>();
-        for (String key : relevantKeys) {
+        for (String key : featureTreeDataKeys) {
+            LinkedHashMap<String, Object> featureTreeData = new LinkedHashMap<>();
             Object attributeResult = analysisMap.get(key);
-            assert attributeResult != null : "Could not retrieve data called " + key + " from AnalysisTree.";
+            assert attributeResult != null : "Could not retrieve data called \"" + key + "\" from AnalysisTree.";
 
             if (attributeResult instanceof Map) {
-                // todo instead of transferring the whole map, only transfer its get(2) value
                 @SuppressWarnings("unchecked")
-                // attributeResult.get() oder nur attributeResult?
-                HashMap<String, Object> nestedMap = (HashMap<String, Object>) attributeResult.get();
-                Set<String> groupKeys = nestedMap.keySet();
-                // TODO sort keys for trees and in alphabetical order
-                //nicht getestet //Set<String> sortedGroupKeys = FeatJAR.sortSetAlphabetically(groupKeys);
-                for (String groupKey : groupKeys) {
-                    ArrayList<?> groupResult = (ArrayList<?>) nestedMap.get(groupKey);
-                    String resultKey = key + " " + groupKey;
-                    // TODO check if index 2 is always correct, or if there is a better way to access the value
-                    analysisTreeData.put(resultKey, groupResult.get(2));
+                HashMap<String, Object> nestedMap = (HashMap<String, Object>) attributeResult;
 
+                // sort keys alphabetically for consistency in the order they'll be displayed on the chart
+                List<String> sortedNestedMapKeys = new ArrayList<>(nestedMap.keySet());
+                Collections.sort(sortedNestedMapKeys);
+
+                for (String nestedMapKey : sortedNestedMapKeys) {
+                    // the value relevant for us needs to be unpacked first
+                    Object rawValue = nestedMap.get(nestedMapKey);
+                    ArrayList<?> castedValue = (ArrayList<?>) rawValue;
+                    Object value = castedValue.get(2);
+
+                    featureTreeData.put(nestedMapKey, value);
                 }
             } else if (attributeResult instanceof ArrayList) {
-                analysisTreeData.put(key, ((ArrayList<?>) attributeResult).get(2));
+                ArrayList<?> castedValue = (ArrayList<?>) attributeResult;
+                Object value = castedValue.get(2);
+                featureTreeData.put(getAnalysisTreeDataName(), value);
             } else {
                 throw new RuntimeException("Analysis Tree contained unknown data type in key " + key);
             }
+            analysisTreeData.put(key, featureTreeData);
         }
-
-        this.analysisTreeData = analysisTreeData;
+        return analysisTreeData;
     }
 
     /**

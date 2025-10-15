@@ -84,7 +84,6 @@ public class Testtmp {
     }
 
     public static void main(String[] args) {
-        System.out.println("Hello");
         PrintStatistics printStatistics = new PrintStatistics();
         LinkedHashMap<String, Object> map = printStatistics.collectStats(
                 generateMediumTree(),
