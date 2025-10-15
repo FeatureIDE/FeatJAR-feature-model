@@ -99,18 +99,18 @@ public class VisualizeFeatureModelStatsTest {
     // todo auch Tests für die andere stats art mit constraints bla
     // todo Tests für FeatureModels mit mehreren Bäumen -> need custom feature model
 
+    /**
+     * This Test may have to be disabled or restructured if it creates confusing momentary popups on every gradle build
+     */
     @Test
     void regularLivePreview() {
         VisualizeGroupDistribution viz;
 
         viz = new VisualizeGroupDistribution(mediumTree);
-        viz.displayChart();
+        assertEquals(0, viz.displayChart());
 
         viz = new VisualizeGroupDistribution(bigTree);
-        viz.displayChart();
-
-        // todo have to think about how to test this
-        assertTrue(true);
+        assertEquals(0, viz.displayChart());
     }
 
     @Test

@@ -3,6 +3,7 @@ package de.featjar.feature.model.analysis.visualization;
 import de.featjar.base.FeatJAR;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
+import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.analysis.visitor.AnalysisTreeVisitor;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
@@ -15,6 +16,7 @@ import org.knowm.xchart.PieChartBuilder;
 import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.internal.chartpart.Chart;
 
+import javax.swing.*;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.util.*;
@@ -190,41 +192,65 @@ public abstract class AVisualizeFeatureModelStats {
 
     /**
      * Creates a live preview pop-up window of a chart.
+     * @param chart the chart that will be displayed
+     * @return 0 on success, 1 on general error
      */
-    public void displayChart (Chart<?, ?> chart) {
-        if (chartsAreEmptyDisplay()) {return;}
-        new SwingWrapper<>(chart).displayChart();
+    public int displayChart (Chart<?, ?> chart) {
+        try {
+            JFrame jframe = new SwingWrapper<>(chart).displayChart();
+            if (jframe == null) {
+                FeatJAR.log().error("Could not display chart! Received null object from XChart SwingWrapper.");
+                return 1;
+            }
+        } catch (Exception e) {
+            FeatJAR.log().error("Could not display chart!" + e);
+            return 1;
+        }
+        return 0;
     }
 
     /**
      * Creates a live preview pop-up window of the FIRST internally generated chart.
      * This chart usually corresponds to the first feature tree in the feature model.
+     * @return 0 on success, 1 on general error, 2 on empty internal chart list
      */
-    public void displayChart() {
-        if (chartsAreEmptyDisplay()) {return;}
-        this.displayChart(0);
+    public int displayChart() {
+        if (chartsAreEmptyDisplay()) {return 2;}
+        return this.displayChart(0);
     }
 
     /**
      * Creates a live preview pop-up window of an internally generated chart, fetched by index.
+     * @return 0 on success, 1 on general error, 2 on empty internal chart list
      */
-    public void displayChart (Integer index) {
+    public int displayChart (Integer index) {
+        if (chartsAreEmptyDisplay()) {return 2;}
         try {
             this.displayChart(this.charts.get(index));
         } catch (IndexOutOfBoundsException e) {
             FeatJAR.log().error("Unable to fetch chart with index "+ index + ": " + e);
+            return 1;
         }
+        return 0;
     }
 
     /**
      * Creates live preview pop-up windows of ALL internally generated charts.
+     * @return 0 on success, 1 on general error, 2 on empty internal chart list
      */
-    public void displayAllCharts() {
-        if (chartsAreEmptyDisplay()) {return;}
+    public int displayAllCharts() {
+        if (chartsAreEmptyDisplay()) {return 2;}
+
+        int returnValue = 0;
 
         for (Chart<?, ?> chart : this.charts) {
-            this.displayChart(chart);
+            returnValue = this.displayChart(chart);
+            if (returnValue != 0) {
+                break;
+            }
         }
+
+        return returnValue;
     }
 
     /**
