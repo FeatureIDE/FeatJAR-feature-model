@@ -31,11 +31,7 @@ public abstract class AVisualizeFeatureModelStats {
 
     public AVisualizeFeatureModelStats(AnalysisTree<?> analysisTree) {
         this.analysisTree = analysisTree;
-        try {
-            this.analysisTreeData = extractAnalysisTree();
-        } catch (Exception e) {
-            System.out.println(e);
-        }
+        this.analysisTreeData = extractAnalysisTree();
         this.charts = buildCharts();
         chartsAreEmpty();
     }
@@ -73,7 +69,6 @@ public abstract class AVisualizeFeatureModelStats {
     }
 
     /**
-     *
      * {@return String key used to fetch data from the Analysis Tree.}
      */
     protected abstract String getAnalysisTreeDataName();
