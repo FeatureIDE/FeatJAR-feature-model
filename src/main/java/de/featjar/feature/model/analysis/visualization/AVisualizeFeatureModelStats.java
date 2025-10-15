@@ -58,14 +58,22 @@ public abstract class AVisualizeFeatureModelStats {
 
     /**
      * Checks if any charts are available and if not reminds the user of this fact with a warning message.
+     * @param extraMessage Will be logged before the main message, for example to specify what task cannot be completed
      * @return True if charts exist, else false.
      */
-    protected boolean chartsAreEmpty() {
+    protected boolean chartsAreEmpty(String extraMessage) {
+
         if (this.charts.isEmpty()) {
-            FeatJAR.log().warning(this.getClass().getName() + " did not build any charts!");
+            FeatJAR.log().warning(extraMessage + this.getClass().getName() + " did not build any charts!");
             return true;
         }
         return false;
+    }
+
+    private boolean chartsAreEmpty() {return chartsAreEmpty("");}
+
+    private boolean chartsAreEmptyDisplay() {
+        return chartsAreEmpty("Cannot display chart: ");
     }
 
     /**
@@ -159,11 +167,10 @@ public abstract class AVisualizeFeatureModelStats {
                     .width(getWidth())
                     .height(getHeight())
                     .build();
-            HashMap<String, Object> treeData = analysisTreeData.get(treeKey);
-            for (String key: treeData.keySet()) {
-                chart.addSeries(key, (Integer) treeData.get(key));
-            }
             chart.setTitle(treeKey);
+
+            HashMap<String, Object> treeData = analysisTreeData.get(treeKey);
+            treeData.forEach((key, value) -> chart.addSeries(key, (Integer) value));
 
             charts.add(chart);
         }
@@ -174,7 +181,7 @@ public abstract class AVisualizeFeatureModelStats {
      * Creates a live preview pop-up window of a chart.
      */
     public void displayChart (Chart<?, ?> chart) {
-        if (chartsAreEmpty()) {return;}
+        if (chartsAreEmptyDisplay()) {return;}
         new SwingWrapper<>(chart).displayChart();
     }
 
@@ -183,7 +190,7 @@ public abstract class AVisualizeFeatureModelStats {
      * This chart usually corresponds to the first feature tree in the feature model.
      */
     public void displayChart() {
-        if (chartsAreEmpty()) {return;}
+        if (chartsAreEmptyDisplay()) {return;}
         this.displayChart(0);
     }
 
@@ -191,7 +198,7 @@ public abstract class AVisualizeFeatureModelStats {
      * Creates a live preview pop-up window of an internally generated chart, fetched by index.
      */
     public void displayChart (Integer index) {
-        if (chartsAreEmpty()) {return;}
+        if (chartsAreEmptyDisplay()) {return;}
         this.displayChart(this.charts.get(index));
     }
 
@@ -199,7 +206,7 @@ public abstract class AVisualizeFeatureModelStats {
      * Creates live preview pop-up windows of ALL internally generated charts.
      */
     public void displayAllCharts() {
-        if (chartsAreEmpty()) {return;}
+        if (chartsAreEmptyDisplay()) {return;}
 
         for (Chart<?, ?> chart : this.charts) {
             this.displayChart(chart);
