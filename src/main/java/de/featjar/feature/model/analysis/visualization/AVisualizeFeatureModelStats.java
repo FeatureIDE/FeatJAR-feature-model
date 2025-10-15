@@ -147,16 +147,15 @@ public abstract class AVisualizeFeatureModelStats {
     }
 
     /**
-     * Builds one chart per tree in the feature model.
-     * You can use the analysisTreeData to access the analysisTree data relevant for building your chart.
-     * See extractAnalysisTree() for details.
-     * @return the chart that will be used by the other class methods
+     * Use analysisTreeData to access the data relevant for building your chart.
+     * There are also premade builders that you may adopt.
+     * @return list containing one chart per tree in the feature model
      */
     abstract ArrayList<Chart<?, ?>> buildCharts();
 
     /**
      * Premade builder for pie charts that you can use when implementing buildCharts().
-     * @return one pie chart per tree in the feature model
+     * @return list containing one chart per tree in the feature model
      */
     protected ArrayList<Chart<?, ?>> buildPieCharts() {
         ArrayList<Chart<?, ?>> charts = new ArrayList<>();
@@ -177,8 +176,7 @@ public abstract class AVisualizeFeatureModelStats {
     }
 
     /**
-     * Creates a live preview pop-up window of the internally generated chart.
-     * Can take charts from its internal list, or external charts.
+     * Creates a live preview pop-up window of a chart.
      */
     public void displayChart (Chart<?, ?> chart) {
         if (chartsAreEmpty()) {return;}
@@ -195,8 +193,7 @@ public abstract class AVisualizeFeatureModelStats {
     }
 
     /**
-     * Creates a live preview pop-up window of an internally generated chart.
-     * Picks a chart from the internal list according to index.
+     * Creates a live preview pop-up window of an internally generated chart, fetched by index.
      */
     public void displayChart (Integer index) {
         if (chartsAreEmpty()) {return;}
