@@ -294,7 +294,7 @@ public abstract class AVisualizeFeatureModelStats {
      */
     public int exportChartToPDF(String path) {
         if (chartsAreEmptyDisplay()) {return 2;}
-        return exportChartToPDF(charts.get(0), path);
+        return exportChartToPDF(0, path);
     }
 
     /**
