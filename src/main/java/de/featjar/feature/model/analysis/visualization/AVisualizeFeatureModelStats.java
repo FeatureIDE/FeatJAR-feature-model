@@ -3,7 +3,6 @@ package de.featjar.feature.model.analysis.visualization;
 import de.featjar.base.FeatJAR;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
-import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.analysis.visitor.AnalysisTreeVisitor;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
@@ -15,9 +14,11 @@ import org.knowm.xchart.*;
 import org.knowm.xchart.internal.chartpart.Chart;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -35,6 +36,9 @@ public abstract class AVisualizeFeatureModelStats {
 
     private Integer chartWidth = 800;
     private Integer chartHeight = 600;
+    protected Font fontTitle = new Font(Font.SANS_SERIF, Font.BOLD, 30);
+    protected Font fontLabels = new Font(Font.SANS_SERIF, Font.BOLD, 20);
+    protected Font fontLegend = new Font(Font.SANS_SERIF, Font.PLAIN, 20);
 
     public AVisualizeFeatureModelStats(AnalysisTree<?> analysisTree) {
         this.analysisTree = analysisTree;
@@ -179,6 +183,9 @@ public abstract class AVisualizeFeatureModelStats {
                     .height(getHeight())
                     .build();
             chart.setTitle(treeKey);
+            chart.getStyler().setChartTitleFont(fontTitle);
+            chart.getStyler().setLabelsFont(fontLabels);
+            chart.getStyler().setLegendFont(fontLegend);
 
             HashMap<String, Object> treeData = analysisTreeData.get(treeKey);
             treeData.forEach((key, value) -> chart.addSeries(key, (Integer) value));
@@ -331,7 +338,7 @@ public abstract class AVisualizeFeatureModelStats {
      * @return 0 on success, 1 on general errors, 2 if there are no internal charts to use.
      */
     public int exportChartToPDF(Integer index, String path) {
-        if (chartsAreEmptyDisplay()) {return 2;}
+        if (chartsAreEmptyPDF()) {return 2;}
         try {
             return exportChartToPDF(charts.get(index), path);
         } catch (IndexOutOfBoundsException e) {
@@ -346,7 +353,7 @@ public abstract class AVisualizeFeatureModelStats {
      * @return 0 on success, 1 on general errors, 2 if there are no internal charts to use.
      */
     public int exportChartToPDF(String path) {
-        if (chartsAreEmptyDisplay()) {return 2;}
+        if (chartsAreEmptyPDF()) {return 2;}
         return exportChartToPDF(0, path);
     }
 
@@ -383,7 +390,7 @@ public abstract class AVisualizeFeatureModelStats {
      * @return 0 on success, 1 on general errors, 2 if there are no internal charts to use.
      */
     public int exportAllChartsToPDF(String path) {
-        if (chartsAreEmptyDisplay()) {return 2;}
+        if (chartsAreEmptyPDF()) {return 2;}
         return exportAllChartsToPDF(charts, path);
     }
 
