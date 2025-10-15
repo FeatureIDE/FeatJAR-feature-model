@@ -5,11 +5,18 @@ import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.analysis.visitor.AnalysisTreeVisitor;
+import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.util.Matrix;
 import org.knowm.xchart.PieChart;
 import org.knowm.xchart.PieChartBuilder;
 import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.internal.chartpart.Chart;
 
+import java.awt.geom.AffineTransform;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,8 +33,8 @@ public abstract class AVisualizeFeatureModelStats {
     protected LinkedHashMap<String, LinkedHashMap<String, Object>> analysisTreeData;
     final protected ArrayList<Chart<?, ?>> charts;
 
-    private Integer width = 800;
-    private Integer height = 600;
+    private Integer chartWidth = 800;
+    private Integer chartHeight = 600;
 
     public AVisualizeFeatureModelStats(AnalysisTree<?> analysisTree) {
         this.analysisTree = analysisTree;
@@ -41,19 +48,19 @@ public abstract class AVisualizeFeatureModelStats {
     }
 
     public Integer getWidth() {
-        return this.width;
+        return this.chartWidth;
     }
 
     public void setWidth(Integer width) {
-        this.width = width;
+        this.chartWidth = width;
     }
 
     public Integer getHeight() {
-        return this.height;
+        return this.chartHeight;
     }
 
     public void setHeight(Integer height) {
-        this.height = height;
+        this.chartHeight = height;
     }
 
     /**
@@ -74,6 +81,10 @@ public abstract class AVisualizeFeatureModelStats {
 
     private boolean chartsAreEmptyDisplay() {
         return chartsAreEmpty("Cannot display chart: ");
+    }
+
+    private boolean chartsAreEmptyPDF() {
+        return chartsAreEmpty("Cannot export chart to PDF: ");
     }
 
     /**
@@ -198,8 +209,11 @@ public abstract class AVisualizeFeatureModelStats {
      * Creates a live preview pop-up window of an internally generated chart, fetched by index.
      */
     public void displayChart (Integer index) {
-        if (chartsAreEmptyDisplay()) {return;}
-        this.displayChart(this.charts.get(index));
+        try {
+            this.displayChart(this.charts.get(index));
+        } catch (IndexOutOfBoundsException e) {
+            FeatJAR.log().error("Unable to fetch chart with index "+ index + ": " + e);
+        }
     }
 
     /**
@@ -213,6 +227,137 @@ public abstract class AVisualizeFeatureModelStats {
         }
     }
 
-    // TODO pdf export
+    /**
+     * Takes an existing PDF document and adds a new page with the specified chart on it.
+     * @param chart    the chart that will be added on its own page
+     * @param document existing PDF document
+     * @return 0 on success, 1 on IOException
+     */
+    private int exportChartToPDF(Chart<?, ?> chart, PDDocument document) {
+        PDPage page = new PDPage();
+        document.addPage(page);
+
+        // Create a PdfBoxGraphics2D object and draw the chart into it
+        PdfBoxGraphics2D graphics;
+        try {
+            graphics = new PdfBoxGraphics2D(document, chartWidth, chartHeight);
+        } catch (IOException e) {
+            FeatJAR.log().error("PDF Exporter could not create PdfBoxGraphics2D object: " + e);
+            return 1;
+        }
+        chart.paint(graphics, chartWidth, chartHeight);
+        graphics.dispose();
+
+        // transforms the chart so it fits on the page, then draws it
+        try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+            Matrix transformationMatrix = getPDFCenteringMatrix(page);
+            contentStream.transform(transformationMatrix);
+            contentStream.drawForm(graphics.getXFormObject());
+        } catch (IOException e) {
+            FeatJAR.log().error("PDF Exporter failed to add a chart to its PDF page: " + e);
+            return 1;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Creates a PDF document with a single page featuring the specified chart.
+     * @param chart chart that will be put on the page
+     * @param path  full path to the destination file. Does not check whether you specified an extension.
+     * @return 0 on success, 1 otherwise.
+     */
+    public int exportChartToPDF(Chart<?, ?> chart, String path) {
+        return exportAllChartsToPDF(Collections.singletonList(chart), path);
+    }
+
+    /**
+     * Creates a PDF document with a single page featuring the specified chart.
+     * @param index index to retrieve a chart form the internal chart list
+     * @param path  full path to the destination file. Does not check whether you specified an extension.
+     * @return 0 on success, 1 on general errors, 2 if there are no internal charts to use.
+     */
+    public int exportChartToPDF(Integer index, String path) {
+        if (chartsAreEmptyDisplay()) {return 2;}
+        try {
+            return exportChartToPDF(charts.get(index), path);
+        } catch (IndexOutOfBoundsException e) {
+            FeatJAR.log().error("Unable to fetch chart with index "+ index + ": " + e);
+            return 1;
+        }
+    }
+
+    /**
+     * Creates a PDF document with a single page featuring the first chart from the internal list.
+     * @param path  full path to the destination file. Does not check whether you specified an extension.
+     * @return 0 on success, 1 on general errors, 2 if there are no internal charts to use.
+     */
+    public int exportChartToPDF(String path) {
+        if (chartsAreEmptyDisplay()) {return 2;}
+        return exportChartToPDF(charts.get(0), path);
+    }
+
+    /**
+     * Creates a new PDF document and fills it with pages that each feature one chart from the list
+     * @param charts   any list of charts
+     * @param path     full path to the destination file. Does not check whether you specified an extension.
+     * @return 0 on success, 1 otherwise
+     */
+    public int exportAllChartsToPDF(List<Chart<?, ?>> charts, String path) {
+        try (PDDocument document = new PDDocument()) {
+
+            int iExitCode;
+            for (Chart<?, ?> chart : charts) {
+                iExitCode = exportChartToPDF(chart, document);
+                if (iExitCode != 0) {
+                    return 1;
+                }
+            }
+            document.save(path);
+            return 0;
+
+        } catch (IOException e) {
+
+            FeatJAR.log().error(e);
+            return 1;
+
+        }
+    }
+
+    /**
+     * Creates a new PDF document and fills it with pages that each feature one chart from the list
+     * @param path     full path to the destination file. Does not check whether you specified an extension.
+     * @return 0 on success, 1 on general errors, 2 if there are no internal charts to use.
+     */
+    public int exportAllChartsToPDF(String path) {
+        if (chartsAreEmptyDisplay()) {return 2;}
+        return exportAllChartsToPDF(charts, path);
+    }
+
+    /**
+     * @param page
+     * {@return transformation matrix that scales a given chart to fill the page and be centered}
+     */
+    private Matrix getPDFCenteringMatrix(PDPage page) {
+        float pageWidth = page.getMediaBox().getWidth();
+        float pageHeight = page.getMediaBox().getHeight();
+
+        // calculate scale to fit chart to page (preserving aspect ratio)
+        float scaleX = pageWidth / chartWidth;
+        float scaleY = pageHeight / chartHeight;
+        float minScale = Math.min(scaleX, scaleY);
+
+        // coordinates for centering chart
+        float translateX = (pageWidth - chartWidth * minScale) / 2;
+        float translateY = (pageHeight - chartHeight * minScale) / 2;
+
+        // create transform matrix with scale and translation
+        AffineTransform at = new AffineTransform(); // affine transformations preserve distance ratios
+        at.translate(translateX, translateY);
+        at.scale(minScale, minScale);
+
+        return new Matrix(at);
+    }
+
 
 }

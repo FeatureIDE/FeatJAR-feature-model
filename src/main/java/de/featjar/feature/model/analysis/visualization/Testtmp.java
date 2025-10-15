@@ -9,7 +9,6 @@ import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.IFeatureTree;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.cli.PrintStatistics;
-import de.featjar.feature.model.io.FeatureModelFormats;
 import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
 import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
 
@@ -90,7 +89,7 @@ public class Testtmp {
         return featureModel;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         PrintStatistics printStatistics = new PrintStatistics();
         LinkedHashMap<String, Object> map = printStatistics.collectStats(
                 generateMediumTree(),
@@ -109,11 +108,12 @@ public class Testtmp {
 
 
         VisualizeGroupDistribution viz = new VisualizeGroupDistribution(bigAnalysisTree);
-        //VisualizeConstraintOperatorDistribution viz = new VisualizeConstraintOperatorDistribution(bigAnalysisTree);
+        VisualizeConstraintOperatorDistribution viz2 = new VisualizeConstraintOperatorDistribution(bigAnalysisTree);
         //VisualizeFeatureGroupDistribution viz = new VisualizeFeatureGroupDistribution(createDefaultTree());
         //VisualizeFeatureGroupDistribution viz = new VisualizeFeatureGroupDistribution(generateEmptyTree());
 
-        viz.displayChart();
+        //viz.displayChart();
+        viz2.exportChartToPDF(99, "export.pdf");
 
     }
 }
