@@ -5,10 +5,13 @@ import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.analysis.visitor.AnalysisTreeVisitor;
+import org.knowm.xchart.PieChart;
+import org.knowm.xchart.PieChartBuilder;
 import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.internal.chartpart.Chart;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A class that builds a visualization using the XChart library.
@@ -21,31 +24,24 @@ public abstract class AVisualizeFeatureModelStats {
 
     final protected AnalysisTree<?> analysisTree;
     protected LinkedHashMap<String, LinkedHashMap<String, Object>> analysisTreeData;
-    private Chart<?, ?> chart;
+    final protected ArrayList<Chart<?, ?>> charts;
 
-    private String chartTitle = "Chart";
-    private Integer width;
-    private Integer height;
-
+    private Integer width = 800;
+    private Integer height = 600;
 
     public AVisualizeFeatureModelStats(AnalysisTree<?> analysisTree) {
         this.analysisTree = analysisTree;
         try {
             this.analysisTreeData = extractAnalysisTree();
         } catch (Exception e) {
-            FeatJAR.log().error(e);
             System.out.println(e);
         }
-        this.chart = buildChart();
+        this.charts = buildCharts();
+        chartsAreEmpty();
     }
 
-    public AVisualizeFeatureModelStats(AnalysisTree<?> analysisTree, String chartTitle) {
-        this(analysisTree);
-        this.chartTitle = chartTitle;
-    }
-
-    public Chart<?, ?> getChart() {
-        return this.chart;
+    public ArrayList<Chart<?, ?>> getCharts() {
+        return this.charts;
     }
 
     public Integer getWidth() {
@@ -65,66 +61,65 @@ public abstract class AVisualizeFeatureModelStats {
     }
 
     /**
+     * Checks if any charts are available and if not reminds the user of this fact with a warning message.
+     * @return True if charts exist, else false.
+     */
+    protected boolean chartsAreEmpty() {
+        if (this.charts.isEmpty()) {
+            FeatJAR.log().warning(this.getClass().getName() + " did not build any charts!");
+            return true;
+        }
+        return false;
+    }
+
+    /**
      *
-     * {@return String key used to fetch data from the Analysis Tree later.}
+     * {@return String key used to fetch data from the Analysis Tree.}
      */
     protected abstract String getAnalysisTreeDataName();
 
     /**
-     * uses internal analysisTree and getAnalysisTreeDataName() to fetch the needed piece of data.
+     * Uses internal analysisTree and getAnalysisTreeDataName() to fetch the needed piece of data from the analysis tree.
+     * <p>
+     * {@return alphabetically sorted map with one key per tree.
+     * Each value is another HashMap with one entry per piece of data extracted from the Analysis Tree. These pieces of data are
+     * also alphabetically sorted.}
      */
     public LinkedHashMap<String, LinkedHashMap<String, Object>> extractAnalysisTree() throws RuntimeException {
-        // traverse tree to extract the general HashMap that more specific information is stored in.
-        // could probably be its own method
-        AnalysisTreeVisitor visitor = new AnalysisTreeVisitor();
-        Result<HashMap<String, Object>> result = Trees.traverse(analysisTree, visitor);
-        HashMap<String, Object> receivedResult = result.get();
-        assert receivedResult != null: "Analysis Tree Visitor failed to produce a result.";
-        @SuppressWarnings("unchecked")
-        HashMap<String, Object> analysisMap = (HashMap<String, Object>) receivedResult.get("Analysis"); // we currently trust that this is always "Analysis"
-        assert analysisMap != null: "Received no \"Analysis\" HashMap from AnalysisTree";
+        HashMap<String, Object> analysisMap = extractAnalysisMap();
 
-        // build keys for each tree
+        // fetches keys for all trees for the data we want
         // example: [Tree 1] Group Distribution, [Tree 2] Group Distribution, ...
-        // could probably be its own method
-        String statName = this.getAnalysisTreeDataName();
+        List<String> featureTreeDataKeys = analysisMap.keySet().stream()
+                .filter(key -> key.contains(this.getAnalysisTreeDataName()))
+                .sorted()
+                .collect(Collectors.toList());
 
-        List<String> sortedAnalysisMapKeys = new ArrayList<>(analysisMap.keySet());
-        Collections.sort(sortedAnalysisMapKeys);
-        ArrayList<String> featureTreeDataKeys = new ArrayList<>();
-        for (String key : sortedAnalysisMapKeys) {
-            if (key.contains(statName)) {
-                featureTreeDataKeys.add(key);
-            }
-        }
-
-        // this works better with lists than arrays for some reason
+        // preparing return value
         LinkedHashMap<String, LinkedHashMap<String, Object>> analysisTreeData = new LinkedHashMap<>();
 
-        // for each tree
+        // for each tree: add a HashMap containing values per piece of information we need to extract
         for (String key : featureTreeDataKeys) {
             LinkedHashMap<String, Object> featureTreeData = new LinkedHashMap<>();
-            Object attributeResult = analysisMap.get(key);
-            assert attributeResult != null : "Could not retrieve data called \"" + key + "\" from AnalysisTree.";
+            Object pieceOfInformation = analysisMap.get(key);
+            assert pieceOfInformation != null : "Could not retrieve data called \"" + key + "\" from AnalysisTree.";
 
-            if (attributeResult instanceof Map) {
+            if (pieceOfInformation instanceof Map) {
                 @SuppressWarnings("unchecked")
-                HashMap<String, Object> nestedMap = (HashMap<String, Object>) attributeResult;
+                HashMap<String, Object> nestedMap = (HashMap<String, Object>) pieceOfInformation;
 
-                // sort keys alphabetically for consistency in the order they'll be displayed on the chart
-                List<String> sortedNestedMapKeys = new ArrayList<>(nestedMap.keySet());
-                Collections.sort(sortedNestedMapKeys);
+                nestedMap.keySet().stream()
+                        .sorted()
+                        .forEach(nestedMapKey -> {
+                            // the value relevant for us needs to be unpacked first
+                            Object rawValue = nestedMap.get(nestedMapKey);
+                            ArrayList<?> castedValue = (ArrayList<?>) rawValue;
+                            Object value = castedValue.get(2);
+                            featureTreeData.put(nestedMapKey, value);
+                        });
 
-                for (String nestedMapKey : sortedNestedMapKeys) {
-                    // the value relevant for us needs to be unpacked first
-                    Object rawValue = nestedMap.get(nestedMapKey);
-                    ArrayList<?> castedValue = (ArrayList<?>) rawValue;
-                    Object value = castedValue.get(2);
-
-                    featureTreeData.put(nestedMapKey, value);
-                }
-            } else if (attributeResult instanceof ArrayList) {
-                ArrayList<?> castedValue = (ArrayList<?>) attributeResult;
+            } else if (pieceOfInformation instanceof ArrayList) {
+                ArrayList<?> castedValue = (ArrayList<?>) pieceOfInformation;
                 Object value = castedValue.get(2);
                 featureTreeData.put(getAnalysisTreeDataName(), value);
             } else {
@@ -136,19 +131,89 @@ public abstract class AVisualizeFeatureModelStats {
     }
 
     /**
-     * You can use the analysisTreeData array list to access the analysisTree data relevant for building your chart.
+     * {@return the {@link AnalysisTree}'s general HashMap that more specific information is stored in.}
+     */
+    private HashMap<String, Object> extractAnalysisMap() {
+        Result<HashMap<String, Object>> result = Trees.traverse(analysisTree, new AnalysisTreeVisitor());
+        HashMap<String, Object> receivedResult = result.get();
+        assert receivedResult != null: "Analysis Tree Visitor failed to produce a result.";
+
+        // we currently trust that this is always "Analysis"
+        @SuppressWarnings("unchecked")
+        HashMap<String, Object> analysisMap = (HashMap<String, Object>) receivedResult.get("Analysis");
+        assert analysisMap != null: "Received no \"Analysis\" HashMap from AnalysisTree";
+
+        return analysisMap;
+    }
+
+    /**
+     * Builds one chart per tree in the feature model.
+     * You can use the analysisTreeData to access the analysisTree data relevant for building your chart.
+     * See extractAnalysisTree() for details.
      * @return the chart that will be used by the other class methods
      */
-    abstract Chart<?, ?> buildChart();
+    abstract ArrayList<Chart<?, ?>> buildCharts();
 
+    /**
+     * Premade builder for pie charts that you can use when implementing buildCharts().
+     * @return one pie chart per tree in the feature model
+     */
+    protected ArrayList<Chart<?, ?>> buildPieCharts() {
+        ArrayList<Chart<?, ?>> charts = new ArrayList<>();
+        for (String treeKey : this.analysisTreeData.keySet()) {
+            PieChart chart = new PieChartBuilder()
+                    .width(getWidth())
+                    .height(getHeight())
+                    .build();
+            HashMap<String, Object> treeData = analysisTreeData.get(treeKey);
+            for (String key: treeData.keySet()) {
+                chart.addSeries(key, (Integer) treeData.get(key));
+            }
+            chart.setTitle(treeKey);
+
+            charts.add(chart);
+        }
+        return charts;
+    }
 
     /**
      * Creates a live preview pop-up window of the internally generated chart.
+     * Can take charts from its internal list, or external charts.
      */
-    public void displayChart() {
-        new SwingWrapper<>(this.chart).displayChart();
+    public void displayChart (Chart<?, ?> chart) {
+        if (chartsAreEmpty()) {return;}
+        new SwingWrapper<>(chart).displayChart();
     }
 
-    // TODO pdf export hinzufügen
+    /**
+     * Creates a live preview pop-up window of the FIRST internally generated chart.
+     * This chart usually corresponds to the first feature tree in the feature model.
+     */
+    public void displayChart() {
+        if (chartsAreEmpty()) {return;}
+        this.displayChart(0);
+    }
+
+    /**
+     * Creates a live preview pop-up window of an internally generated chart.
+     * Picks a chart from the internal list according to index.
+     */
+    public void displayChart (Integer index) {
+        if (chartsAreEmpty()) {return;}
+        this.displayChart(this.charts.get(index));
+    }
+
+    /**
+     * Creates live preview pop-up windows of ALL internally generated charts.
+     */
+    public void displayAllCharts() {
+        if (chartsAreEmpty()) {return;}
+
+        for (Chart<?, ?> chart : this.charts) {
+            this.displayChart(chart);
+        }
+    }
+
+    // TODO pdf export
 
 }
