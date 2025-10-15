@@ -1,22 +1,22 @@
 /*
  * Copyright (C) 2025 FeatJAR-Development-Team
  *
- * This file is part of FeatJAR-formula.
+ * This file is part of FeatJAR-feature-model.
  *
- * formula is free software: you can redistribute it and/or modify it
+ * feature-model is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3.0 of the License,
  * or (at your option) any later version.
  *
- * formula is distributed in the hope that it will be useful,
+ * feature-model is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with formula. If not, see <https://www.gnu.org/licenses/>.
+ * along with feature-model. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatureIDE/FeatJAR-formula> for further information.
+ * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
  */
 package de.featjar.feature.model.analysis;
 
@@ -25,25 +25,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import de.featjar.base.FeatJAR;
 import de.featjar.base.computation.Computations;
 import de.featjar.base.computation.IComputation;
-import de.featjar.base.data.Result;
 import de.featjar.base.data.identifier.Identifiers;
-import de.featjar.base.io.IO;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.IFeatureTree;
-import de.featjar.feature.model.analysis.ComputeDistributionFeatureSelections;
-import de.featjar.feature.model.analysis.ComputeFeatureCounter;
-import de.featjar.feature.model.analysis.ComputeNumberConfigurations;
-import de.featjar.feature.model.analysis.ComputeNumberVariables;
-import de.featjar.feature.model.io.FeatureModelFormats;
+import de.featjar.feature.model.transformer.ComputeFormula;
 import de.featjar.formula.VariableMap;
 import de.featjar.formula.assignment.BooleanAssignment;
 import de.featjar.formula.assignment.BooleanAssignmentList;
-
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import de.featjar.formula.structure.IFormula;
+import de.featjar.formula.structure.connective.Implies;
+import de.featjar.formula.structure.connective.Or;
+import de.featjar.formula.structure.predicate.Literal;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import org.junit.jupiter.api.Test;
 
@@ -69,21 +65,55 @@ public class SamplePropertiesTest {
                 new BooleanAssignment());
         return booleanAssignmentList;
     }
-    
-    public BooleanAssignmentList createAssignmentListUniformity() {
-        LinkedList<String> variableNames = new LinkedList<String>();
-        variableNames.add("Root");
-        variableNames.add("A");
-        variableNames.add("B");
-        VariableMap variableMap = new VariableMap(variableNames);
 
+    public BooleanAssignmentList createAssignmentListUniformity(FeatureModel featureModel) {
+        LinkedList<String> variableNames = new LinkedList<String>();
+        IComputation<IFormula> iFormula =
+                Computations.of((IFeatureModel) featureModel).map(ComputeFormula::new);
+        IFormula fmFormula = iFormula.compute();
+        VariableMap variableMap = new VariableMap(fmFormula);
         BooleanAssignmentList booleanAssignmentList = new BooleanAssignmentList(
                 variableMap,
-                new BooleanAssignment(2),
-                new BooleanAssignment(3),
-                new BooleanAssignment(-2),
-                new BooleanAssignment(-3));
+                new BooleanAssignment(
+                        variableMap.get("ConfigDB").get(),
+                        variableMap.get("Get").get(),
+                        variableMap.get("Windows").get(),
+                        -variableMap.get("Put").get(),
+                        -variableMap.get("Delete").get(),
+                        -variableMap.get("Transactions").get(),
+                        -variableMap.get("Linux").get()),
+                new BooleanAssignment(
+                        variableMap.get("ConfigDB").get(),
+                        variableMap.get("Get").get(),
+                        -variableMap.get("Windows").get(),
+                        variableMap.get("Put").get(),
+                        variableMap.get("Delete").get(),
+                        variableMap.get("Transactions").get(),
+                        variableMap.get("Linux").get()),
+                new BooleanAssignment(
+                        variableMap.get("ConfigDB").get(),
+                        variableMap.get("Get").get(),
+                        -variableMap.get("Windows").get(),
+                        -variableMap.get("Put").get(),
+                        -variableMap.get("Delete").get(),
+                        -variableMap.get("Transactions").get(),
+                        -variableMap.get("Linux").get()),
+                new BooleanAssignment(
+                        variableMap.get("ConfigDB").get(),
+                        variableMap.get("Get").get(),
+                        -variableMap.get("Windows").get(),
+                        -variableMap.get("Put").get(),
+                        -variableMap.get("Delete").get(),
+                        variableMap.get("Transactions").get(),
+                        variableMap.get("Linux").get()));
         return booleanAssignmentList;
+    }
+
+    public FeatureModel createMediumFeatureModel() {
+        FeatureModel fm = new FeatureModel();
+        fm.addFeatureTreeRoot(generateMediumTree());
+        fm.addConstraint(new Implies(new Literal("Transactions"), new Or(new Literal("Put"), new Literal("Delete"))));
+        return fm;
     }
 
     @Test
@@ -95,38 +125,39 @@ public class SamplePropertiesTest {
         assertEquals(7, selectionDistribution.get("selected"));
         assertEquals(6, selectionDistribution.get("deselected"));
         assertEquals(22, selectionDistribution.get("undefined"));
+        System.out.println("Distribution of feature selection: \n" + selectionDistribution);
     }
 
     @Test
     public void computeFeatureCounterTest() {
         BooleanAssignmentList booleanAssignmentList = createAssignmentList();
-        IComputation<HashMap<String, HashMap<String, Integer>>> computational =
-                Computations.of(booleanAssignmentList).map(ComputeFeatureCounter::new);
-        HashMap<String, HashMap<String, Integer>> featureCounter = computational.compute();
-        System.out.println(featureCounter);
-        assertEquals(2, featureCounter.get("A").get("selected"));
-        assertEquals(1, featureCounter.get("B").get("selected"));
-        assertEquals(0, featureCounter.get("C").get("selected"));
-        assertEquals(1, featureCounter.get("D").get("selected"));
-        assertEquals(2, featureCounter.get("E").get("selected"));
-        assertEquals(1, featureCounter.get("F").get("selected"));
-        assertEquals(0, featureCounter.get("G").get("selected"));
+        HashMap<String, Integer> featureCounter = Computations.of(booleanAssignmentList)
+                .map(ComputeFeatureCounter::new)
+                .compute();
+        assertEquals(2, featureCounter.get("A_selected"));
+        assertEquals(1, featureCounter.get("B_selected"));
+        assertEquals(0, featureCounter.get("C_selected"));
+        assertEquals(1, featureCounter.get("D_selected"));
+        assertEquals(2, featureCounter.get("E_selected"));
+        assertEquals(1, featureCounter.get("F_selected"));
+        assertEquals(0, featureCounter.get("G_selected"));
 
-        assertEquals(1, featureCounter.get("A").get("deselected"));
-        assertEquals(1, featureCounter.get("B").get("deselected"));
-        assertEquals(1, featureCounter.get("C").get("deselected"));
-        assertEquals(0, featureCounter.get("D").get("deselected"));
-        assertEquals(1, featureCounter.get("E").get("deselected"));
-        assertEquals(2, featureCounter.get("F").get("deselected"));
-        assertEquals(0, featureCounter.get("G").get("deselected"));
+        assertEquals(1, featureCounter.get("A_deselected"));
+        assertEquals(1, featureCounter.get("B_deselected"));
+        assertEquals(1, featureCounter.get("C_deselected"));
+        assertEquals(0, featureCounter.get("D_deselected"));
+        assertEquals(1, featureCounter.get("E_deselected"));
+        assertEquals(2, featureCounter.get("F_deselected"));
+        assertEquals(0, featureCounter.get("G_deselected"));
 
-        assertEquals(2, featureCounter.get("A").get("undefined"));
-        assertEquals(3, featureCounter.get("B").get("undefined"));
-        assertEquals(4, featureCounter.get("C").get("undefined"));
-        assertEquals(4, featureCounter.get("D").get("undefined"));
-        assertEquals(2, featureCounter.get("E").get("undefined"));
-        assertEquals(2, featureCounter.get("F").get("undefined"));
-        assertEquals(5, featureCounter.get("G").get("undefined"));
+        assertEquals(2, featureCounter.get("A_undefined"));
+        assertEquals(3, featureCounter.get("B_undefined"));
+        assertEquals(4, featureCounter.get("C_undefined"));
+        assertEquals(4, featureCounter.get("D_undefined"));
+        assertEquals(2, featureCounter.get("E_undefined"));
+        assertEquals(2, featureCounter.get("F_undefined"));
+        assertEquals(5, featureCounter.get("G_undefined"));
+        System.out.println("Distribution of feature selection per feature: \n" + featureCounter);
     }
 
     @Test
@@ -135,6 +166,7 @@ public class SamplePropertiesTest {
         IComputation<Integer> computational =
                 Computations.of(booleanAssignmentList).map(ComputeNumberConfigurations::new);
         assertEquals(5, computational.compute());
+        System.out.println("Number of configurations: \n" + computational.compute());
     }
 
     @Test
@@ -143,58 +175,91 @@ public class SamplePropertiesTest {
         IComputation<Integer> computational =
                 Computations.of(booleanAssignmentList).map(ComputeNumberVariables::new);
         assertEquals(7, computational.compute());
+        System.out.println("Number of variables: \n" + computational.compute());
     }
-    
+
     @Test
     public void computeUniformity() {
-    	FeatJAR.initialize();
-    	/*  
-        if (Files.exists(Paths.get("../formula/src/testFixtures/resources/Automotive02_V1"))) {
-            System.out.println("The file exists.");
-        } else {
-            System.out.println("The file does not exist.");
-        }
-        
-        Result<IFeatureModel> featureModelFormatResult = Result.empty();
-        featureModelFormatResult.of(IO.load(Paths.get("../formula/src/testFixtures/resources/Automotive02_V1")
-        		, FeatureModelFormats.getInstance()).get());
-        System.out.println(featureModelFormatResult.get().getNumberOfConstraints());*/
-    	IComputation<HashMap<String, Float>> computation = Computations.of(IO.load(Paths.get("../formula/src/testFixtures/resources/testFeatureModels/basic.xml"),
-		FeatureModelFormats.getInstance()).get()).map(ComputeUniformity::new).set(ComputeUniformity.BOOLEAN_ASSIGMENT_LIST, createAssignmentListUniformity());
-    	
-    	//IComputation<HashMap<String, Float>> computation = Computations.of(()).map(ComputeUniformity::new);
-    	HashMap<String, Float> result = computation.compute(); 
-    	System.out.println(result);
+        FeatJAR.initialize();
+        IComputation<LinkedHashMap<String, Float>> computation = Computations.of(
+                        (IFeatureModel) createMediumFeatureModel())
+                .map(ComputeUniformity::new)
+                .set(
+                        ComputeUniformity.BOOLEAN_ASSIGNMENT_LIST,
+                        createAssignmentListUniformity(createMediumFeatureModel()))
+                .set(ComputeUniformity.ANALYSIS, false);
+
+        HashMap<String, Float> result = computation.compute();
+        assertEquals(26, result.get("FeatureModel Valid"));
+        assertEquals(2, result.get("AssignmentsSample Valid"));
+        assertEquals(26, result.get("ConfigDB_FeatureModel"));
+        assertEquals(2, result.get("ConfigDB_AssignmentsSample"));
+        assertEquals(26, result.get("API_FeatureModel"));
+        assertEquals(0, result.get("API_AssignmentsSample"));
+        assertEquals(26, result.get("OS_FeatureModel"));
+        assertEquals(0, result.get("OS_AssignmentsSample"));
+        assertEquals(14, result.get("Get_FeatureModel"));
+        assertEquals(2, result.get("Get_AssignmentsSample"));
+        assertEquals(16, result.get("Put_FeatureModel"));
+        assertEquals(1, result.get("Put_AssignmentsSample"));
+        assertEquals(16, result.get("Delete_FeatureModel"));
+        assertEquals(1, result.get("Delete_AssignmentsSample"));
+        assertEquals(13, result.get("Windows_FeatureModel"));
+        assertEquals(1, result.get("Windows_AssignmentsSample"));
+        assertEquals(13, result.get("Linux_FeatureModel"));
+        assertEquals(1, result.get("Linux_AssignmentsSample"));
+        assertEquals(1, result.get("Windows_AssignmentsSample"));
+        assertEquals(13, result.get("Linux_FeatureModel"));
+        assertEquals(1, result.get("Linux_AssignmentsSample"));
+        assertEquals(12, result.get("Transactions_FeatureModel"));
+        assertEquals(1, result.get("Transactions_AssignmentsSample"));
+        assertEquals(26, result.get("FeatureModel Valid"));
+        assertEquals(2, result.get("AssignmentsSample Valid"));
+        System.out.println("Descriptive validtiy map: \n" + result);
+
+        computation.set(ComputeUniformity.ANALYSIS, true);
+        result = computation.compute();
+        assertEquals(0, result.get("ConfigDB"));
+        assertEquals(-1, result.get("API"));
+        assertEquals(-1, result.get("OS"));
+        assertEquals(((float) 2 / 2) - ((float) 14 / 26), result.get("Get"));
+        assertEquals(((float) 1 / 2) - ((float) 16 / 26), result.get("Put"));
+        assertEquals(((float) 1 / 2) - ((float) 16 / 26), result.get("Delete"));
+        assertEquals(0, result.get("Windows"));
+        assertEquals(0, result.get("Linux"));
+        assertEquals(((float) 1 / 2) - ((float) 12 / 26), result.get("Transactions"));
+        System.out.println("Commonality difference per features: \n" + result);
     }
-    
+
     private IFeatureTree generateMediumTree() {
         FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
         IFeatureTree treeRoot =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("ConfigDB"));
 
         IFeature featureAPI = featureModel.mutate().addFeature("API");
-        IFeatureTree treeAPI = treeRoot.mutate().addFeatureBelow(featureAPI);
-        treeAPI.isMandatory();
         IFeature featureGet = featureModel.mutate().addFeature("Get");
-        treeAPI.mutate().addFeatureBelow(featureGet);
         IFeature featurePut = featureModel.mutate().addFeature("Put");
-        treeAPI.mutate().addFeatureBelow(featurePut);
         IFeature featureDelete = featureModel.mutate().addFeature("Delete");
-        treeAPI.mutate().addFeatureBelow(featureDelete);
-        treeAPI.mutate().toOrGroup();
 
         IFeature featureOS = featureModel.mutate().addFeature("OS");
-        IFeatureTree treeOS = treeRoot.mutate().addFeatureBelow(featureOS);
-        treeOS.isMandatory();
         IFeature featureWindows = featureModel.mutate().addFeature("Windows");
-        treeOS.mutate().addFeatureBelow(featureWindows);
+
+        IFeatureTree treeAPI = treeRoot.mutate().addFeatureBelow(featureAPI);
+        IFeatureTree treeOS = treeRoot.mutate().addFeatureBelow(featureOS);
         IFeature featureLinux = featureModel.mutate().addFeature("Linux");
+
+        treeAPI.mutate().addFeatureBelow(featureGet);
+        treeAPI.mutate().addFeatureBelow(featurePut);
+        treeAPI.mutate().addFeatureBelow(featureDelete);
+        treeOS.mutate().addFeatureBelow(featureWindows);
         treeOS.mutate().addFeatureBelow(featureLinux);
+
+        treeAPI.mutate().toOrGroup();
         treeOS.mutate().toAlternativeGroup();
 
-        IFeature featureTransactions = featureModel.mutate().addFeature("Transactions");
-        IFeatureTree treeTransactions = treeRoot.mutate().addFeatureBelow(featureTransactions);
-        treeTransactions.isOptional();
+        treeRoot.mutate().makeMandatory();
+        treeAPI.mutate().makeMandatory();
+        treeOS.mutate().makeMandatory();
 
         return treeRoot;
     }

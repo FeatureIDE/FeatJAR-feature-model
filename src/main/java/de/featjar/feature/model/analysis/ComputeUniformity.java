@@ -1,18 +1,34 @@
+/*
+ * Copyright (C) 2025 FeatJAR-Development-Team
+ *
+ * This file is part of FeatJAR-feature-model.
+ *
+ * feature-model is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3.0 of the License,
+ * or (at your option) any later version.
+ *
+ * feature-model is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with feature-model. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
+ */
 package de.featjar.feature.model.analysis;
 
-import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map.Entry;
-
+import de.featjar.analysis.javasmt.computation.ComputeSatisfiability;
+import de.featjar.analysis.javasmt.computation.ComputeSolutionCount;
 import de.featjar.base.computation.AComputation;
 import de.featjar.base.computation.Computations;
 import de.featjar.base.computation.Dependency;
 import de.featjar.base.computation.IComputation;
 import de.featjar.base.computation.Progress;
 import de.featjar.base.data.Result;
-import de.featjar.feature.model.FeatureModel;
+import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.transformer.ComputeFormula;
 import de.featjar.formula.VariableMap;
 import de.featjar.formula.assignment.BooleanAssignment;
@@ -21,84 +37,123 @@ import de.featjar.formula.computation.ComputeCNFFormula;
 import de.featjar.formula.computation.ComputeNNFFormula;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.And;
+import de.featjar.formula.structure.connective.Not;
 import de.featjar.formula.structure.connective.Reference;
 import de.featjar.formula.structure.predicate.Literal;
-import de.featjar.formula.structure.term.value.Variable;
-import de.featjar.feature.model.IFeatureModel;
-import de.featjar.analysis.javasmt.computation.ComputeSatisfiability;
-import de.featjar.analysis.javasmt.computation.ComputeSolutionCount;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 
-public class ComputeUniformity extends AComputation<HashMap<String, Float>> {
+/**
+ * Computes how often features are selected compared to their general selection in their feature model.
+ * This takes only valid configurations into account.
+ *
+ * BOOLEAN_ASSIGNMENT_LIST - current assignment
+ * FEATURE_MODEL - feature model
+ * ANALYSIS - when false return the full count of valid assignments in both AssignmentSample and the FeatureModel per feature,
+ * else the difference between the commonality of the AssignmentSample and the FeatureModel per feature.
+ *
+ * @author Mohammad Khair Almekkawi
+ * @author Florian Beese
+ */
+public class ComputeUniformity extends AComputation<LinkedHashMap<String, Float>> {
 
-    protected static final Dependency<BooleanAssignmentList> BOOLEAN_ASSIGMENT_LIST =
+    protected static final Dependency<BooleanAssignmentList> BOOLEAN_ASSIGNMENT_LIST =
             Dependency.newDependency(BooleanAssignmentList.class);
-    protected static final Dependency<IFeatureModel> FEATURE_MODEL =
-            Dependency.newDependency(IFeatureModel.class);
+    protected static final Dependency<IFeatureModel> FEATURE_MODEL = Dependency.newDependency(IFeatureModel.class);
+    protected static final Dependency<Boolean> ANALYSIS = Dependency.newDependency(Boolean.class);
 
     public ComputeUniformity(IComputation<IFeatureModel> featureModel) {
-        super(Computations.of(new BooleanAssignmentList(new VariableMap())), featureModel);
+        super(
+                Computations.of(new BooleanAssignmentList(new VariableMap())),
+                featureModel,
+                Computations.of(Boolean.TRUE));
     }
 
     @Override
-    public Result<HashMap<String, Float>> compute(List<Object> dependencyList, Progress progress) {
-        BooleanAssignmentList booleanAssignmentList = BOOLEAN_ASSIGMENT_LIST.get(dependencyList);
+    public Result<LinkedHashMap<String, Float>> compute(List<Object> dependencyList, Progress progress) {
+        BooleanAssignmentList booleanAssignmentList = BOOLEAN_ASSIGNMENT_LIST.get(dependencyList);
         IFeatureModel featureModel = FEATURE_MODEL.get(dependencyList);
-        IComputation<IFormula> iFormula = Computations.of(featureModel).map(ComputeFormula::new);
-        IFormula fmFormula = iFormula.compute();
-        //new VariableMap(fmFormula);
-        System.out.println(fmFormula.print());
-        IComputation<BigInteger> solutionCountComputation = Computations.of(fmFormula).map(ComputeNNFFormula::new)
-        		.map(ComputeCNFFormula::new).map(ComputeSolutionCount::new);
-        BigInteger solutionsCount = solutionCountComputation.compute();
-        HashMap<String, Float> returnMap = new HashMap<String, Float>();
-        HashMap<String, Float> fmMap = new HashMap<String, Float>();
-        HashMap<String, Float> sampleMap = new HashMap<String, Float>();
+        IFormula fmFormula =
+                Computations.of(featureModel).map(ComputeFormula::new).compute();
+        float solutionsCount = Computations.of(fmFormula)
+                .map(ComputeNNFFormula::new)
+                .map(ComputeCNFFormula::new)
+                .map(ComputeSolutionCount::new)
+                .compute()
+                .floatValue();
+        LinkedHashMap<String, Float> returnedMap = new LinkedHashMap<String, Float>();
         VariableMap fmVariableMap = new VariableMap(fmFormula);
-        
+        String featureModelPrefix = "_FeatureModel";
+        String assignmentsSamplePrefix = "_AssignmentsSample";
+
         for (String varName : fmVariableMap.getVariableNames()) {
-        	fmMap.put(varName, (float) 0);
-        	sampleMap.put(varName, (float) 0);
+            returnedMap.put(varName + featureModelPrefix, (float) 0);
+            returnedMap.put(varName + assignmentsSamplePrefix, (float) 0);
         }
-        
-        fmMap.put("all", solutionsCount.floatValue());
-        
+
+        // Calculate the number of valid configurations per feature in the full featureModel.
         for (String varName : fmVariableMap.getVariableNames()) {
-        	Reference currentFormula = new Reference(new And((IFormula)fmFormula.getChildren().get(0), new Literal(varName)));
-        	currentFormula.setFreeVariables(((Reference)fmFormula).getFreeVariables());
-        	IFormula NNFFormula = Computations.of((IFormula)currentFormula).map(ComputeNNFFormula::new).compute();
-        	fmMap.put(varName, Computations.of(NNFFormula)
-            		.map(ComputeCNFFormula::new).map(ComputeSolutionCount::new).compute().floatValue());
+            Reference currentFormula =
+                    new Reference(new And((IFormula) fmFormula.getChildren().get(0), new Literal(varName)));
+            currentFormula.setFreeVariables(((Reference) fmFormula).getFreeVariables());
+            IFormula NNFFormula = Computations.of((IFormula) currentFormula)
+                    .map(ComputeNNFFormula::new)
+                    .compute();
+            returnedMap.replace(
+                    varName + featureModelPrefix,
+                    Computations.of(NNFFormula)
+                            .map(ComputeCNFFormula::new)
+                            .map(ComputeSolutionCount::new)
+                            .compute()
+                            .floatValue());
         }
-        
+
+        // Calculate the number of valid configurations per feature in the full assignmentSample.
         int assignmentSolutionsCount = 0;
-        for(BooleanAssignment booleanAssignment : booleanAssignmentList.getAll()) {
-        	IFormula currentIFormulaAssignment = new And();
-        	List<String> currentAssignmentVariables = new LinkedList();
-        	for (int index : booleanAssignment.get()) {
-        		if(fmVariableMap.get(index).isPresent()) {
-            		currentIFormulaAssignment = new And(currentIFormulaAssignment, new Literal(fmVariableMap.get(index).orElseThrow()));
-            		currentAssignmentVariables.add(fmVariableMap.get(index).get());
-        		}
-        	}
-        	Reference currentFormula = new Reference(new And((IFormula)fmFormula.getChildren().get(0), currentIFormulaAssignment));
-        	System.out.println(fmFormula.print());
-        	System.out.println("Assignment: " + booleanAssignment + "\n" + currentFormula.print());
-        	System.out.println(Computations.of((IFormula)currentFormula).map(ComputeNNFFormula::new)
-                	.map(ComputeCNFFormula::new).map(ComputeSolutionCount::new).compute());
-        	currentFormula.setFreeVariables(((Reference)fmFormula).getFreeVariables());
-        	
-        	if(Computations.of((IFormula)currentFormula).map(ComputeNNFFormula::new)
-        	.map(ComputeCNFFormula::new).map(ComputeSolutionCount::new).compute().intValue() > 0) {
-        		assignmentSolutionsCount++;
-        		for (String key : currentAssignmentVariables) {
-        			sampleMap.replace(key, sampleMap.get(key) + 1);
-        		}
-        	}
+        for (BooleanAssignment booleanAssignment : booleanAssignmentList.getAll()) {
+            LinkedList<IFormula> allLiterals = new LinkedList<IFormula>();
+            List<String> currentAssignmentVariables = new LinkedList<String>();
+            for (int index : booleanAssignment.get()) {
+                if (fmVariableMap.get(index).isPresent()) {
+                    allLiterals.add(new Literal(fmVariableMap.get(index).get()));
+                    currentAssignmentVariables.add(fmVariableMap.get(index).get());
+                } else if (fmVariableMap.get(Math.abs(index)).isPresent()) {
+                    allLiterals.add(new Not(
+                            new Literal(fmVariableMap.get(Math.abs(index)).get())));
+                } else {
+                    Result.empty();
+                }
+            }
+            IFormula currentIFormulaAssignment = new And(allLiterals);
+            Reference currentFormula =
+                    new Reference(new And((IFormula) fmFormula.getChildren().get(0), currentIFormulaAssignment));
+            currentFormula.setFreeVariables(((Reference) fmFormula).getFreeVariables());
+            if (Computations.of((IFormula) currentFormula)
+                    .map(ComputeNNFFormula::new)
+                    .map(ComputeCNFFormula::new)
+                    .map(ComputeSatisfiability::new)
+                    .compute()) {
+                assignmentSolutionsCount++;
+                for (String key : currentAssignmentVariables) {
+                    returnedMap.replace(
+                            key + assignmentsSamplePrefix, returnedMap.get(key + assignmentsSamplePrefix) + 1);
+                }
+            }
         }
-        
-        System.out.println("sampleMap: \n" + sampleMap);
-        System.out.println("assignmentSolutionsCount: " + assignmentSolutionsCount);
-        System.out.println("solutionsCount: " + solutionsCount);
-        return Result.of(fmMap);
+
+        if (ANALYSIS.get(dependencyList)) {
+            for (String varName : fmVariableMap.getVariableNames()) {
+                float sampleShare = returnedMap.get(varName + assignmentsSamplePrefix) / assignmentSolutionsCount;
+                float featureShare = returnedMap.get(varName + featureModelPrefix) / solutionsCount;
+                returnedMap.remove(varName + assignmentsSamplePrefix);
+                returnedMap.remove(varName + featureModelPrefix);
+                returnedMap.put(varName, sampleShare - featureShare);
+            }
+        } else {
+            returnedMap.put("FeatureModel Valid", solutionsCount);
+            returnedMap.put("AssignmentsSample Valid", (float) assignmentSolutionsCount);
+        }
+        return Result.of(returnedMap);
     }
 }

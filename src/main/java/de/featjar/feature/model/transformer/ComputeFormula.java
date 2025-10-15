@@ -85,11 +85,11 @@ public class ComputeFormula extends AComputation<IFormula> {
             }
             handleGroups(constraints, featureLiteral, node);
         });
-        //for loop constraints
+        // for loop constraints
         for (IConstraint constraint : featureModel.getConstraints()) {
-        	constraints.add(constraint.getFormula());
+            constraints.add(constraint.getFormula());
         }
-        
+
         Reference reference = new Reference(new And(constraints));
         reference.setFreeVariables(variables);
         return Result.of(reference);
