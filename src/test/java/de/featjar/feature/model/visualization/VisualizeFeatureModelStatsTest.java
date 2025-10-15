@@ -7,6 +7,7 @@ import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.IFeatureTree;
 import de.featjar.feature.model.analysis.AnalysisTree;
+import de.featjar.feature.model.analysis.visualization.VisualizeConstraintOperatorDistribution;
 import de.featjar.feature.model.analysis.visualization.VisualizeGroupDistribution;
 import de.featjar.feature.model.cli.PrintStatistics;
 import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
@@ -22,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class VisualizeFeatureModelStatsTest {
     AnalysisTree<?> bigTree = getBigAnalysisTree();
     AnalysisTree<?> mediumTree = getMediumAnalysisTree();
-    String defaultExportName = "src/test/java/de/featjar/feature/model/visualization/model.xml";
+    String defaultExportName = "src/test/java/de/featjar/feature/model/visualization/model.pdf";
 
     /**
      * Helper function.
@@ -96,7 +97,6 @@ public class VisualizeFeatureModelStatsTest {
         return analysisTreeFromFeatureModel(buildMediumFeatureModel());
     }
 
-    // todo auch Tests für die andere stats art mit constraints bla
     // todo Tests für FeatureModels mit mehreren Bäumen -> need custom feature model
 
     /**
@@ -104,34 +104,40 @@ public class VisualizeFeatureModelStatsTest {
      */
     @Test
     void regularLivePreview() {
-        VisualizeGroupDistribution viz;
+        VisualizeGroupDistribution vizGroup;
+        vizGroup = new VisualizeGroupDistribution(mediumTree);
+        assertEquals(0, vizGroup.displayChart());
+        vizGroup = new VisualizeGroupDistribution(bigTree);
+        assertEquals(0, vizGroup.displayChart());
 
-        viz = new VisualizeGroupDistribution(mediumTree);
-        assertEquals(0, viz.displayChart());
-
-        viz = new VisualizeGroupDistribution(bigTree);
-        assertEquals(0, viz.displayChart());
+        VisualizeConstraintOperatorDistribution vizOpDis;
+        vizOpDis = new VisualizeConstraintOperatorDistribution(bigTree);
+        assertEquals(0, vizOpDis.displayChart());
     }
 
     @Test
     void pdfValidIndex() {
-        VisualizeGroupDistribution viz;
+        VisualizeGroupDistribution vizGroup;
+        vizGroup = new VisualizeGroupDistribution(mediumTree);
+        assertEquals(0, vizGroup.exportChartToPDF(0, defaultExportName));
+        vizGroup = new VisualizeGroupDistribution(bigTree);
+        assertEquals(0, vizGroup.exportChartToPDF(0, defaultExportName));
 
-        viz = new VisualizeGroupDistribution(mediumTree);
-        assertEquals(0, viz.exportChartToPDF(0, defaultExportName));
-
-        viz = new VisualizeGroupDistribution(bigTree);
-        assertEquals(0, viz.exportChartToPDF(0, defaultExportName));
+        VisualizeConstraintOperatorDistribution vizOpDis;
+        vizOpDis = new VisualizeConstraintOperatorDistribution(bigTree);
+        assertEquals(0, vizOpDis.exportChartToPDF(0, defaultExportName));
     }
 
     @Test
     void pdfInvalidIndex() {
-        VisualizeGroupDistribution viz;
+        VisualizeGroupDistribution vizGroup;
+        vizGroup = new VisualizeGroupDistribution(mediumTree);
+        assertEquals(1, vizGroup.exportChartToPDF(99, defaultExportName));
+        vizGroup = new VisualizeGroupDistribution(bigTree);
+        assertEquals(1, vizGroup.exportChartToPDF(99, defaultExportName));
 
-        viz = new VisualizeGroupDistribution(mediumTree);
-        assertEquals(1, viz.exportChartToPDF(99, defaultExportName));
-
-        viz = new VisualizeGroupDistribution(bigTree);
-        assertEquals(1, viz.exportChartToPDF(99, defaultExportName));
+        VisualizeConstraintOperatorDistribution vizOpDis;
+        vizOpDis = new VisualizeConstraintOperatorDistribution(bigTree);
+        assertEquals(1, vizOpDis.exportChartToPDF(99, defaultExportName));
     }
 }

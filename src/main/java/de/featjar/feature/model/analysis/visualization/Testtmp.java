@@ -113,7 +113,8 @@ public class Testtmp {
         //VisualizeFeatureGroupDistribution viz = new VisualizeFeatureGroupDistribution(generateEmptyTree());
 
         //viz.displayChart();
-        viz2.displayChart();
+        Integer retval = viz2.displayChart();
+        System.out.println(retval);
 
     }
 }
