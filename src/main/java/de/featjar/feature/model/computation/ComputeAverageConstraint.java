@@ -45,10 +45,10 @@ import java.util.List;
  * @author Florian Beese
  * */
 public class ComputeAverageConstraint extends AComputation<Float> {
-    protected static final Dependency<FeatureModel> FEATUREMODEL = Dependency.newDependency(FeatureModel.class);
-    protected static final Dependency<Boolean> COUNTCONSTANTS = Dependency.newDependency(Boolean.class);
-    protected static final Dependency<Boolean> COUNTVARIABLES = Dependency.newDependency(Boolean.class);
-    protected static final Dependency<Boolean> COUNTBOOLEAN = Dependency.newDependency(Boolean.class);
+	public static final Dependency<FeatureModel> FEATUREMODEL = Dependency.newDependency(FeatureModel.class);
+	public static final Dependency<Boolean> COUNTCONSTANTS = Dependency.newDependency(Boolean.class);
+	public static final Dependency<Boolean> COUNTVARIABLES = Dependency.newDependency(Boolean.class);
+	public static final Dependency<Boolean> COUNTBOOLEAN = Dependency.newDependency(Boolean.class);
 
     public ComputeAverageConstraint(IComputation<FeatureModel> featureModel) {
         super(

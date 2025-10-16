@@ -27,6 +27,7 @@ import de.featjar.base.computation.Progress;
 import de.featjar.base.data.Range;
 import de.featjar.base.data.Result;
 import de.featjar.feature.model.FeatureTree.Group;
+import de.featjar.feature.model.IConstraint;
 import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.IFeatureTree;
@@ -84,6 +85,11 @@ public class ComputeFormula extends AComputation<IFormula> {
             }
             handleGroups(constraints, featureLiteral, node);
         });
+        // for loop constraints
+        for (IConstraint constraint : featureModel.getConstraints()) {
+            constraints.add(constraint.getFormula());
+        }
+
         Reference reference = new Reference(new And(constraints));
         reference.setFreeVariables(variables);
         return Result.of(reference);

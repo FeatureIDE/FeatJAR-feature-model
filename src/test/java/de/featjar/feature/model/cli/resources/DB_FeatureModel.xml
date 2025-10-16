@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<featureModel>
+	<struct>
+		<and mandatory="true" name="ConfigDB">
+			<or mandatory="true" name="API">
+				<feature name="Get"/>
+				<feature name="Put"/>
+				<feature name="Delete"/>
+			</or>
+			<alt mandatory="true" name="OS">
+				<feature name="Windows"/>
+				<feature name="Linux"/>
+			</alt>
+		</and>
+	</struct>
+	<constraints>
+		<rule>
+			<imp>
+				<var>Transactions</var>
+				<disj>
+					<var>Put</var>
+					<var>Delete</var>
+				</disj>
+			</imp>
+		</rule>
+	</constraints>
+</featureModel>
