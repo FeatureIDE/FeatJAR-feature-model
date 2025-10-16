@@ -5,27 +5,27 @@ import org.knowm.xchart.internal.chartpart.Chart;
 
 import java.util.ArrayList;
 
+/**
+ * Visualizes and exports the feature model statistic "Operator Distribution".
+ * Data is read as an {@link AnalysisTree}. Each child specifies the information to be read from the tree via
+ * {@link #getAnalysisTreeDataName()}, as well as how to build a chart from it via the {@link #buildCharts()} method.
+ *
+ * @author Benjamin von Holt
+ * @author Valentin Laubsch
+ */
 public class VisualizeConstraintOperatorDistribution extends AVisualizeFeatureModelStats{
-    public VisualizeConstraintOperatorDistribution(AnalysisTree<?> analysisTree) {
-        super(analysisTree);
-    }
 
     /**
-     * {@return String key used to fetch data from the Analysis Tree.}
-     */
-    @Override
-    protected String getAnalysisTreeDataName() {
-        return "Operator Distribution";
-    }
-
-    /**
-     * Use analysisTreeData to access the data relevant for building your chart.
-     * There are also premade builders that you may adopt.
+     * Visualizes and exports the feature model statistic "Operator Distribution".
      *
-     * @return list containing one chart per tree in the feature model
+     * @param analysisTree {@link AnalysisTree} over the entire feature model.
      */
+    public VisualizeConstraintOperatorDistribution(AnalysisTree<?> analysisTree) {super(analysisTree);}
+
     @Override
-    ArrayList<Chart<?, ?>> buildCharts() {
-        return buildPieCharts();
-    }
+    protected String getAnalysisTreeDataName() {return "Operator Distribution";}
+
+    @Override
+    protected ArrayList<Chart<?, ?>> buildCharts() {return buildPieCharts();}
+
 }

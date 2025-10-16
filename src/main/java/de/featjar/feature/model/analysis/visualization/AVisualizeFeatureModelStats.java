@@ -47,8 +47,6 @@ public abstract class AVisualizeFeatureModelStats {
 
     /**
      * Visualizes and exports feature model statistics.
-     * Data is read as an {@link AnalysisTree}. Each child specifies the information to be read from the tree via
-     * {@link #getAnalysisTreeDataName()}, as well as how to build a chart from it via the {@link #buildCharts()} method.
      *
      * @param analysisTree {@link AnalysisTree} over the entire feature model.
      */
@@ -111,7 +109,7 @@ public abstract class AVisualizeFeatureModelStats {
     }
 
     /**
-     * {@return String key used to fetch data from the Analysis Tree.}
+     * {@return String key used to fetch data from {@link #analysisTree}.}
      */
     protected abstract String getAnalysisTreeDataName();
 
@@ -188,7 +186,7 @@ public abstract class AVisualizeFeatureModelStats {
      * There are also premade builders that you may adopt, such as {@link #buildPieCharts()}.
      * @return list containing one chart per tree in the feature model
      */
-    abstract ArrayList<Chart<?, ?>> buildCharts();
+    abstract protected ArrayList<Chart<?, ?>> buildCharts();
 
     /**
      * Premade builder for pie charts that you can use when implementing {@link #buildCharts()}.

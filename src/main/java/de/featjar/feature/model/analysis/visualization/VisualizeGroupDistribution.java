@@ -5,25 +5,26 @@ import org.knowm.xchart.internal.chartpart.Chart;
 
 import java.util.ArrayList;
 
+/**
+ * Visualizes and exports the feature model statistic "Group Distribution".
+ * Data is read as an {@link AnalysisTree}. Each child specifies the information to be read from the tree via
+ * {@link #getAnalysisTreeDataName()}, as well as how to build a chart from it via the {@link #buildCharts()} method.
+ *
+ * @author Benjamin von Holt
+ * @author Valentin Laubsch
+ */
 public class VisualizeGroupDistribution extends AVisualizeFeatureModelStats{
-    public VisualizeGroupDistribution(AnalysisTree<?> analysisTree) {
-        super(analysisTree);
-    }
 
     /**
-     * {@return String key used to fetch data from the Analysis Tree.}
+     * Visualizes and exports the feature model statistic "Operator Distribution".
+     * 
+     * @param analysisTree {@link AnalysisTree} over the entire feature model.
      */
-    @Override
-    protected String getAnalysisTreeDataName() {
-        return "Group Distribution";
-    }
+    public VisualizeGroupDistribution(AnalysisTree<?> analysisTree) {super(analysisTree);}
 
-    /**
-     * You can use the analysisTreeData array list to access the analysisTree data relevant for building your chart.
-     * @return the chart that will be used by the other class methods
-     */
     @Override
-    ArrayList<Chart<?, ?>> buildCharts() {
-        return buildPieCharts();
-    }
+    protected String getAnalysisTreeDataName() {return "Group Distribution";}
+
+    @Override
+    protected ArrayList<Chart<?, ?>> buildCharts() {return buildPieCharts();}
 }
