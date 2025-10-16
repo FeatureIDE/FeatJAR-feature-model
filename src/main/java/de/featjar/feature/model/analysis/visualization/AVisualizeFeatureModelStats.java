@@ -18,6 +18,7 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -411,8 +412,7 @@ public abstract class AVisualizeFeatureModelStats {
             document.save(path);
             return 0;
 
-        } catch (IOException e) {
-
+        } catch (IOException | InvalidPathException e) {
             FeatJAR.log().error(e);
             return 1;
 
