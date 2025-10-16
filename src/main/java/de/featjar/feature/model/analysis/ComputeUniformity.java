@@ -197,18 +197,31 @@ public class ComputeUniformity extends AComputation<LinkedHashMap<String, Float>
         
         if (ANALYSIS.get(dependencyList)) {
             for (String varName : fmVariableMap.getVariableNames()) {
-                float sampleShareSelected =
-                        returnedMap.get(varName + assignmentsSamplePrefix + "_selected") / assignmentSolutionsCount;
-                float featureShareSelected =
-                        returnedMap.get(varName + featureModelPrefix + "_selected") / solutionsCount;
-                float sampleShareDeselected =
-                        returnedMap.get(varName + assignmentsSamplePrefix + "_deselected") / assignmentSolutionsCount;
-                float featureShareDeselected =
-                        returnedMap.get(varName + featureModelPrefix + "_deselected") / solutionsCount;
-                float sampleShareUndefined =
-                        returnedMap.get(varName + assignmentsSamplePrefix + "_undefined") / assignmentSolutionsCount;
-                float featureShareUndefined =
-                        returnedMap.get(varName + featureModelPrefix + "_undefined") / solutionsCount;
+            	float sampleShareSelected = 0;
+            	float sampleShareDeselected = 0;
+            	float sampleShareUndefined = 0;
+            	float featureShareSelected = 0;
+            	float featureShareDeselected = 0;
+            	float featureShareUndefined = 0;
+            	
+            	if (assignmentSolutionsCount > 0) {
+            		sampleShareSelected =
+                            returnedMap.get(varName + assignmentsSamplePrefix + "_selected") / assignmentSolutionsCount;
+            		sampleShareDeselected =
+                            returnedMap.get(varName + assignmentsSamplePrefix + "_deselected") / assignmentSolutionsCount;
+            		sampleShareUndefined =
+                            returnedMap.get(varName + assignmentsSamplePrefix + "_undefined") / assignmentSolutionsCount;
+            	}
+                
+            	if (solutionsCount > 0) {
+            		featureShareSelected =
+                            returnedMap.get(varName + featureModelPrefix + "_selected") / solutionsCount;
+                    featureShareDeselected =
+                            returnedMap.get(varName + featureModelPrefix + "_deselected") / solutionsCount;
+                    featureShareUndefined =
+                            returnedMap.get(varName + featureModelPrefix + "_undefined") / solutionsCount;
+            	}
+            	
                 returnedMap.remove(varName + assignmentsSamplePrefix + "_selected");
                 returnedMap.remove(varName + featureModelPrefix + "_selected");
                 returnedMap.remove(varName + assignmentsSamplePrefix + "_deselected");
