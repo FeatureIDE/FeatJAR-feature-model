@@ -41,10 +41,14 @@ import de.featjar.feature.model.computation.ComputeAverageConstraint;
 import de.featjar.feature.model.computation.ComputeFeatureDensity;
 import de.featjar.feature.model.computation.ComputeOperatorDistribution;
 import de.featjar.feature.model.io.FeatureModelFormats;
+import de.featjar.feature.model.analysis.visualization.*;
 import de.featjar.feature.model.io.csv.CSVAnalysisFormat;
 import de.featjar.feature.model.io.json.JSONAnalysisFormat;
 import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
 import de.featjar.feature.model.io.yaml.YAMLAnalysisFormat;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -66,6 +70,11 @@ public class PrintStatistics extends ACommand {
         TREE_RELATED,
         CONSTRAINT_RELATED
     }
+    public enum Visualize {
+        OPTION1,
+        OPTION2,
+        OPTION3
+    }
 
     private int exit_status = 0;
 
@@ -77,6 +86,9 @@ public class PrintStatistics extends ACommand {
 
     public static final Option<Boolean> OVERWRITE =
             Option.newFlag("overwrite").setDescription("Overwrite output file.");
+    
+    public static final Option<Path> OUTPUT_OPTION_VISUALIZE =
+            Option.newOption("path_visualize", Option.PathParser).setDescription("Path to save visualization as pdf.");
 
     /**
      * main method for gathering, printing and writing statistics of a feature model
@@ -92,6 +104,7 @@ public class PrintStatistics extends ACommand {
             FeatJAR.log().error("No Input file attached");
             return 1;
         }
+        
 
         // opening input model
         Path path = optionParser.getResult(INPUT_OPTION).orElseThrow();
@@ -131,6 +144,17 @@ public class PrintStatistics extends ACommand {
             writeTo(outputPath, data);
             FeatJAR.log().message("Feature Model saved at: " + outputPath);
         }
+        
+        if(optionParser.getResult(OUTPUT_OPTION_VISUALIZE).isPresent() ) {
+        	//TODO aufrufen der Funktionen von Benjamin und Valentin aus VisualizeFeatureModelStats
+            AnalysisTree<?> tree = AnalysisTreeTransformer.hashMapToTree(data, IO.getFileExtension(path)).get();
+            VisualizeGroupDistribution vizGroup;
+
+            vizGroup = new VisualizeGroupDistribution(tree);
+            vizGroup.exportChartToPDF(0, optionParser.get(OUTPUT_OPTION).toString());
+
+        }
+        
         return exit_status;
     }
 
