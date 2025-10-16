@@ -194,7 +194,6 @@ public class PrintStatistics extends ACommand {
             HashMap<String, Integer> computational_opDensity =
                     Computations.of(model).map(ComputeOperatorDistribution::new).compute();
 
-            // data.put("Operator Distribution", computational_opDensity);
             if (computational_opDensity.size() != 0) {
                 data.put("Operator Distribution", computational_opDensity);
             }

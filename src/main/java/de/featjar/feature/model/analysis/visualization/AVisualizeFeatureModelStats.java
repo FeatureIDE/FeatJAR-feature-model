@@ -251,6 +251,7 @@ public abstract class AVisualizeFeatureModelStats {
 
     /**
      * Premade builder for box charts that you can use when implementing {@link #buildCharts()}.
+     * Not ready yet
      * @return list containing one chart per tree in the feature model
      */
     protected ArrayList<Chart<?, ?>> buildBoxCharts() {
