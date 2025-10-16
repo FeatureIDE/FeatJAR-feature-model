@@ -110,15 +110,14 @@ public class ConfigurationFormatConversion implements ICommand {
      * 		   1 on invalid input or output path
      * 		   2 on unsupported input or output file extension
      * 	 	   3 on failure to save BooleanAssignmentList because file already exists on path directory and --overwrite flag is not used
-     * TODO	   4 on conflicting .list extension in outputPath and no existing --format to specify the .list type
+     * 		   4 on conflicting .list extension in outputPath and no existing --format to specify the .list type
      */
     @Override
     public int run(OptionList optionParser) {
 
         if (!checkIfInputOutputIsPresent(optionParser)) {
             return 1;
-        }
-        ;
+        };
 
         String format_type = "";
         if (optionParser.getResult(FORMAT_TYPE).isPresent()) {
@@ -207,6 +206,7 @@ public class ConfigurationFormatConversion implements ICommand {
      * Saves the opened BooleanAssignmentList as a different desired BooleanAssignmentList file. Automatically detects the appropriate format. Does error handling.
      * @param outputPath Full path to output file including extension.
      * @param inputList BooleanAssignmentList to be saved into the output file.
+     * @param formatType String that can specify format (csv, binary, dimacs, literallist, variablelist)
      * @param overwriteDemanded flag that decides whether existing output file with the same name should be overwritten.
      * @return 0 on success
      *
