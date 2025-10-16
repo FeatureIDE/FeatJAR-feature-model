@@ -42,7 +42,7 @@ import java.util.List;
  * @author Florian Beese
  * */
 public class ComputeOperatorDistribution extends AComputation<HashMap<String, Integer>> {
-    protected static final Dependency<FeatureModel> FEATUREMODEL = Dependency.newDependency(FeatureModel.class);
+	public static final Dependency<FeatureModel> FEATUREMODEL = Dependency.newDependency(FeatureModel.class);
 
     public ComputeOperatorDistribution(IComputation<FeatureModel> featureModel) {
         super(featureModel);

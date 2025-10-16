@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class ComputeNumberVariables extends AComputation<Integer> {
 
-    protected static final Dependency<BooleanAssignmentList> BOOLEAN_ASSIGNMENT_LIST =
+    public static final Dependency<BooleanAssignmentList> BOOLEAN_ASSIGNMENT_LIST =
             Dependency.newDependency(BooleanAssignmentList.class);
 
     public ComputeNumberVariables(IComputation<BooleanAssignmentList> booleanAssignmentList) {
