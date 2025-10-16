@@ -48,7 +48,8 @@ public class VisualizeFeatureModelStatsTest {
     AnalysisTree<?> mediumTree = getMediumAnalysisTree();
     AnalysisTree<?> doubleTree = getDoubleTree();
 
-    String defaultExportName = "src/test/java/de/featjar/feature/model/visualization/model.pdf";
+    String defaultExportName =
+            "src/test/java/de/featjar/feature/model/visualization/VisualizeFeatureModelStatsTest.pdf";
 
     /**
      * Helper function.
@@ -216,7 +217,9 @@ public class VisualizeFeatureModelStatsTest {
     @Test
     void pdfExportWithFolderCreation() throws IOException {
         String[] allPaths = {
-            "export.pdf", "Visualizer Test Folder/export.pdf", "Visualizer Test Folder/Nested Folder/export.pdf"
+            "pdfExportWithFolderCreation.pdf",
+            "Visualizer Test Folder/pdfExportWithFolderCreation.pdf",
+            "Visualizer Test Folder/Nested Folder/pdfExportWithFolderCreation.pdf"
         };
 
         // cleanup

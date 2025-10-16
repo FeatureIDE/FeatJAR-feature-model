@@ -238,9 +238,8 @@ public abstract class AVisualizeFeatureModelStats {
                 continue;
             }
 
-            boolean anyNegativeValues = treeData.values().stream()
-                    .map(value -> (Double) value)
-                    .anyMatch(value -> value < 0);
+            boolean anyNegativeValues =
+                    treeData.values().stream().map(value -> (Double) value).anyMatch(value -> value < 0);
             if (anyNegativeValues) {
                 FeatJAR.log().error("Pie chart cannot be built with negative values");
                 continue;
