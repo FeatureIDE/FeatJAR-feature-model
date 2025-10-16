@@ -58,6 +58,7 @@ public abstract class AVisualizeFeatureModelStats {
     protected LinkedHashMap<String, LinkedHashMap<String, Object>> analysisTreeData;
     protected ArrayList<Chart<?, ?>> charts;
 
+    private String chartTitle = null;
     private int chartWidth = 800;
     private int chartHeight = 600;
     protected Font fontTitle = new Font(Font.SANS_SERIF, Font.BOLD, 30);
@@ -79,9 +80,18 @@ public abstract class AVisualizeFeatureModelStats {
     public ArrayList<Chart<?, ?>> getCharts() {
         return this.charts;
     }
-    // Question - goog idea?
+
     public void setCharts(ArrayList<Chart<?, ?>> charts) {
         this.charts = charts;
+        this.charts = buildCharts();
+    }
+
+    public String getChartTitle() {
+        return chartTitle;
+    }
+
+    public void setChartTitle(String chartTitle) {
+        this.chartTitle = chartTitle;
         this.charts = buildCharts();
     }
 
@@ -216,12 +226,17 @@ public abstract class AVisualizeFeatureModelStats {
         for (String treeKey : this.analysisTreeData.keySet()) {
             PieChart chart =
                     new PieChartBuilder().width(getWidth()).height(getHeight()).build();
-            chart.setTitle(treeKey);
+            chart.setTitle((this.chartTitle == null) ? treeKey : this.chartTitle);
             defaultStyler(chart);
 
             HashMap<String, Object> treeData = analysisTreeData.get(treeKey);
-            // TODO Ist der Cast wirklich i.o?
-            treeData.forEach((key, value) -> chart.addSeries(key, (Number) value));
+
+            try {
+                treeData.forEach((key, value) -> chart.addSeries(key, (Number) value));
+            } catch (ClassCastException e) {
+                FeatJAR.log().error("Invalid data for pie chart: " + e);
+                return new ArrayList<>();
+            }
 
             charts.add(chart);
         }
