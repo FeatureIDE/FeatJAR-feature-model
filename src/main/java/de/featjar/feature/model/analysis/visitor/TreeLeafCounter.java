@@ -29,6 +29,7 @@ import java.util.List;
  * Counts the number of nodes that have no child nodes
  * Can be passed a class up to which should be counted (e.g., to exclude details in a tree).
  *
+ * @author Valentin Laubsch
  * @author Benjamin von Holt
  */
 public class TreeLeafCounter implements ITreeVisitor<ITree<?>, Integer> {
