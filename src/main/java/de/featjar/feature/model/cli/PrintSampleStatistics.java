@@ -67,6 +67,9 @@ public class PrintSampleStatistics extends ACommand {
     public static final Option<Boolean> PRETTY_PRINT =
             Option.newFlag("pretty").setDescription("Pretty prints the numbers");
 
+    public static final Option<Boolean> UNPROCESSED =
+            Option.newFlag("unprocessed").setDescription("Prints unprocessed data of uniformity statistics");
+
     @Override
     public int run(OptionList optionParser) {
         if (!optionParser.getResult(INPUT_OPTION_CONFIGS).isPresent()) {
@@ -88,7 +91,11 @@ public class PrintSampleStatistics extends ACommand {
         IFeatureModel model = (IFeatureModel) loadedFM.orElseThrow();
         BooleanAssignmentList booleanAssignmentList = (BooleanAssignmentList) loadedConfig.orElseThrow();
 
-        data = collectStats(booleanAssignmentList, model);
+        if (optionParser.get(UNPROCESSED)) {
+            data = collectStats(booleanAssignmentList, model, true);
+        } else {
+            data = collectStats(booleanAssignmentList, model);
+        }
 
         // if output path is specified, write statistics to file
         if (optionParser.getResult(OUTPUT_OPTION).isPresent()) {
@@ -139,6 +146,10 @@ public class PrintSampleStatistics extends ACommand {
         }
     }
 
+    public LinkedHashMap<String, Object> collectStats(BooleanAssignmentList boolList, IFeatureModel model) {
+        return collectStats(boolList, model, false);
+    }
+
     /**
      * Gathers statistics about given configuration set
      *
@@ -146,7 +157,8 @@ public class PrintSampleStatistics extends ACommand {
      * @param model - corresponding feature model
      * @return returns Map containing statistics
      */
-    public LinkedHashMap<String, Object> collectStats(BooleanAssignmentList boolList, IFeatureModel model) {
+    public LinkedHashMap<String, Object> collectStats(
+            BooleanAssignmentList boolList, IFeatureModel model, boolean unprocessed) {
 
         LinkedHashMap<String, Object> data = new LinkedHashMap<>();
         data.put(
@@ -163,12 +175,23 @@ public class PrintSampleStatistics extends ACommand {
         data.put(
                 "Feature counter",
                 Computations.of(boolList).map(ComputeFeatureCounter::new).compute());
-        data.put(
-                "Uniformity",
-                Computations.of(model)
-                        .map(ComputeUniformity::new)
-                        .set(ComputeUniformity.BOOLEAN_ASSIGNMENT_LIST, boolList)
-                        .compute());
+        if (unprocessed) {
+            data.put(
+                    "Uniformity",
+                    Computations.of(model)
+                            .map(ComputeUniformity::new)
+                            .set(ComputeUniformity.BOOLEAN_ASSIGNMENT_LIST, boolList)
+                            .set(ComputeUniformity.ANALYSIS, false)
+                            .compute());
+        } else {
+            data.put(
+                    "Uniformity",
+                    Computations.of(model)
+                            .map(ComputeUniformity::new)
+                            .set(ComputeUniformity.BOOLEAN_ASSIGNMENT_LIST, boolList)
+                            .compute());
+        }
+
         return data;
     }
     /**
