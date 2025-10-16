@@ -235,9 +235,16 @@ public abstract class AVisualizeFeatureModelStats {
                 treeData.forEach((key, value) -> chart.addSeries(key, (Number) value));
             } catch (ClassCastException e) {
                 FeatJAR.log().error("Invalid data for pie chart: " + e);
-                return new ArrayList<>();
+                continue;
             }
 
+            boolean anyNegativeValues = treeData.values().stream()
+                    .map(value -> (Double) value)
+                    .anyMatch(value -> value < 0);
+            if (anyNegativeValues) {
+                FeatJAR.log().error("Pie chart cannot be built with negative values");
+                continue;
+            }
             charts.add(chart);
         }
         return charts;
