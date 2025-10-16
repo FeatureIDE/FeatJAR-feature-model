@@ -14,6 +14,9 @@ import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
 import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
@@ -111,23 +114,30 @@ public class VisualizeFeatureModelStatsTest {
         return analysisTreeFromFeatureModel(featureModel);
     }
 
-    // todo test for other polymorph display or export methods
-
     @Test
     void twoPagePDFExport() {
         VisualizeGroupDistribution vizGroup;
         vizGroup = new VisualizeGroupDistribution(doubleTree);
         assertEquals(2, vizGroup.getCharts().size());
         assertEquals(0, vizGroup.exportAllChartsToPDF(defaultExportName));
+        assertTrue(Files.exists(Paths.get(defaultExportName)));
     }
 
     @Test
     void pdfValidIndexGroupDistribution() {
         VisualizeGroupDistribution vizGroup;
+
         vizGroup = new VisualizeGroupDistribution(mediumTree);
         assertEquals(0, vizGroup.exportChartToPDF(0, defaultExportName));
+        assertTrue(Files.exists(Paths.get(defaultExportName)));
+
         vizGroup = new VisualizeGroupDistribution(bigTree);
         assertEquals(0, vizGroup.exportChartToPDF(0, defaultExportName));
+        assertTrue(Files.exists(Paths.get(defaultExportName)));
+
+        vizGroup = new VisualizeGroupDistribution(doubleTree);
+        assertEquals(0, vizGroup.exportChartToPDF(1, defaultExportName));
+        assertTrue(Files.exists(Paths.get(defaultExportName)));
     }
 
     @Test
@@ -135,10 +145,12 @@ public class VisualizeFeatureModelStatsTest {
         VisualizeConstraintOperatorDistribution vizOpDis;
         vizOpDis = new VisualizeConstraintOperatorDistribution(bigTree);
         assertEquals(0, vizOpDis.exportChartToPDF(0, defaultExportName));
+        assertTrue(Files.exists(Paths.get(defaultExportName)));
     }
 
     @Test
     void pdfInvalidIndex() {
+        // todo question: is one test enough?
         VisualizeGroupDistribution vizGroup;
         vizGroup = new VisualizeGroupDistribution(mediumTree);
         assertEquals(1, vizGroup.exportChartToPDF(99, defaultExportName));
@@ -175,4 +187,46 @@ public class VisualizeFeatureModelStatsTest {
         vizGroup.setWidth(chartWidth);
         assertEquals(chartWidth, vizGroup.getCharts().get(0).getWidth());
     }
+
+    @Test
+    void invalidPDFPath() {
+        VisualizeGroupDistribution vizGroup;
+        vizGroup = new VisualizeGroupDistribution(mediumTree);
+        assertEquals(1, vizGroup.exportChartToPDF("?/x.xml"));
+    }
+
+    @Test
+    void pdfExportWithFolderCreation() throws IOException {
+        String[] allPaths = {
+                "export.pdf",
+                "Visualizer Test Folder/export.pdf",
+                "Visualizer Test Folder/Nested Folder/export.pdf"
+        };
+
+        //cleanup
+        for (String path: allPaths) {
+            Files.deleteIfExists(Paths.get(path));
+        }
+
+        // actual tests
+        VisualizeGroupDistribution vizGroup = new VisualizeGroupDistribution(mediumTree);
+        for (String path: allPaths) {
+            assertEquals(0, vizGroup.exportChartToPDF(path));
+            Path castedPath = Paths.get(path);
+            assertTrue(Files.exists(castedPath));
+            File file = castedPath.toFile();
+            assertTrue(file.exists() && file.isFile());
+            assertTrue(file.length() > 1);
+
+        }
+
+        // clean up
+        for (String path: allPaths) {
+            Path castedPasted = Paths.get(path);
+            Files.deleteIfExists(castedPasted);
+        }
+        Files.delete(Paths.get("Visualizer Test Folder/Nested Folder"));
+        Files.delete(Paths.get("Visualizer Test Folder"));
+    }
+
 }
