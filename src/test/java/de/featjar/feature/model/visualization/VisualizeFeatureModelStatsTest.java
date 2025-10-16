@@ -211,7 +211,7 @@ public class VisualizeFeatureModelStatsTest {
     void invalidPDFPath() {
         VisualizeGroupDistribution vizGroup;
         vizGroup = new VisualizeGroupDistribution(mediumTree);
-        assertEquals(1, vizGroup.exportChartToPDF("?/x.xml"));
+        assertEquals(1, vizGroup.exportChartToPDF("\0/x.xml"));
     }
 
     @Test
