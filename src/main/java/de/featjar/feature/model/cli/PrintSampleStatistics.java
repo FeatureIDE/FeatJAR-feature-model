@@ -113,7 +113,7 @@ public class PrintSampleStatistics extends ACommand {
     private void writeTo(Path path, LinkedHashMap<String, Object> data) {
 
         String type = IO.getFileExtension(path);
-        Result<AnalysisTree<?>> tree = AnalysisTreeTransformer.hashMapToTree(data, type);
+        Result<AnalysisTree<?>> tree = AnalysisTreeTransformer.hashMapToTree(data, "Analysis");
 
         try {
             switch (type) {
