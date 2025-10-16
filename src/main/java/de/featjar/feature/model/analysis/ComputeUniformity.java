@@ -58,10 +58,10 @@ import java.util.List;
  */
 public class ComputeUniformity extends AComputation<LinkedHashMap<String, Float>> {
 
-    protected static final Dependency<BooleanAssignmentList> BOOLEAN_ASSIGNMENT_LIST =
+    public static final Dependency<BooleanAssignmentList> BOOLEAN_ASSIGNMENT_LIST =
             Dependency.newDependency(BooleanAssignmentList.class);
-    protected static final Dependency<IFeatureModel> FEATURE_MODEL = Dependency.newDependency(IFeatureModel.class);
-    protected static final Dependency<Boolean> ANALYSIS = Dependency.newDependency(Boolean.class);
+    public static final Dependency<IFeatureModel> FEATURE_MODEL = Dependency.newDependency(IFeatureModel.class);
+    public static final Dependency<Boolean> ANALYSIS = Dependency.newDependency(Boolean.class);
 
     public ComputeUniformity(IComputation<IFeatureModel> featureModel) {
         super(
@@ -97,7 +97,7 @@ public class ComputeUniformity extends AComputation<LinkedHashMap<String, Float>
         }
 
         // Calculate the number of valid configurations per feature in the full featureModel.
-        for (String varName : fmVariableMap.getVariableNames()) {
+		for (String varName : fmVariableMap.getVariableNames()) {
             Reference currentFormula =
                     new Reference(new And((IFormula) fmFormula.getChildren().get(0), new Literal(varName)));
             currentFormula.setFreeVariables(((Reference) fmFormula).getFreeVariables());
@@ -133,19 +133,25 @@ public class ComputeUniformity extends AComputation<LinkedHashMap<String, Float>
         // Calculate the number of valid configurations per feature in the full assignmentSample.
         int assignmentSolutionsCount = 0;
         for (BooleanAssignment booleanAssignment : booleanAssignmentList.getAll()) {
+        	// save all Literals, Whether they are true and false, then add them to full formula with an And. 
             LinkedList<IFormula> allLiterals = new LinkedList<IFormula>();
+            // save the Name of the literals that are set to true/selected in the current assignment
             List<String> currentSelectedAssignmentVariables = new LinkedList<String>();
+            // save the Name of the literals that are set to false/deselected in the current assignment
             List<String> currentDeselectedAssignmentVariables = new LinkedList<String>();
             for (int index : booleanAssignment.get()) {
+            	// Add selected Literal
                 if (fmVariableMap.get(index).isPresent()) {
                     allLiterals.add(new Literal(fmVariableMap.get(index).get()));
                     currentSelectedAssignmentVariables.add(
                             fmVariableMap.get(index).get());
+                 // Add deselected Literal
                 } else if (fmVariableMap.get(Math.abs(index)).isPresent()) {
                     currentDeselectedAssignmentVariables.add(
                             fmVariableMap.get(Math.abs(index)).get());
                     allLiterals.add(new Not(
                             new Literal(fmVariableMap.get(Math.abs(index)).get())));
+                 // shouldn't happen but just in case.
                 } else {
                     Result.empty();
                 }
@@ -154,6 +160,7 @@ public class ComputeUniformity extends AComputation<LinkedHashMap<String, Float>
             Reference currentFormula =
                     new Reference(new And((IFormula) fmFormula.getChildren().get(0), currentIFormulaAssignment));
             currentFormula.setFreeVariables(((Reference) fmFormula).getFreeVariables());
+            // check if the formula is valid, if yes increase the count of the selected or deselected Literals in returnedMap.
             if (Computations.of((IFormula) currentFormula)
                     .map(ComputeNNFFormula::new)
                     .map(ComputeCNFFormula::new)
@@ -173,7 +180,8 @@ public class ComputeUniformity extends AComputation<LinkedHashMap<String, Float>
                 }
             }
         }
-
+        
+        // For valid assignment calculate and add the count of undefined Literals in the AssignmentLists
         for (String varName : fmVariableMap.getVariableNames()) {
             returnedMap.replace(
                     varName + assignmentsSamplePrefix + "_undefined",
@@ -186,7 +194,7 @@ public class ComputeUniformity extends AComputation<LinkedHashMap<String, Float>
                             - returnedMap.get(varName + featureModelPrefix + "_selected")
                             - returnedMap.get(varName + featureModelPrefix + "_deselected"));
         }
-
+        
         if (ANALYSIS.get(dependencyList)) {
             for (String varName : fmVariableMap.getVariableNames()) {
                 float sampleShareSelected =
@@ -217,4 +225,5 @@ public class ComputeUniformity extends AComputation<LinkedHashMap<String, Float>
         }
         return Result.of(returnedMap);
     }
+
 }

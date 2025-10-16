@@ -202,7 +202,6 @@ public class AnalysisTreeTransformer {
                     return Result.empty();
                 }
                 if (!(currentElement.get(2) instanceof Double || currentElement.get(2) instanceof Integer)) {
-                    System.out.println(currentElement.get(2).getClass());
                     FeatJAR.log()
                             .error("The third element of an innermost element of the Map/YAML data structure "
                                     + "was not from the type String");

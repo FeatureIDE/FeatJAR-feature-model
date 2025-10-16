@@ -44,7 +44,7 @@ import java.util.Set;
  * @author Florian Beese
  * */
 public class ComputeFeatureDensity extends AComputation<Float> {
-    protected static final Dependency<FeatureModel> FEATUREMODEL = Dependency.newDependency(FeatureModel.class);
+	public static final Dependency<FeatureModel> FEATUREMODEL = Dependency.newDependency(FeatureModel.class);
 
     public ComputeFeatureDensity(IComputation<FeatureModel> featureModel) {
         super(featureModel);
