@@ -143,7 +143,6 @@ public class SamplePropertiesTest {
         assertEquals(7, selectionDistribution.get("selected"));
         assertEquals(6, selectionDistribution.get("deselected"));
         assertEquals(22, selectionDistribution.get("undefined"));
-        System.out.println("Distribution of feature selection: \n" + selectionDistribution);
     }
 
     @Test
@@ -175,7 +174,6 @@ public class SamplePropertiesTest {
         assertEquals(2, featureCounter.get("E_undefined"));
         assertEquals(2, featureCounter.get("F_undefined"));
         assertEquals(5, featureCounter.get("G_undefined"));
-        System.out.println("Distribution of feature selection per feature: \n" + featureCounter);
     }
 
     @Test
@@ -184,7 +182,6 @@ public class SamplePropertiesTest {
         IComputation<Integer> computational =
                 Computations.of(booleanAssignmentList).map(ComputeNumberConfigurations::new);
         assertEquals(5, computational.compute());
-        System.out.println("Number of configurations: \n" + computational.compute());
     }
 
     @Test
@@ -193,7 +190,6 @@ public class SamplePropertiesTest {
         IComputation<Integer> computational =
                 Computations.of(booleanAssignmentList).map(ComputeNumberVariables::new);
         assertEquals(7, computational.compute());
-        System.out.println("Number of variables: \n" + computational.compute());
     }
 
     @Test
@@ -208,49 +204,89 @@ public class SamplePropertiesTest {
                 .set(ComputeUniformity.ANALYSIS, false);
 
         HashMap<String, Float> result = computation.compute();
-        System.out.println("Descriptive validtiy map: \n" + result);
-        computation.set(ComputeUniformity.ANALYSIS, true);
-        result = computation.compute();
-        System.out.println("Commonality difference per features: \n" + result);
 
-        assertEquals(26, result.get("FeatureModel Valid"));
-        assertEquals(2, result.get("AssignmentsSample Valid"));
         assertEquals(26, result.get("ConfigDB_FeatureModel_selected"));
-        assertEquals(2, result.get("ConfigDB_AssignmentsSample_selected"));
+        assertEquals(3, result.get("ConfigDB_AssignmentsSample_selected"));
         assertEquals(26, result.get("API_FeatureModel_selected"));
-        assertEquals(1, result.get("API_AssignmentsSample_selected"));
+        assertEquals(2, result.get("API_AssignmentsSample_selected"));
         assertEquals(26, result.get("OS_FeatureModel_selected"));
         assertEquals(0, result.get("OS_AssignmentsSample_selected"));
         assertEquals(14, result.get("Get_FeatureModel_selected"));
-        assertEquals(2, result.get("Get_AssignmentsSample_selected"));
+        assertEquals(3, result.get("Get_AssignmentsSample_selected"));
         assertEquals(16, result.get("Put_FeatureModel_selected"));
-        assertEquals(1, result.get("Put_AssignmentsSample_selected"));
+        assertEquals(2, result.get("Put_AssignmentsSample_selected"));
         assertEquals(16, result.get("Delete_FeatureModel_selected"));
         assertEquals(1, result.get("Delete_AssignmentsSample_selected"));
         assertEquals(13, result.get("Windows_FeatureModel_selected"));
-        assertEquals(1, result.get("Windows_AssignmentsSample_selected"));
-        assertEquals(13, result.get("Linux_FeatureModel_selected"));
-        assertEquals(1, result.get("Linux_AssignmentsSample_selected"));
-        assertEquals(1, result.get("Windows_AssignmentsSample_selected"));
+        assertEquals(2, result.get("Windows_AssignmentsSample_selected"));
         assertEquals(13, result.get("Linux_FeatureModel_selected"));
         assertEquals(1, result.get("Linux_AssignmentsSample_selected"));
         assertEquals(12, result.get("Transactions_FeatureModel_selected"));
         assertEquals(1, result.get("Transactions_AssignmentsSample_selected"));
         assertEquals(26, result.get("FeatureModel Valid"));
-        assertEquals(2, result.get("AssignmentsSample Valid"));
+        assertEquals(3, result.get("AssignmentsSample Valid"));
+        
+        assertEquals(0, result.get("ConfigDB_FeatureModel_undefined"));
+        assertEquals(0, result.get("ConfigDB_AssignmentsSample_undefined"));
+        assertEquals(1, result.get("API_AssignmentsSample_undefined"));
+        assertEquals(3, result.get("OS_AssignmentsSample_undefined"));
+        assertEquals(0, result.get("Get_AssignmentsSample_undefined"));
+        assertEquals(1, result.get("Put_AssignmentsSample_undefined"));
+        assertEquals(0, result.get("Delete_AssignmentsSample_undefined"));
+        assertEquals(0, result.get("Windows_AssignmentsSample_undefined"));
+        assertEquals(0, result.get("Linux_AssignmentsSample_undefined"));
+        assertEquals(0, result.get("Transactions_AssignmentsSample_undefined"));
+        
+        assertEquals(0, result.get("ConfigDB_FeatureModel_deselected"));
+        assertEquals(0, result.get("ConfigDB_AssignmentsSample_deselected"));
+        assertEquals(0, result.get("API_FeatureModel_deselected"));
+        assertEquals(0, result.get("API_AssignmentsSample_deselected"));
+        assertEquals(0, result.get("OS_FeatureModel_deselected"));
+        assertEquals(0, result.get("OS_AssignmentsSample_deselected"));
+        assertEquals(12, result.get("Get_FeatureModel_deselected"));
+        assertEquals(0, result.get("Get_AssignmentsSample_deselected"));
+        assertEquals(10, result.get("Put_FeatureModel_deselected"));
+        assertEquals(0, result.get("Put_AssignmentsSample_deselected"));
+        assertEquals(10, result.get("Delete_FeatureModel_deselected"));
+        assertEquals(2, result.get("Delete_AssignmentsSample_deselected"));
+        assertEquals(13, result.get("Windows_FeatureModel_deselected"));
+        assertEquals(1, result.get("Windows_AssignmentsSample_deselected"));
+        assertEquals(13, result.get("Linux_FeatureModel_deselected"));
+        assertEquals(2, result.get("Linux_AssignmentsSample_deselected"));
+        assertEquals(14, result.get("Transactions_FeatureModel_deselected"));
+        assertEquals(2, result.get("Transactions_AssignmentsSample_deselected"));
 
         computation.set(ComputeUniformity.ANALYSIS, true);
         result = computation.compute();
         assertEquals(0, result.get("ConfigDB_selected"));
-        assertEquals(-(float) 1 / (float) 2, result.get("API_selected"));
+        assertEquals(((float) 2 / 3) - (float) 26 / (float) 26, result.get("API_selected"));
         assertEquals(-1, result.get("OS_selected"));
-        assertEquals(((float) 2 / 2) - ((float) 14 / 26), result.get("Get_selected"));
-        assertEquals(((float) 1 / 2) - ((float) 16 / 26), result.get("Put_selected"));
-        assertEquals(((float) 1 / 2) - ((float) 16 / 26), result.get("Delete_selected"));
-        assertEquals(0, result.get("Windows_selected"));
-        assertEquals(0, result.get("Linux_selected"));
-        assertEquals(((float) 1 / 2) - ((float) 12 / 26), result.get("Transactions_selected"));
-        System.out.println("Commonality difference per features: \n" + result);
+        assertEquals(((float) 3 / 3) - ((float) 14 / 26), result.get("Get_selected"));
+        assertEquals(((float) 2 / 3) - ((float) 16 / 26), result.get("Put_selected"));
+        assertEquals(((float) 1 / 3) - ((float) 16 / 26), result.get("Delete_selected"));
+        assertEquals(((float) 2 / 3) - ((float) 13 / 26), result.get("Windows_selected"));
+        assertEquals(((float) 1 / 3) - ((float) 13 / 26), result.get("Linux_selected"));
+        assertEquals(((float) 1 / 3) - ((float) 12 / 26), result.get("Transactions_selected"));
+        
+        assertEquals(0, result.get("ConfigDB_deselected"));
+        assertEquals(((float) 0 / 3) - (float) 0 / (float) 26, result.get("API_deselected"));
+        assertEquals(0, result.get("OS_deselected"));
+        assertEquals(((float) 0 / 3) - ((float) 12 / 26), result.get("Get_deselected"));
+        assertEquals(((float) 0 / 3) - ((float) 10 / 26), result.get("Put_deselected"));
+        assertEquals(((float) 2 / 3) - ((float) 10 / 26), result.get("Delete_deselected"));
+        assertEquals(((float) 1 / 3) - ((float) 13 / 26), result.get("Windows_deselected"));
+        assertEquals(((float) 2 / 3) - ((float) 13 / 26), result.get("Linux_deselected"));
+        assertEquals(((float) 2 / 3) - ((float)14 / 26), result.get("Transactions_deselected"));
+        
+        assertEquals(0, result.get("ConfigDB_undefined"));
+        assertEquals(((float) 1 / 3) - (float) 0 / (float) 26, result.get("API_undefined"));
+        assertEquals(1, result.get("OS_undefined"));
+        assertEquals(((float) 0 / 3) - ((float) 0 / 26), result.get("Get_undefined"));
+        assertEquals(((float) 1 / 3) - ((float) 0 / 26), result.get("Put_undefined"));
+        assertEquals(((float) 0 / 3) - ((float) 0 / 26), result.get("Delete_undefined"));
+        assertEquals(((float) 0 / 3) - ((float) 0 / 26), result.get("Windows_undefined"));
+        assertEquals(((float) 0 / 3) - ((float) 0 / 26), result.get("Linux_undefined"));
+        assertEquals(((float) 0 / 3) - ((float) 0 / 26), result.get("Transactions_undefined"));
     }
 
     private IFeatureTree generateMediumTree() {
