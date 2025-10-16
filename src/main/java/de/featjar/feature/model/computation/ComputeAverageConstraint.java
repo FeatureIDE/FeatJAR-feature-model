@@ -76,7 +76,7 @@ public class ComputeAverageConstraint extends AComputation<Float> {
                             .orElse(0);
         }
         int numberOfConstraints = featureModel.getConstraints().size();
-        float averageConstraint = (numberOfConstraints == 0)? 0 : (float) atomsSum / (float) numberOfConstraints;
+        float averageConstraint = (numberOfConstraints == 0) ? 0 : (float) atomsSum / (float) numberOfConstraints;
         return Result.of(averageConstraint);
     }
 }

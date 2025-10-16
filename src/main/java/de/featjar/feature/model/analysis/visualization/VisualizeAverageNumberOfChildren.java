@@ -1,9 +1,28 @@
+/*
+ * Copyright (C) 2025 FeatJAR-Development-Team
+ *
+ * This file is part of FeatJAR-feature-model.
+ *
+ * feature-model is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3.0 of the License,
+ * or (at your option) any later version.
+ *
+ * feature-model is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with feature-model. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
+ */
 package de.featjar.feature.model.analysis.visualization;
 
 import de.featjar.feature.model.analysis.AnalysisTree;
-import org.knowm.xchart.internal.chartpart.Chart;
-
 import java.util.ArrayList;
+import org.knowm.xchart.internal.chartpart.Chart;
 
 /**
  * Visualizes and exports the feature model statistic "Average Number of Children".
@@ -19,11 +38,17 @@ public class VisualizeAverageNumberOfChildren extends AVisualizeFeatureModelStat
      *
      * @param analysisTree {@link AnalysisTree} over the entire feature model.
      */
-    public VisualizeAverageNumberOfChildren(AnalysisTree<?> analysisTree) { super(analysisTree); }
+    public VisualizeAverageNumberOfChildren(AnalysisTree<?> analysisTree) {
+        super(analysisTree);
+    }
 
     @Override
-    protected String getAnalysisTreeDataName() {return "Average Number of Children";}
+    protected String getAnalysisTreeDataName() {
+        return "Average Number of Children";
+    }
 
     @Override
-    protected ArrayList<Chart<?, ?>> buildCharts() {return buildBoxCharts();}
+    protected ArrayList<Chart<?, ?>> buildCharts() {
+        return buildBoxCharts();
+    }
 }

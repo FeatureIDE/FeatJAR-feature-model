@@ -1,4 +1,27 @@
+/*
+ * Copyright (C) 2025 FeatJAR-Development-Team
+ *
+ * This file is part of FeatJAR-feature-model.
+ *
+ * feature-model is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3.0 of the License,
+ * or (at your option) any later version.
+ *
+ * feature-model is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with feature-model. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
+ */
 package de.featjar.feature.model.visualization;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 import de.featjar.base.data.Result;
 import de.featjar.base.data.identifier.Identifiers;
 import de.featjar.base.io.IO;
@@ -12,16 +35,13 @@ import de.featjar.feature.model.analysis.visualization.VisualizeGroupDistributio
 import de.featjar.feature.model.cli.PrintStatistics;
 import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
 import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
-import org.junit.jupiter.api.Test;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 public class VisualizeFeatureModelStatsTest {
     AnalysisTree<?> bigTree = getBigAnalysisTree();
@@ -75,29 +95,24 @@ public class VisualizeFeatureModelStatsTest {
      */
     public AnalysisTree<?> analysisTreeFromFeatureModel(FeatureModel featureModel) {
         PrintStatistics printStatistics = new PrintStatistics();
-        LinkedHashMap<String, Object> map = printStatistics.collectStats(
-                featureModel,
-                PrintStatistics.AnalysesScope.ALL
-        );
+        LinkedHashMap<String, Object> map =
+                printStatistics.collectStats(featureModel, PrintStatistics.AnalysesScope.ALL);
         return AnalysisTreeTransformer.hashMapToTree(map, "Analysis").get();
     }
 
     /**
      * Helper function. Converts an XML file into an {@link AnalysisTree}
      */
-    public AnalysisTree<?> analysisTreeFromXML (Path path) {
+    public AnalysisTree<?> analysisTreeFromXML(Path path) {
         Result<IFeatureModel> load = IO.load(path, new XMLFeatureModelFormat());
         FeatureModel model = (FeatureModel) load.orElseThrow();
 
         PrintStatistics printStatistics = new PrintStatistics();
-        LinkedHashMap<String, Object> map = printStatistics.collectStats(
-                model,
-                PrintStatistics.AnalysesScope.ALL
-        );
+        LinkedHashMap<String, Object> map = printStatistics.collectStats(model, PrintStatistics.AnalysesScope.ALL);
         return AnalysisTreeTransformer.hashMapToTree(map, "Analysis").get();
     }
 
-    public AnalysisTree<?> getBigAnalysisTree () {
+    public AnalysisTree<?> getBigAnalysisTree() {
         return analysisTreeFromXML(Paths.get("src/test/java/de/featjar/feature/model/visualization/model.xml"));
     }
 
@@ -201,35 +216,31 @@ public class VisualizeFeatureModelStatsTest {
     @Test
     void pdfExportWithFolderCreation() throws IOException {
         String[] allPaths = {
-                "export.pdf",
-                "Visualizer Test Folder/export.pdf",
-                "Visualizer Test Folder/Nested Folder/export.pdf"
+            "export.pdf", "Visualizer Test Folder/export.pdf", "Visualizer Test Folder/Nested Folder/export.pdf"
         };
 
-        //cleanup
-        for (String path: allPaths) {
+        // cleanup
+        for (String path : allPaths) {
             Files.deleteIfExists(Paths.get(path));
         }
 
         // actual tests
         VisualizeGroupDistribution vizGroup = new VisualizeGroupDistribution(mediumTree);
-        for (String path: allPaths) {
+        for (String path : allPaths) {
             assertEquals(0, vizGroup.exportChartToPDF(path));
             Path castedPath = Paths.get(path);
             assertTrue(Files.exists(castedPath));
             File file = castedPath.toFile();
             assertTrue(file.exists() && file.isFile());
             assertTrue(file.length() > 1);
-
         }
 
         // clean up
-        for (String path: allPaths) {
+        for (String path : allPaths) {
             Path castedPasted = Paths.get(path);
             Files.deleteIfExists(castedPasted);
         }
         Files.delete(Paths.get("Visualizer Test Folder/Nested Folder"));
         Files.delete(Paths.get("Visualizer Test Folder"));
     }
-
 }

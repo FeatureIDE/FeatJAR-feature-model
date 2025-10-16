@@ -1,3 +1,23 @@
+/*
+ * Copyright (C) 2025 FeatJAR-Development-Team
+ *
+ * This file is part of FeatJAR-feature-model.
+ *
+ * feature-model is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3.0 of the License,
+ * or (at your option) any later version.
+ *
+ * feature-model is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with feature-model. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
+ */
 package de.featjar.feature.model.analysis.visualization;
 
 import de.featjar.base.FeatJAR;
@@ -6,14 +26,6 @@ import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.analysis.visitor.AnalysisTreeVisitor;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.util.Matrix;
-import org.knowm.xchart.*;
-import org.knowm.xchart.internal.chartpart.Chart;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
@@ -24,6 +36,13 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.swing.*;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.util.Matrix;
+import org.knowm.xchart.*;
+import org.knowm.xchart.internal.chartpart.Chart;
 
 /**
  * Visualizes and exports feature model statistics.
@@ -35,12 +54,12 @@ import java.util.stream.Collectors;
  */
 public abstract class AVisualizeFeatureModelStats {
 
-    final protected AnalysisTree<?> analysisTree;
+    protected final AnalysisTree<?> analysisTree;
     protected LinkedHashMap<String, LinkedHashMap<String, Object>> analysisTreeData;
     protected ArrayList<Chart<?, ?>> charts;
 
-    private Integer chartWidth = 800;
-    private Integer chartHeight = 600;
+    private int chartWidth = 800;
+    private int chartHeight = 600;
     protected Font fontTitle = new Font(Font.SANS_SERIF, Font.BOLD, 30);
     protected Font fontLabels = new Font(Font.SANS_SERIF, Font.BOLD, 20);
     protected Font fontLegend = new Font(Font.SANS_SERIF, Font.PLAIN, 20);
@@ -98,7 +117,9 @@ public abstract class AVisualizeFeatureModelStats {
         return false;
     }
 
-    private boolean chartsAreEmpty() {return chartsAreEmpty("");}
+    private boolean chartsAreEmpty() {
+        return chartsAreEmpty("");
+    }
 
     private boolean chartsAreEmptyDisplay() {
         return chartsAreEmpty("Cannot display chart: ");
@@ -143,15 +164,13 @@ public abstract class AVisualizeFeatureModelStats {
                 @SuppressWarnings("unchecked")
                 HashMap<String, Object> nestedMap = (HashMap<String, Object>) pieceOfInformation;
 
-                nestedMap.keySet().stream()
-                        .sorted()
-                        .forEach(nestedMapKey -> {
-                            // the value relevant for us needs to be unpacked first
-                            Object rawValue = nestedMap.get(nestedMapKey);
-                            ArrayList<?> castedValue = (ArrayList<?>) rawValue;
-                            Object value = castedValue.get(2);
-                            featureTreeData.put(nestedMapKey, value);
-                        });
+                nestedMap.keySet().stream().sorted().forEach(nestedMapKey -> {
+                    // the value relevant for us needs to be unpacked first
+                    Object rawValue = nestedMap.get(nestedMapKey);
+                    ArrayList<?> castedValue = (ArrayList<?>) rawValue;
+                    Object value = castedValue.get(2);
+                    featureTreeData.put(nestedMapKey, value);
+                });
 
             } else if (pieceOfInformation instanceof ArrayList) {
                 ArrayList<?> castedValue = (ArrayList<?>) pieceOfInformation;
@@ -171,12 +190,12 @@ public abstract class AVisualizeFeatureModelStats {
     private HashMap<String, Object> extractAnalysisMap() {
         Result<HashMap<String, Object>> result = Trees.traverse(analysisTree, new AnalysisTreeVisitor());
         HashMap<String, Object> receivedResult = result.get();
-        assert receivedResult != null: "Analysis Tree Visitor failed to produce a result.";
+        assert receivedResult != null : "Analysis Tree Visitor failed to produce a result.";
 
         // TODO we currently trust that this is always "Analysis"
         @SuppressWarnings("unchecked")
         HashMap<String, Object> analysisMap = (HashMap<String, Object>) receivedResult.get("Analysis");
-        assert analysisMap != null: "Received no \"Analysis\" HashMap from AnalysisTree";
+        assert analysisMap != null : "Received no \"Analysis\" HashMap from AnalysisTree";
 
         return analysisMap;
     }
@@ -186,7 +205,7 @@ public abstract class AVisualizeFeatureModelStats {
      * There are also premade builders that you may adopt, such as {@link #buildPieCharts()}.
      * @return list containing one chart per tree in the feature model
      */
-    abstract protected ArrayList<Chart<?, ?>> buildCharts();
+    protected abstract ArrayList<Chart<?, ?>> buildCharts();
 
     /**
      * Premade builder for pie charts that you can use when implementing {@link #buildCharts()}.
@@ -195,10 +214,8 @@ public abstract class AVisualizeFeatureModelStats {
     protected ArrayList<Chart<?, ?>> buildPieCharts() {
         ArrayList<Chart<?, ?>> charts = new ArrayList<>();
         for (String treeKey : this.analysisTreeData.keySet()) {
-            PieChart chart = new PieChartBuilder()
-                    .width(getWidth())
-                    .height(getHeight())
-                    .build();
+            PieChart chart =
+                    new PieChartBuilder().width(getWidth()).height(getHeight()).build();
             chart.setTitle(treeKey);
             defaultStyler(chart);
 
@@ -217,18 +234,18 @@ public abstract class AVisualizeFeatureModelStats {
      */
     protected ArrayList<Chart<?, ?>> buildBoxCharts() {
         ArrayList<Chart<?, ?>> charts = new ArrayList<>();
-        // TODO in averagenumberofchildren only one double is provided instead of an double array, so I used testdata to test die BoxPlot
-        // TODO for example not the average number of children, but the number of children for every node as a double or int array is needed to plot a boxplot for the average number of children
+        // TODO in averagenumberofchildren only one double is provided instead of an double array, so I used testdata to
+        // test die BoxPlot
+        // TODO for example not the average number of children, but the number of children for every node as a double or
+        // int array is needed to plot a boxplot for the average number of children
         double[] testdata = {0.9, 1.5, 2.22};
 
         for (String treeKey : this.analysisTreeData.keySet()) {
             // Momentan bauen wir pro Tree einen Chart mit einer Box mit mehreren Werten
             // Wäre es für Boxplots nicht sinnvoller einen Chart für alle Trees zu machen,
             // mit je eine Box pro Tree?
-            BoxChart chart = new BoxChartBuilder()
-                    .width(getWidth())
-                    .height(getHeight())
-                    .build();
+            BoxChart chart =
+                    new BoxChartBuilder().width(getWidth()).height(getHeight()).build();
             chart.setTitle(treeKey);
             defaultStyler(chart);
 
@@ -264,7 +281,7 @@ public abstract class AVisualizeFeatureModelStats {
      * @param chart the chart that will be displayed
      * @return 0 on success, 1 on general error
      */
-    public int displayChart (Chart<?, ?> chart) {
+    public int displayChart(Chart<?, ?> chart) {
         try {
             JFrame jframe = new SwingWrapper<>(chart).displayChart();
             if (jframe == null) {
@@ -284,7 +301,9 @@ public abstract class AVisualizeFeatureModelStats {
      * @return 0 on success, 1 on general error, 2 on empty internal chart list
      */
     public int displayChart() {
-        if (chartsAreEmptyDisplay()) {return 2;}
+        if (chartsAreEmptyDisplay()) {
+            return 2;
+        }
         return this.displayChart(0);
     }
 
@@ -292,12 +311,14 @@ public abstract class AVisualizeFeatureModelStats {
      * Creates a live preview pop-up window of an internally generated chart, fetched by index.
      * @return 0 on success, 1 on general error, 2 on empty internal chart list
      */
-    public int displayChart (Integer index) {
-        if (chartsAreEmptyDisplay()) {return 2;}
+    public int displayChart(int index) {
+        if (chartsAreEmptyDisplay()) {
+            return 2;
+        }
         try {
             this.displayChart(this.charts.get(index));
         } catch (IndexOutOfBoundsException e) {
-            FeatJAR.log().error("Unable to fetch chart with index "+ index + ": " + e);
+            FeatJAR.log().error("Unable to fetch chart with index " + index + ": " + e);
             return 1;
         }
         return 0;
@@ -308,7 +329,9 @@ public abstract class AVisualizeFeatureModelStats {
      * @return 0 on success, 1 on general error, 2 on empty internal chart list
      */
     public int displayAllCharts() {
-        if (chartsAreEmptyDisplay()) {return 2;}
+        if (chartsAreEmptyDisplay()) {
+            return 2;
+        }
 
         int returnValue = 0;
 
@@ -372,12 +395,14 @@ public abstract class AVisualizeFeatureModelStats {
      * @param path  full path to the destination file. Does not check whether you specified an extension.
      * @return 0 on success, 1 on general errors, 2 if there are no internal {@link #charts} to use.
      */
-    public int exportChartToPDF(Integer index, String path) {
-        if (chartsAreEmptyPDF()) {return 2;}
+    public int exportChartToPDF(int index, String path) {
+        if (chartsAreEmptyPDF()) {
+            return 2;
+        }
         try {
             return exportChartToPDF(charts.get(index), path);
         } catch (IndexOutOfBoundsException e) {
-            FeatJAR.log().error("Unable to fetch chart with index "+ index + ": " + e);
+            FeatJAR.log().error("Unable to fetch chart with index " + index + ": " + e);
             return 1;
         }
     }
@@ -388,7 +413,9 @@ public abstract class AVisualizeFeatureModelStats {
      * @return 0 on success, 1 on general errors, 2 if there are no internal {@link #charts} to use.
      */
     public int exportChartToPDF(String path) {
-        if (chartsAreEmptyPDF()) {return 2;}
+        if (chartsAreEmptyPDF()) {
+            return 2;
+        }
         return exportChartToPDF(0, path);
     }
 
@@ -421,7 +448,6 @@ public abstract class AVisualizeFeatureModelStats {
         } catch (IOException | InvalidPathException e) {
             FeatJAR.log().error(e);
             return 1;
-
         }
     }
 
@@ -431,7 +457,9 @@ public abstract class AVisualizeFeatureModelStats {
      * @return 0 on success, 1 on general errors, 2 if there are no internal {@link #charts} to use.
      */
     public int exportAllChartsToPDF(String path) {
-        if (chartsAreEmptyPDF()) {return 2;}
+        if (chartsAreEmptyPDF()) {
+            return 2;
+        }
         return exportAllChartsToPDF(charts, path);
     }
 
@@ -459,6 +487,4 @@ public abstract class AVisualizeFeatureModelStats {
 
         return new Matrix(at);
     }
-
-
 }
