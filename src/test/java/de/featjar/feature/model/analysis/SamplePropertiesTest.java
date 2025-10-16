@@ -225,7 +225,7 @@ public class SamplePropertiesTest {
         assertEquals(1, result.get("Transactions_AssignmentsSample_selected"));
         assertEquals(26, result.get("FeatureModel Valid"));
         assertEquals(3, result.get("AssignmentsSample Valid"));
-        
+
         assertEquals(0, result.get("ConfigDB_FeatureModel_undefined"));
         assertEquals(0, result.get("ConfigDB_AssignmentsSample_undefined"));
         assertEquals(1, result.get("API_AssignmentsSample_undefined"));
@@ -236,7 +236,7 @@ public class SamplePropertiesTest {
         assertEquals(0, result.get("Windows_AssignmentsSample_undefined"));
         assertEquals(0, result.get("Linux_AssignmentsSample_undefined"));
         assertEquals(0, result.get("Transactions_AssignmentsSample_undefined"));
-        
+
         assertEquals(0, result.get("ConfigDB_FeatureModel_deselected"));
         assertEquals(0, result.get("ConfigDB_AssignmentsSample_deselected"));
         assertEquals(0, result.get("API_FeatureModel_deselected"));
@@ -267,7 +267,7 @@ public class SamplePropertiesTest {
         assertEquals(((float) 2 / 3) - ((float) 13 / 26), result.get("Windows_selected"));
         assertEquals(((float) 1 / 3) - ((float) 13 / 26), result.get("Linux_selected"));
         assertEquals(((float) 1 / 3) - ((float) 12 / 26), result.get("Transactions_selected"));
-        
+
         assertEquals(0, result.get("ConfigDB_deselected"));
         assertEquals(((float) 0 / 3) - (float) 0 / (float) 26, result.get("API_deselected"));
         assertEquals(0, result.get("OS_deselected"));
@@ -276,8 +276,8 @@ public class SamplePropertiesTest {
         assertEquals(((float) 2 / 3) - ((float) 10 / 26), result.get("Delete_deselected"));
         assertEquals(((float) 1 / 3) - ((float) 13 / 26), result.get("Windows_deselected"));
         assertEquals(((float) 2 / 3) - ((float) 13 / 26), result.get("Linux_deselected"));
-        assertEquals(((float) 2 / 3) - ((float)14 / 26), result.get("Transactions_deselected"));
-        
+        assertEquals(((float) 2 / 3) - ((float) 14 / 26), result.get("Transactions_deselected"));
+
         assertEquals(0, result.get("ConfigDB_undefined"));
         assertEquals(((float) 1 / 3) - (float) 0 / (float) 26, result.get("API_undefined"));
         assertEquals(1, result.get("OS_undefined"));
