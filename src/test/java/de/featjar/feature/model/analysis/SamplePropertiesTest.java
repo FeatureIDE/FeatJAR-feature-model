@@ -137,7 +137,7 @@ public class SamplePropertiesTest {
     @Test
     public void computeDistributionFeaturesSelectionsTest() {
         BooleanAssignmentList booleanAssignmentList = createAssignmentList();
-        IComputation<HashMap<String, Integer>> computational =
+        IComputation<LinkedHashMap<String, Integer>> computational =
                 Computations.of(booleanAssignmentList).map(ComputeDistributionFeatureSelections::new);
         HashMap<String, Integer> selectionDistribution = computational.compute();
         assertEquals(7, selectionDistribution.get("selected"));

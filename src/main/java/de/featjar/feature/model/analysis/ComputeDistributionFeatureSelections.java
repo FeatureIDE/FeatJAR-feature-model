@@ -27,7 +27,7 @@ import de.featjar.base.computation.Progress;
 import de.featjar.base.data.Result;
 import de.featjar.formula.assignment.BooleanAssignment;
 import de.featjar.formula.assignment.BooleanAssignmentList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -36,7 +36,7 @@ import java.util.List;
  * @author Mohammad Khair Almekkawi
  * @author Florian Beese
  */
-public class ComputeDistributionFeatureSelections extends AComputation<HashMap<String, Integer>> {
+public class ComputeDistributionFeatureSelections extends AComputation<LinkedHashMap<String, Integer>> {
 
     protected static final Dependency<BooleanAssignmentList> BOOLEAN_ASSIGNMENT_LIST =
             Dependency.newDependency(BooleanAssignmentList.class);
@@ -46,9 +46,9 @@ public class ComputeDistributionFeatureSelections extends AComputation<HashMap<S
     }
 
     @Override
-    public Result<HashMap<String, Integer>> compute(List<Object> dependencyList, Progress progress) {
+    public Result<LinkedHashMap<String, Integer>> compute(List<Object> dependencyList, Progress progress) {
         BooleanAssignmentList booleanAssigmenAssignmentList = BOOLEAN_ASSIGNMENT_LIST.get(dependencyList);
-        HashMap<String, Integer> selectionDistribution = new HashMap<String, Integer>();
+        LinkedHashMap<String, Integer> selectionDistribution = new LinkedHashMap<String, Integer>();
         selectionDistribution.put("selected", 0);
         selectionDistribution.put("deselected", 0);
         selectionDistribution.put("undefined", 0);
