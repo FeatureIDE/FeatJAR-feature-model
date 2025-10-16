@@ -82,6 +82,9 @@ public class VisualizeFeatureModelStatsTest {
         return AnalysisTreeTransformer.hashMapToTree(map, "Analysis").get();
     }
 
+    /**
+     * Helper function. Converts an XML file into an {@link AnalysisTree}
+     */
     public AnalysisTree<?> analysisTreeFromXML (Path path) {
         Result<IFeatureModel> load = IO.load(path, new XMLFeatureModelFormat());
         FeatureModel model = (FeatureModel) load.orElseThrow();

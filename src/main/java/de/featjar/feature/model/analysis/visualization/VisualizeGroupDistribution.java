@@ -17,7 +17,7 @@ public class VisualizeGroupDistribution extends AVisualizeFeatureModelStats{
 
     /**
      * Visualizes and exports the feature model statistic "Operator Distribution".
-     * 
+     *
      * @param analysisTree {@link AnalysisTree} over the entire feature model.
      */
     public VisualizeGroupDistribution(AnalysisTree<?> analysisTree) {super(analysisTree);}
