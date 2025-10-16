@@ -61,7 +61,7 @@ public class ComputeUniformity extends AComputation<LinkedHashMap<String, Float>
     public static final Dependency<BooleanAssignmentList> BOOLEAN_ASSIGNMENT_LIST =
             Dependency.newDependency(BooleanAssignmentList.class);
     protected static final Dependency<IFeatureModel> FEATURE_MODEL = Dependency.newDependency(IFeatureModel.class);
-    protected static final Dependency<Boolean> ANALYSIS = Dependency.newDependency(Boolean.class);
+    public static final Dependency<Boolean> ANALYSIS = Dependency.newDependency(Boolean.class);
 
     public ComputeUniformity(IComputation<IFeatureModel> featureModel) {
         super(
