@@ -17,6 +17,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,26 +53,26 @@ public abstract class AVisualizeFeatureModelStats {
     public ArrayList<Chart<?, ?>> getCharts() {
         return this.charts;
     }
-
+    // Question - goog idea?
     public void setCharts(ArrayList<Chart<?, ?>> charts) {
         this.charts = charts;
         this.charts = buildCharts();
     }
 
-    public Integer getWidth() {
+    public int getWidth() {
         return this.chartWidth;
     }
 
-    public void setWidth(Integer width) {
+    public void setWidth(int width) {
         this.chartWidth = width;
         this.charts = buildCharts();
     }
 
-    public Integer getHeight() {
+    public int getHeight() {
         return this.chartHeight;
     }
 
-    public void setHeight(Integer height) {
+    public void setHeight(int height) {
         this.chartHeight = height;
         this.charts = buildCharts();
     }
@@ -116,7 +119,7 @@ public abstract class AVisualizeFeatureModelStats {
         // fetches keys for all trees for the data we want
         // example: [Tree 1] Group Distribution, [Tree 2] Group Distribution, ...
         List<String> featureTreeDataKeys = analysisMap.keySet().stream()
-                .filter(key -> key.contains(this.getAnalysisTreeDataName()))
+                .filter(key -> key.contains(getAnalysisTreeDataName()))
                 .sorted()
                 .collect(Collectors.toList());
 
@@ -163,7 +166,7 @@ public abstract class AVisualizeFeatureModelStats {
         HashMap<String, Object> receivedResult = result.get();
         assert receivedResult != null: "Analysis Tree Visitor failed to produce a result.";
 
-        // we currently trust that this is always "Analysis"
+        // TODO we currently trust that this is always "Analysis"
         @SuppressWarnings("unchecked")
         HashMap<String, Object> analysisMap = (HashMap<String, Object>) receivedResult.get("Analysis");
         assert analysisMap != null: "Received no \"Analysis\" HashMap from AnalysisTree";
@@ -193,7 +196,8 @@ public abstract class AVisualizeFeatureModelStats {
             defaultStyler(chart);
 
             HashMap<String, Object> treeData = analysisTreeData.get(treeKey);
-            treeData.forEach((key, value) -> chart.addSeries(key, (Integer) value));
+            // TODO Ist der Cast wirklich i.o?
+            treeData.forEach((key, value) -> chart.addSeries(key, (Number) value));
 
             charts.add(chart);
         }
@@ -206,8 +210,8 @@ public abstract class AVisualizeFeatureModelStats {
      */
     protected ArrayList<Chart<?, ?>> buildBoxCharts() {
         ArrayList<Chart<?, ?>> charts = new ArrayList<>();
-        // in averagenumberofchildren only one double is provided instead of an double array, so I used testdata to test die BoxPlot
-        // for example not the average number of children, but the number of children for every node as a double or int array is needed to plot a boxplot for the average number of children
+        // TODO in averagenumberofchildren only one double is provided instead of an double array, so I used testdata to test die BoxPlot
+        // TODO for example not the average number of children, but the number of children for every node as a double or int array is needed to plot a boxplot for the average number of children
         double[] testdata = {0.9, 1.5, 2.22};
 
         for (String treeKey : this.analysisTreeData.keySet()) {
@@ -219,10 +223,11 @@ public abstract class AVisualizeFeatureModelStats {
                     .height(getHeight())
                     .build();
             chart.setTitle(treeKey);
+            defaultStyler(chart);
 
             HashMap<String, Object> treeData = analysisTreeData.get(treeKey);
 
-            treeData.forEach((key, value) -> chart.addSeries(key, testdata));
+            treeData.forEach((key, value) -> chart.addSeries(key, (double[]) testdata));
 
             charts.add(chart);
         }
@@ -396,6 +401,13 @@ public abstract class AVisualizeFeatureModelStats {
                     return 1;
                 }
             }
+
+            // create folder if it does not already exist
+            Path pathToFolder = Paths.get(path).getParent();
+            if (pathToFolder != null && !Files.exists(pathToFolder)) {
+                Files.createDirectories(pathToFolder);
+            }
+
             document.save(path);
             return 0;
 
