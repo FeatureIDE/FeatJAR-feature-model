@@ -42,7 +42,7 @@ public class VisualizeFeatureModelStatsTest {
 
         IFeature featureAPI = featureModel.mutate().addFeature("API");
         IFeatureTree treeAPI = treeRoot.mutate().addFeatureBelow(featureAPI);
-        treeAPI.isMandatory();
+        treeAPI.mutate().makeMandatory();
         IFeature featureGet = featureModel.mutate().addFeature("Get");
         treeAPI.mutate().addFeatureBelow(featureGet);
         IFeature featurePut = featureModel.mutate().addFeature("Put");
@@ -53,7 +53,7 @@ public class VisualizeFeatureModelStatsTest {
 
         IFeature featureOS = featureModel.mutate().addFeature("OS");
         IFeatureTree treeOS = treeRoot.mutate().addFeatureBelow(featureOS);
-        treeOS.isMandatory();
+        treeOS.mutate().makeMandatory();
         IFeature featureWindows = featureModel.mutate().addFeature("Windows");
         treeOS.mutate().addFeatureBelow(featureWindows);
         IFeature featureLinux = featureModel.mutate().addFeature("Linux");
@@ -62,7 +62,7 @@ public class VisualizeFeatureModelStatsTest {
 
         IFeature featureTransactions = featureModel.mutate().addFeature("Transactions");
         IFeatureTree treeTransactions = treeRoot.mutate().addFeatureBelow(featureTransactions);
-        treeTransactions.isOptional();
+        treeTransactions.mutate().makeOptional();
 
         return featureModel;
     }
