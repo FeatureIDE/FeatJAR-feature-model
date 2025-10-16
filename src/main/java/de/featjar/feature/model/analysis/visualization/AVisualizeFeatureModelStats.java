@@ -26,8 +26,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * A class that builds a visualization using the XChart library.
- * Data is read as an {@link AnalysisTree} and the chart is built by the buildChart() methods of each child class.
+ * Visualizes and exports feature model statistics.
+ * Data is read as an {@link AnalysisTree}. Each child specifies the information to be read from the tree via
+ * {@link #getAnalysisTreeDataName()}, as well as how to build a chart from it via the {@link #buildCharts()} method.
  *
  * @author Benjamin von Holt
  * @author Valentin Laubsch
@@ -44,6 +45,13 @@ public abstract class AVisualizeFeatureModelStats {
     protected Font fontLabels = new Font(Font.SANS_SERIF, Font.BOLD, 20);
     protected Font fontLegend = new Font(Font.SANS_SERIF, Font.PLAIN, 20);
 
+    /**
+     * Visualizes and exports feature model statistics.
+     * Data is read as an {@link AnalysisTree}. Each child specifies the information to be read from the tree via
+     * {@link #getAnalysisTreeDataName()}, as well as how to build a chart from it via the {@link #buildCharts()} method.
+     *
+     * @param analysisTree {@link AnalysisTree} over the entire feature model.
+     */
     public AVisualizeFeatureModelStats(AnalysisTree<?> analysisTree) {
         this.analysisTree = analysisTree;
         this.analysisTreeData = extractAnalysisTree();
@@ -176,14 +184,14 @@ public abstract class AVisualizeFeatureModelStats {
     }
 
     /**
-     * Use analysisTreeData to access the data relevant for building your chart.
-     * There are also premade builders that you may adopt.
+     * Uses {@link #analysisTreeData} to access the data relevant for building your chart.
+     * There are also premade builders that you may adopt, such as {@link #buildPieCharts()}.
      * @return list containing one chart per tree in the feature model
      */
     abstract ArrayList<Chart<?, ?>> buildCharts();
 
     /**
-     * Premade builder for pie charts that you can use when implementing buildCharts().
+     * Premade builder for pie charts that you can use when implementing {@link #buildCharts()}.
      * @return list containing one chart per tree in the feature model
      */
     protected ArrayList<Chart<?, ?>> buildPieCharts() {
@@ -206,7 +214,7 @@ public abstract class AVisualizeFeatureModelStats {
     }
 
     /**
-     * Premade builder for box charts that you can use when implementing buildCharts().
+     * Premade builder for box charts that you can use when implementing {@link #buildCharts()}.
      * @return list containing one chart per tree in the feature model
      */
     protected ArrayList<Chart<?, ?>> buildBoxCharts() {
@@ -247,7 +255,7 @@ public abstract class AVisualizeFeatureModelStats {
     }
 
     /**
-     * extends the defaultStyler() method with PieChart-specific calls
+     * extends {@link #defaultStyler(Chart)} with PieChart-specific calls
      */
     private void defaultStylerPieChartExtension(PieChart chart) {
         chart.getStyler().setLabelsFont(fontLabels);
@@ -298,7 +306,7 @@ public abstract class AVisualizeFeatureModelStats {
     }
 
     /**
-     * Creates live preview pop-up windows of ALL internally generated charts.
+     * Creates live preview pop-up windows of ALL internally generated {@link #charts}.
      * @return 0 on success, 1 on general error, 2 on empty internal chart list
      */
     public int displayAllCharts() {
@@ -364,7 +372,7 @@ public abstract class AVisualizeFeatureModelStats {
      * Creates a PDF document with a single page featuring the specified chart.
      * @param index index to retrieve a chart form the internal chart list
      * @param path  full path to the destination file. Does not check whether you specified an extension.
-     * @return 0 on success, 1 on general errors, 2 if there are no internal charts to use.
+     * @return 0 on success, 1 on general errors, 2 if there are no internal {@link #charts} to use.
      */
     public int exportChartToPDF(Integer index, String path) {
         if (chartsAreEmptyPDF()) {return 2;}
@@ -379,7 +387,7 @@ public abstract class AVisualizeFeatureModelStats {
     /**
      * Creates a PDF document with a single page featuring the first chart from the internal list.
      * @param path  full path to the destination file. Does not check whether you specified an extension.
-     * @return 0 on success, 1 on general errors, 2 if there are no internal charts to use.
+     * @return 0 on success, 1 on general errors, 2 if there are no internal {@link #charts} to use.
      */
     public int exportChartToPDF(String path) {
         if (chartsAreEmptyPDF()) {return 2;}
@@ -422,7 +430,7 @@ public abstract class AVisualizeFeatureModelStats {
     /**
      * Creates a new PDF document and fills it with pages that each feature one chart from the list
      * @param path     full path to the destination file. Does not check whether you specified an extension.
-     * @return 0 on success, 1 on general errors, 2 if there are no internal charts to use.
+     * @return 0 on success, 1 on general errors, 2 if there are no internal {@link #charts} to use.
      */
     public int exportAllChartsToPDF(String path) {
         if (chartsAreEmptyPDF()) {return 2;}
