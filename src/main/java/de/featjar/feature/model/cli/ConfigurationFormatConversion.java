@@ -24,18 +24,13 @@ import de.featjar.base.FeatJAR;
 import de.featjar.base.cli.ICommand;
 import de.featjar.base.cli.Option;
 import de.featjar.base.cli.OptionList;
-import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
 import de.featjar.base.io.format.IFormat;
-import de.featjar.feature.model.IFeatureModel;
-import de.featjar.feature.model.io.FeatureModelFormats;
-import java.io.IOException;
+import de.featjar.formula.assignment.BooleanAssignmentList;
+import de.featjar.formula.io.BooleanAssignmentListFormats;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,34 +38,62 @@ import java.util.stream.Collectors;
 /**
  * Prints statistics about a provided Feature Model.
  *
- * @author Knut, Kilian & Benjamin
+ * @author Knut & Kilian
  */
-
-// BooleanAssignmentValueMapFormat implements IFormat<BooleanAssignmentValueMap>
-
 public class ConfigurationFormatConversion implements ICommand {
 
+    public enum TypeTXT {
+        SIMPLE_TXT("simple_text"),
+        DEFAULT_TXT("text");
+
+        public final String description;
+
+        TypeTXT(String description) {
+            this.description = description;
+        }
+
+        @Override
+        public String toString() {
+            return description;
+        }
+    }
+
     private static final List<String> supportedInputFileExtensions =
-            FeatureModelFormats.getInstance().getExtensions().stream()
+            BooleanAssignmentListFormats.getInstance().getExtensions().stream()
                     .filter(IFormat::supportsParse)
                     .map(IFormat::getFileExtension)
                     .collect(Collectors.toList());
 
     private static final List<String> supportedOutputFileExtensions =
-            FeatureModelFormats.getInstance().getExtensions().stream()
+            BooleanAssignmentListFormats.getInstance().getExtensions().stream()
                     .filter(IFormat::supportsWrite)
                     .map(IFormat::getFileExtension)
                     .collect(Collectors.toList());
 
+    private static final List<String> supportedOutputFileNames =
+            BooleanAssignmentListFormats.getInstance().getExtensions().stream()
+                    .filter(IFormat::supportsWrite)
+                    .map(f -> f.getName().toLowerCase())
+                    .collect(Collectors.toList());
+
+    private static final List<String> supportedOutputFileNamesWithExtensions =
+            BooleanAssignmentListFormats.getInstance().getExtensions().stream()
+                    .filter(IFormat::supportsWrite)
+                    .map(f -> f.getName().toLowerCase() + " (." + f.getFileExtension() + ")")
+                    .collect(Collectors.toList());
+
     public static final Option<Path> INPUT_OPTION = Option.newOption("input", Option.PathParser)
-            .setDescription("Path to input file. Accepted File Types: " + supportedInputFileExtensions)
-            .setValidator(Option.PathValidator);
+            .setDescription("Path to input file. Accepted File Types: " + supportedInputFileExtensions);
 
     public static final Option<Path> OUTPUT_OPTION = Option.newOption("output", Option.PathParser)
-            .setDescription("Path to output file. Accepted File Types: " + supportedOutputFileExtensions);
+            .setDescription("Path to output file. Accepted File Types: " + supportedOutputFileNamesWithExtensions);
 
     public static final Option<Boolean> OVERWRITE =
-            Option.newFlag("overwrite").setDescription("Overwrite output file.");
+            Option.newFlag("overwrite").setDescription("Overwrite existing file at output path.");
+
+    public static final Option<String> FORMAT_TYPE = Option.newStringEnumOption(
+                    "format", supportedOutputFileNames.toArray(new String[0]))
+            .setDescription("Format can be specified. Necessary if output path has .list extension.");
 
     /**
      * @return all options registered for the calling class.
@@ -80,203 +103,62 @@ public class ConfigurationFormatConversion implements ICommand {
     }
 
     /**
-     * For info loss map; indicates whether a feature is supported fully, partially, or not at all.
-     */
-    private enum SupportLevel {
-        NO(0),
-        YES(1);
-
-        public final int rank;
-
-        SupportLevel(int rank) {
-            this.rank = rank;
-        }
-
-        boolean isLessThan(SupportLevel other) {
-            return this.rank < other.rank;
-        }
-    }
-
-    /**
-     * For info loss map.
-     * Saving name as well as a description in case we need to explain it to the user later.
-     */
-    private enum FileInfo {
-        basicHierarchy("General hierarchical Structure"),
-        subgroupHierarchy("Hierarchy with subgroups"),
-        featureDescription("Features with descriptions"),
-        featureAttributes("Features with attributes"),
-        featureCardinality("Cardinality of features"),
-        booleanOperators("Features of boolean operators"),
-        allOperators("Features of all operators"),
-        parseable("File can be used for input");
-
-        public final String name;
-
-        FileInfo(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
-    }
-
-    /**
-     * main function for handling format conversion
+     * main function for handling conversion of BooleanAssignmentList files.
      * @param optionParser supplied by command line execution.
      *
      * @return 0 on success
-     * 		   1 if output/input aren't present
-     *         2 if input/output file type is invalid
-     *         3 if the model could not be parsed,
-     *         4 if a file is already present at output path and no overwrite is specified
-     *         5 on IOException
+     * 		   1 on invalid input or output path
+     * 		   2 on unsupported input or output file extension
+     * 	 	   3 on failure to save BooleanAssignmentList because file already exists on path directory and --overwrite flag is not used
+     * 		   4 on conflicting .list extension in outputPath and no existing --format to specify the .list type
      */
     @Override
     public int run(OptionList optionParser) {
 
         if (!checkIfInputOutputIsPresent(optionParser)) {
             return 1;
-        }
-        Path outputPath = optionParser.getResult(OUTPUT_OPTION).orElseThrow();
+        };
 
-        // check if provided file extensions are supported
-        String inputFileExtension =
-                IO.getFileExtension(optionParser.getResult(INPUT_OPTION).get());
+        String format_type = "";
+        if (optionParser.getResult(FORMAT_TYPE).isPresent()) {
+            format_type = optionParser.getResult(FORMAT_TYPE).get();
+
+        } else if (optionParser.getResult(OUTPUT_OPTION).get().toString().endsWith(".list")) {
+
+            String outputBooleanAssignmentListFormat =
+                    BooleanAssignmentListFormats.getInstance().getExtensions().stream()
+                            .filter(IFormat::supportsWrite)
+                            .map(f -> f.getName().toLowerCase())
+                            .filter(f -> f.endsWith("list"))
+                            .collect(Collectors.joining("', '"));
+
+            FeatJAR.log()
+                    .error("Specify format for .list file using the --format command. Possible options: '"
+                            + outputBooleanAssignmentListFormat + "'.");
+            return 4;
+        }
+
+        String intputFileExtension =
+                IO.getFileExtension(optionParser.getResult(INPUT_OPTION).get().toString());
         String outputFileExtension =
-                IO.getFileExtension(optionParser.getResult(OUTPUT_OPTION).get());
-        if (!checkIfFileExtensionsValid(inputFileExtension, outputFileExtension)) {
+                IO.getFileExtension(optionParser.getResult(OUTPUT_OPTION).get().toString());
+
+        if (!checkIfFileExtensionsValid(intputFileExtension, outputFileExtension)) {
             return 2;
         }
 
-        // informing user about information loss during conversion between file formats
-        infoLossMessage(inputFileExtension, outputFileExtension);
-
-        // check if model was corrected extracted from input
-        IFeatureModel model = inputParser(optionParser);
-        if (model == null) {
-            FeatJAR.log().error("No model parsed from input file!");
-            return 3;
+        if (format_type.endsWith("list")) {
+            FeatJAR.log().warning("No parser exists for '.list' files.");
         }
 
-        return saveFile(outputPath, model, outputFileExtension, optionParser.get(OVERWRITE));
-    }
+        // loading list from input path
+        BooleanAssignmentList list = IO.load(
+                        optionParser.getResult(INPUT_OPTION).orElseThrow(), BooleanAssignmentListFormats.getInstance())
+                .get();
 
-    /**
-     * Informs user about potential information loss occurring during file conversion
-     * @param inputFileExtension file extension of the input file (lower case, no leading dot)
-     * @param outputFileExtension file extension of the output file (lower case, no leading dot)
-     */
-    private void infoLossMessage(String inputFileExtension, String outputFileExtension) {
-
-        StringBuilder msg = new StringBuilder();
-        msg.append("Info Loss:\n");
-
-        Map<String, Map<FileInfo, SupportLevel>> infoLossMap = buildInfoLossMap();
-
-        Map<FileInfo, SupportLevel> iSupports = infoLossMap.get(inputFileExtension);
-        Map<FileInfo, SupportLevel> oSupports = infoLossMap.get(outputFileExtension);
-
-        if (iSupports == null || oSupports == null) {
-            return;
-        }
-        boolean infoLossPresent = false;
-        for (FileInfo fileInfo : iSupports.keySet()) {
-            SupportLevel iSupportLevel = iSupports.get(fileInfo);
-            SupportLevel oSupportLevel = oSupports.get(fileInfo);
-
-            if (oSupportLevel.isLessThan(iSupportLevel)) {
-                if (!infoLossPresent) {
-                    msg.append(String.format(
-                            "%-46s  %s%n", "", inputFileExtension + " --> " + outputFileExtension + "\n"));
-                    infoLossPresent = true;
-                }
-
-                msg.append(String.format("%-36s %14s  %5s%n", "    " + fileInfo, iSupportLevel, oSupportLevel));
-            }
-        }
-        if (infoLossPresent) {
-            FeatJAR.log().warning(msg.toString());
-        } else {
-            FeatJAR.log().info("No Information Loss from " + inputFileExtension + " to " + outputFileExtension + ".");
-        }
-    }
-
-    /**
-     *
-     * {@return information loss map that tracks how well a file extension supports any given piece of information}
-     */
-    private Map<String, Map<FileInfo, SupportLevel>> buildInfoLossMap() {
-        Map<String, Map<FileInfo, SupportLevel>> supportMap = new HashMap<>();
-
-        buildInfoLossMapRegisterExt(
-                "xml",
-                Map.of(
-                        FileInfo.basicHierarchy, SupportLevel.YES,
-                        FileInfo.subgroupHierarchy, SupportLevel.NO,
-                        FileInfo.featureDescription, SupportLevel.YES,
-                        FileInfo.featureAttributes, SupportLevel.YES,
-                        FileInfo.featureCardinality, SupportLevel.NO,
-                        FileInfo.booleanOperators, SupportLevel.YES,
-                        FileInfo.allOperators, SupportLevel.NO,
-                        FileInfo.parseable, SupportLevel.YES),
-                supportMap);
-
-        buildInfoLossMapRegisterExt(
-                "uvl",
-                Map.of(
-                        FileInfo.basicHierarchy, SupportLevel.YES,
-                        FileInfo.subgroupHierarchy, SupportLevel.YES,
-                        FileInfo.featureDescription, SupportLevel.YES,
-                        FileInfo.featureAttributes, SupportLevel.YES,
-                        FileInfo.featureCardinality, SupportLevel.YES,
-                        FileInfo.booleanOperators, SupportLevel.YES,
-                        FileInfo.allOperators, SupportLevel.YES,
-                        FileInfo.parseable, SupportLevel.YES),
-                supportMap);
-
-        buildInfoLossMapRegisterExt(
-                "dot",
-                Map.of(
-                        FileInfo.basicHierarchy, SupportLevel.YES,
-                        FileInfo.subgroupHierarchy, SupportLevel.YES,
-                        FileInfo.featureDescription, SupportLevel.YES,
-                        FileInfo.featureAttributes, SupportLevel.YES,
-                        FileInfo.featureCardinality, SupportLevel.YES,
-                        FileInfo.booleanOperators, SupportLevel.YES,
-                        FileInfo.allOperators, SupportLevel.YES,
-                        FileInfo.parseable, SupportLevel.NO),
-                supportMap);
-
-        // if user forgot to set FileInfos: Support Level is automatically set to NONE
-        for (String ext : supportMap.keySet()) {
-            for (FileInfo fileInfo : FileInfo.values()) {
-                supportMap.get(ext).putIfAbsent(fileInfo, SupportLevel.NO);
-            }
-        }
-
-        return supportMap;
-    }
-
-    /**
-     * Reinforces correct addition of infoLossMap entries
-     * @param extension file extension that will be added
-     * @param fileInfos pieces of file information as described in FileInfo enum
-     * @param supportMap the information loss map that's being updated
-     */
-    private void buildInfoLossMapRegisterExt(
-            String extension,
-            Map<FileInfo, SupportLevel> fileInfos,
-            Map<String, Map<FileInfo, SupportLevel>> supportMap) {
-        if (fileInfos.size() != FileInfo.values().length) {
-            FeatJAR.log()
-                    .error("Info Loss Map: " + extension
-                            + " was added with too many or too few FileInfos. Skipping this extension.");
-            return;
-        }
-        supportMap.put(extension, new EnumMap<>(fileInfos));
+        // writing data to file
+        return saveFile(
+                optionParser.getResult(OUTPUT_OPTION).orElseThrow(), list, format_type, optionParser.get(OVERWRITE));
     }
 
     /**
@@ -321,66 +203,64 @@ public class ConfigurationFormatConversion implements ICommand {
     }
 
     /**
-     * Attempts to extract a feature model from the input file.
-     * @param optionParser holds the command line parameters
-     * @return Feature Model read out from input file. Will be null on failure.
-     */
-    private IFeatureModel inputParser(OptionList optionParser) {
-        Path inputPath = optionParser.getResult(INPUT_OPTION).orElseThrow();
-        IFeatureModel model = null;
-        try {
-            Result<IFeatureModel> load = IO.load(inputPath, FeatureModelFormats.getInstance());
-            model = load.get();
-        } catch (Exception e) {
-            FeatJAR.log().error(e.getMessage());
-        }
-        return model;
-    }
-
-    /**
-     * Saves the read feature model as the desired output file. Automatically fetches the appropriate format. Does error handling.
-     * @param outputPath Full path to output file.
-     * @param model Feature Model to be saved into the output file.
-     * @param outputFileExtension extension of the output file. Used to fetch appropriate format.
-     * @param overWriteOutputFile flag that decides whether existing output files with the same name should be overwritten.
+     * Saves the opened BooleanAssignmentList as a different desired BooleanAssignmentList file. Automatically detects the appropriate format. Does error handling.
+     * @param outputPath Full path to output file including extension.
+     * @param inputList BooleanAssignmentList to be saved into the output file.
+     * @param formatType String that can specify format (csv, binary, dimacs, literallist, variablelist)
+     * @param overwriteDemanded flag that decides whether existing output file with the same name should be overwritten.
      * @return 0 on success
-     *         2 if an input/output file type is invalid
-     *         4 if a file is already present at output path and no overwrite is specified
-     *         5 on IOException
+     *
      */
-    public int saveFile(Path outputPath, IFeatureModel model, String outputFileExtension, boolean overWriteOutputFile) {
+    public int saveFile(
+            Path outputPath, BooleanAssignmentList inputList, String formatType, boolean overwriteDemanded) {
 
-        IFormat<IFeatureModel> format;
+        Optional<IFormat<BooleanAssignmentList>> outputBooleanAssignmentListFormat = null;
 
-        Optional<IFormat<IFeatureModel>> outputFormats = FeatureModelFormats.getInstance().getExtensions().stream()
-                .filter(IFormat::supportsWrite)
-                .filter(formatTemp -> Objects.equals(outputFileExtension, formatTemp.getFileExtension()))
-                .findFirst();
-        if (outputFormats.isEmpty()) {
-            FeatJAR.log().error("Unsupported output file extension: " + outputFileExtension);
-            return 2;
+        // if --format specifies the format
+        if (supportedOutputFileNames.contains(formatType)) {
+
+            outputBooleanAssignmentListFormat = BooleanAssignmentListFormats.getInstance().getExtensions().stream()
+                    .filter(IFormat::supportsWrite)
+                    .filter(f -> f.getName().toLowerCase().equals(formatType.toLowerCase()))
+                    .findFirst();
+
+            // user can specify different formats by using both --format and a path with another file extension. In that
+            // case a warning is printed
+            if (!IO.getFileExtension(outputPath)
+                    .equals(outputBooleanAssignmentListFormat.get().getFileExtension())) {
+                FeatJAR.log()
+                        .warning("Writing using the "
+                                + outputBooleanAssignmentListFormat.get().getName() + " format into a ."
+                                + IO.getFileExtension(outputPath) + " file.");
+            }
+
+            // automatically extracting format from output path
         } else {
-            format = outputFormats.get();
+            outputBooleanAssignmentListFormat = BooleanAssignmentListFormats.getInstance().getExtensions().stream()
+                    .filter(IFormat::supportsWrite)
+                    .filter(formatTemp ->
+                            Objects.equals(IO.getFileExtension(outputPath), formatTemp.getFileExtension()))
+                    .findFirst();
         }
 
         try {
             if (Files.exists(outputPath)) {
-                if (overWriteOutputFile) {
+                if (overwriteDemanded) {
                     FeatJAR.log().info("File already present at: " + outputPath + ". Continuing to overwrite File.");
                 } else {
                     FeatJAR.log()
-                            .error("Saving outputModel in File unsuccessful: File already present at: " + outputPath
+                            .error("Saving list in File unsuccessful: File already present at: " + outputPath
                                     + ". To overwrite present file add --overwrite");
-                    return 4;
+                    return 3;
                 }
             }
-            IO.save(model, outputPath, format);
+            IO.save(inputList, outputPath, outputBooleanAssignmentListFormat.get());
+            FeatJAR.log().message("Output list successfully saved at: " + outputPath);
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             FeatJAR.log().error(e);
-            return 5;
         }
-        FeatJAR.log().message("Output model saved at: " + outputPath);
+
         return 0;
     }
 
