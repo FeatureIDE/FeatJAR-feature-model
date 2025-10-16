@@ -122,7 +122,7 @@ public class PrintStatisticsTest {
                 "model_outputWithoutFileExtension",
                 "--overwrite");
         assertEquals(1, exit_code);
-    }
+    } 
 
     /**
      * Testing whether collecting statistics with scope specified to ALL actually returns values for all parameters.
@@ -130,7 +130,7 @@ public class PrintStatisticsTest {
     @Test
     void scopeAll() throws IOException {
         String content =
-                "{Number of Atoms=0, Feature Density=0.0, Average Constraints=NaN, [Tree 1] Average Number of Children=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
+                "{Number of Atoms=0, Feature Density=0.0, Average Constraints=0.0, [Tree 1] Average Number of Children=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
         String comparison =
                 printStats.collectStats(minimalModel, AnalysesScope.ALL).toString();
         assertEquals(content, comparison);
@@ -155,7 +155,7 @@ public class PrintStatisticsTest {
      */
     @Test
     void scopeConstraintRelated() throws IOException {
-        String content = "{Number of Atoms=0, Feature Density=0.0, Average Constraints=NaN}" + "";
+        String content = "{Number of Atoms=0, Feature Density=0.0, Average Constraints=0.0}" + "";
         String comparison = printStats
                 .collectStats(minimalModel, AnalysesScope.CONSTRAINT_RELATED)
                 .toString();
@@ -219,7 +219,7 @@ public class PrintStatisticsTest {
         assertEquals(tree.print(), tree_expected.print());
         assertEquals(0, exit_code);
 
-        Files.deleteIfExists(Paths.get("model_jsonOutputTest.json"));
+        Files.deleteIfExists(Paths.get("model_jsonOuputTest.json"));
     }
 
     /**
