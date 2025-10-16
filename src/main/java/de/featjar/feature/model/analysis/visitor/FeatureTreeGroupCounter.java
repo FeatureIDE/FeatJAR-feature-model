@@ -31,6 +31,7 @@ import java.util.List;
 /**
  * Counts the share of groups found in the given feature tree, in order: AlternativeGroup, OrGroup, AndGroup, OtherGroup.
  *
+ * @author Valentin Laubsch
  * @author Benjamin von Holt
  */
 public class FeatureTreeGroupCounter implements ITreeVisitor<ITree<IFeatureTree>, HashMap<String, Integer>> {
