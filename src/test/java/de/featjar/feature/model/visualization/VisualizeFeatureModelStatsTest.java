@@ -149,4 +149,30 @@ public class VisualizeFeatureModelStatsTest {
         vizOpDis = new VisualizeConstraintOperatorDistribution(bigTree);
         assertEquals(1, vizOpDis.exportChartToPDF(99, defaultExportName));
     }
+
+    @Test
+    void changeChartHeight() {
+        VisualizeGroupDistribution vizGroup;
+        vizGroup = new VisualizeGroupDistribution(mediumTree);
+
+        Integer chartHeight = vizGroup.getHeight();
+        assertEquals(chartHeight, vizGroup.getCharts().get(0).getHeight());
+
+        chartHeight = 500;
+        vizGroup.setHeight(chartHeight);
+        assertEquals(chartHeight, vizGroup.getCharts().get(0).getHeight());
+    }
+
+    @Test
+    void changeChartWidth() {
+        VisualizeGroupDistribution vizGroup;
+        vizGroup = new VisualizeGroupDistribution(mediumTree);
+
+        Integer chartWidth = vizGroup.getWidth();
+        assertEquals(chartWidth, vizGroup.getCharts().get(0).getWidth());
+
+        chartWidth = 500;
+        vizGroup.setWidth(chartWidth);
+        assertEquals(chartWidth, vizGroup.getCharts().get(0).getWidth());
+    }
 }

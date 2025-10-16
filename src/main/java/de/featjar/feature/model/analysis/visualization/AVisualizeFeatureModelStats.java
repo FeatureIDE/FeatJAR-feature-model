@@ -32,7 +32,7 @@ public abstract class AVisualizeFeatureModelStats {
 
     final protected AnalysisTree<?> analysisTree;
     protected LinkedHashMap<String, LinkedHashMap<String, Object>> analysisTreeData;
-    final protected ArrayList<Chart<?, ?>> charts;
+    protected ArrayList<Chart<?, ?>> charts;
 
     private Integer chartWidth = 800;
     private Integer chartHeight = 600;
@@ -51,12 +51,18 @@ public abstract class AVisualizeFeatureModelStats {
         return this.charts;
     }
 
+    public void setCharts(ArrayList<Chart<?, ?>> charts) {
+        this.charts = charts;
+        this.charts = buildCharts();
+    }
+
     public Integer getWidth() {
         return this.chartWidth;
     }
 
     public void setWidth(Integer width) {
         this.chartWidth = width;
+        this.charts = buildCharts();
     }
 
     public Integer getHeight() {
@@ -65,6 +71,7 @@ public abstract class AVisualizeFeatureModelStats {
 
     public void setHeight(Integer height) {
         this.chartHeight = height;
+        this.charts = buildCharts();
     }
 
     /**
@@ -183,9 +190,7 @@ public abstract class AVisualizeFeatureModelStats {
                     .height(getHeight())
                     .build();
             chart.setTitle(treeKey);
-            chart.getStyler().setChartTitleFont(fontTitle);
-            chart.getStyler().setLabelsFont(fontLabels);
-            chart.getStyler().setLegendFont(fontLegend);
+            defaultStyler(chart);
 
             HashMap<String, Object> treeData = analysisTreeData.get(treeKey);
             treeData.forEach((key, value) -> chart.addSeries(key, (Integer) value));
@@ -222,6 +227,24 @@ public abstract class AVisualizeFeatureModelStats {
             charts.add(chart);
         }
         return charts;
+    }
+
+    /**
+     * Styles charts with the default settings, for consistency.
+     */
+    private void defaultStyler(Chart<?, ?> chart) {
+        chart.getStyler().setChartTitleFont(fontTitle);
+        chart.getStyler().setLegendFont(fontLegend);
+        if (chart instanceof PieChart) {
+            defaultStylerPieChartExtension((PieChart) chart);
+        }
+    }
+
+    /**
+     * extends the defaultStyler() method with PieChart-specific calls
+     */
+    private void defaultStylerPieChartExtension(PieChart chart) {
+        chart.getStyler().setLabelsFont(fontLabels);
     }
 
     /**
