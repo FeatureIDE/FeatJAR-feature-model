@@ -60,30 +60,30 @@ public class ConfigurationFormatConversionTest {
         assertEquals(0, exit_code);
         assertTrue(new File(outputPath).exists());
 
-        outputPath = "list_csvToList.list";
+        outputPath = "list_csvToVariablelist.list";
         exit_code = FeatJAR.runTest(
                 "configurationFormatConversion",
                 "--input",
                 inputPath,
                 "--output",
                 outputPath,
-                "--typeTXT",
-                "default_txt",
-                "--overwrite");
+                "--overwrite",
+                "--format",
+                "variablelist");
         assertEquals(0, exit_code);
         assertTrue(new File(outputPath).exists());
         Files.deleteIfExists(Paths.get(outputPath));
 
-        outputPath = "list_csvToSimpleList.list";
+        outputPath = "list_csvToSimpleLiterallist.list";
         exit_code = FeatJAR.runTest(
                 "configurationFormatConversion",
                 "--input",
                 inputPath,
                 "--output",
                 outputPath,
-                "--typeTXT",
-                "simple_txt",
-                "--overwrite");
+                "--overwrite",
+                "--format",
+                "literallist");
         assertEquals(0, exit_code);
         assertTrue(new File(outputPath).exists());
         Files.deleteIfExists(Paths.get(outputPath));
@@ -128,30 +128,30 @@ public class ConfigurationFormatConversionTest {
         assertEquals(0, exit_code);
         assertTrue(new File(outputPath).exists());
 
-        outputPath = "list_dimacsToList.list";
+        outputPath = "list_dimacsToVariablelist.list";
         exit_code = FeatJAR.runTest(
                 "configurationFormatConversion",
                 "--input",
                 inputPath,
                 "--output",
                 outputPath,
-                "--typeTXT",
-                "default_txt",
-                "--overwrite");
+                "--overwrite",
+                "--format",
+                "variablelist");
         assertEquals(0, exit_code);
         assertTrue(new File(outputPath).exists());
         Files.deleteIfExists(Paths.get(outputPath));
 
-        outputPath = "list_dimacsToSimpleList.list";
+        outputPath = "list_dimacsToLiteralist.list";
         exit_code = FeatJAR.runTest(
                 "configurationFormatConversion",
                 "--input",
                 inputPath,
                 "--output",
                 outputPath,
-                "--typeTXT",
-                "simple_txt",
-                "--overwrite");
+                "--overwrite",
+                "--format",
+                "literallist");
         assertEquals(0, exit_code);
         assertTrue(new File(outputPath).exists());
         Files.deleteIfExists(Paths.get(outputPath));
@@ -196,30 +196,30 @@ public class ConfigurationFormatConversionTest {
         assertEquals(0, exit_code);
         assertTrue(new File(outputPath).exists());
 
-        outputPath = "list_binaryToList.list";
+        outputPath = "list_binaryToVariablelist.list";
         exit_code = FeatJAR.runTest(
                 "configurationFormatConversion",
                 "--input",
                 inputPath,
                 "--output",
                 outputPath,
-                "--typeTXT",
-                "default_txt",
-                "--overwrite");
+                "--overwrite",
+                "--format",
+                "variablelist");
         assertEquals(0, exit_code);
         assertTrue(new File(outputPath).exists());
         Files.deleteIfExists(Paths.get(outputPath));
 
-        outputPath = "list_binaryToSimpleList.list";
+        outputPath = "list_binaryToSimpleLiterallist.list";
         exit_code = FeatJAR.runTest(
                 "configurationFormatConversion",
                 "--input",
                 inputPath,
                 "--output",
                 outputPath,
-                "--typeTXT",
-                "simple_txt",
-                "--overwrite");
+                "--overwrite",
+                "--format",
+                "literallist");
         assertEquals(0, exit_code);
         assertTrue(new File(outputPath).exists());
         Files.deleteIfExists(Paths.get(outputPath));
@@ -243,7 +243,7 @@ public class ConfigurationFormatConversionTest {
     }
 
     /**
-     * Tests ...
+     * Tests conversion across different formats back to the original format
      *
      */
     @Test
@@ -255,42 +255,21 @@ public class ConfigurationFormatConversionTest {
         // csv -> binary
         String outputPath = "list_csvToBinaryRoundTrip.bin";
         int exit_code = FeatJAR.runTest(
-                "configurationFormatConversion",
-                "--input",
-                OriginalInputPath,
-                "--output",
-                outputPath,
-                "--typeTXT",
-                "simple_txt",
-                "--overwrite");
+                "configurationFormatConversion", "--input", OriginalInputPath, "--output", outputPath, "--overwrite");
         String inputPath = outputPath;
         assertEquals(0, exit_code);
 
         // binary -> dimacs
         outputPath = "list_binaryToDimacsRoundTrip.dimacs";
         exit_code = FeatJAR.runTest(
-                "configurationFormatConversion",
-                "--input",
-                inputPath,
-                "--output",
-                outputPath,
-                "--typeTXT",
-                "simple_txt",
-                "--overwrite");
+                "configurationFormatConversion", "--input", inputPath, "--output", outputPath, "--overwrite");
         inputPath = outputPath;
         assertEquals(0, exit_code);
 
         // dimacs -> csv
         outputPath = "list_dimacsToCSVRoundTrip.csv";
         exit_code = FeatJAR.runTest(
-                "configurationFormatConversion",
-                "--input",
-                inputPath,
-                "--output",
-                outputPath,
-                "--typeTXT",
-                "simple_txt",
-                "--overwrite");
+                "configurationFormatConversion", "--input", inputPath, "--output", outputPath, "--overwrite");
         assertEquals(0, exit_code);
 
         FeatJAR.initialize();
@@ -308,99 +287,132 @@ public class ConfigurationFormatConversionTest {
     }
 
     /**
-     * Tests ...
+     * Tests error handling with no input/output
      *
      */
     @Test
-    void errorHandlingTest() throws IOException {
+    void missingInputOrOutputPathTest() throws IOException {
 
-        String OriginalInputPath =
-                "src/test/java/de/featjar/feature/model/cli/resources/BooleanAssignmentLists/BooleanAssignmentList.";
-        String OriginalInputPathCSV = OriginalInputPath + "csv";
-        String OriginalInputPathTXT = OriginalInputPath + "txt"; // invalid input path
-        String OriginalInputPathBIN = OriginalInputPath + "bin";
-        String OriginalInputPathXML = OriginalInputPath + "xml"; // invalid input path
-
-        String outputPath = "list_csvToBinaryRoundTrip.";
-        String outputPathCSV = outputPath + "csv";
-        String outputPathBIN = outputPath + "bin";
-        String outputPathXML = outputPath + "xml"; // invalid output path
-
+        // missing input path
         assertEquals(
                 1,
                 FeatJAR.runTest(
                         "configurationFormatConversion",
                         "--input",
                         "--output",
-                        outputPathCSV,
-                        "--typeTXT",
+                        "list_errorHandling.csv",
+                        "--format",
                         "simple_txt",
-                        "--overwrite")); // missing input path
+                        "--overwrite"));
+
+        // missing output path
         assertEquals(
                 1,
                 FeatJAR.runTest(
                         "configurationFormatConversion",
                         "--input",
-                        OriginalInputPathCSV,
+                        "src/test/java/de/featjar/feature/model/cli/resources/BooleanAssignmentLists/BooleanAssignmentList.csv",
                         "--output",
-                        "--typeTXT",
+                        "--format",
                         "simple_txt",
-                        "--overwrite")); // missing output path
+                        "--overwrite"));
+    }
 
-        assertEquals(
-                2,
-                FeatJAR.runTest(
-                        "configurationFormatConversion",
-                        "--input",
-                        OriginalInputPathXML,
-                        "--output",
-                        outputPathBIN,
-                        "--typeTXT",
-                        "simple_txt",
-                        "--overwrite")); // xml is not a supported input type
-        assertEquals(
-                2,
-                FeatJAR.runTest(
-                        "configurationFormatConversion",
-                        "--input",
-                        OriginalInputPathTXT,
-                        "--output",
-                        outputPathBIN,
-                        "--typeTXT",
-                        "simple_txt",
-                        "--overwrite")); // txt is not a supported input type
-        assertEquals(
-                2,
-                FeatJAR.runTest(
-                        "configurationFormatConversion",
-                        "--input",
-                        OriginalInputPathBIN,
-                        "--output",
-                        outputPathXML,
-                        "--typeTXT",
-                        "simple_txt",
-                        "--overwrite")); // xml is not a supported output type
+    /**
+     * Tests error handling with invalid input/output
+     *
+     */
+    @Test
+    void invalidInputTypeOrOutputType() throws IOException {
 
+        // xml is not a supported input type
+        assertEquals(
+                2,
+                FeatJAR.runTest(
+                        "configurationFormatConversion",
+                        "--input",
+                        "src/test/java/de/featjar/feature/model/cli/resources/BooleanAssignmentLists/BooleanAssignmentList.xml",
+                        "--output",
+                        "list_errorHandling.bin",
+                        "--format",
+                        "simple_txt",
+                        "--overwrite"));
+
+        // txt is not a supported input type
+        assertEquals(
+                2,
+                FeatJAR.runTest(
+                        "configurationFormatConversion",
+                        "--input",
+                        "src/test/java/de/featjar/feature/model/cli/resources/BooleanAssignmentLists/BooleanAssignmentList.txt",
+                        "--output",
+                        "list_errorHandling.bin",
+                        "--format",
+                        "simple_txt",
+                        "--overwrite"));
+
+        // xml is not a supported output type
+        assertEquals(
+                2,
+                FeatJAR.runTest(
+                        "configurationFormatConversion",
+                        "--input",
+                        "src/test/java/de/featjar/feature/model/cli/resources/BooleanAssignmentLists/BooleanAssignmentList.bin",
+                        "--output",
+                        "list_errorHandling.xml",
+                        "--format",
+                        "simple_txt",
+                        "--overwrite"));
+    }
+
+    /**
+     * Tests error handling with missing --overwrite option
+     *
+     */
+    @Test
+    void overwriteOptionTest() throws IOException {
+
+        // creating file for next assertion
         assertEquals(
                 0,
                 FeatJAR.runTest(
                         "configurationFormatConversion",
                         "--input",
-                        OriginalInputPathBIN,
+                        "src/test/java/de/featjar/feature/model/cli/resources/BooleanAssignmentLists/BooleanAssignmentList.bin",
                         "--output",
-                        outputPathCSV,
-                        "--typeTXT",
+                        "list_errorHandling.csv",
+                        "--format",
                         "simple_txt",
-                        "--overwrite")); // creating file for next assertion
+                        "--overwrite"));
+
+        // failure to overwrite file because --overwrite is missing
         assertEquals(
                 3,
                 FeatJAR.runTest(
                         "configurationFormatConversion",
                         "--input",
-                        OriginalInputPathBIN,
+                        "src/test/java/de/featjar/feature/model/cli/resources/BooleanAssignmentLists/BooleanAssignmentList.bin",
                         "--output",
-                        outputPathCSV,
-                        "--typeTXT",
-                        "simple_txt")); // failure to overwrite file because --overwrite is missing
+                        "list_errorHandling.csv"));
+
+        Files.deleteIfExists(Paths.get("list_errorHandling.csv"));
+    }
+
+    /**
+     * Tests error handling when no format is specified with --format when using a .list path
+     *
+     */
+    @Test
+    void unspecifiedFormatWhenListIsInOutputPath() throws IOException {
+
+        // path with .list file but format not specified with --format
+        assertEquals(
+                4,
+                FeatJAR.runTest(
+                        "configurationFormatConversion",
+                        "--input",
+                        "src/test/java/de/featjar/feature/model/cli/resources/BooleanAssignmentLists/BooleanAssignmentList.bin",
+                        "--output",
+                        "example.list"));
     }
 }

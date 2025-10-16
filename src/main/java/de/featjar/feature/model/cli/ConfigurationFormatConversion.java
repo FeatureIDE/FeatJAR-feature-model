@@ -69,25 +69,31 @@ public class ConfigurationFormatConversion implements ICommand {
                     .filter(IFormat::supportsWrite)
                     .map(IFormat::getFileExtension)
                     .collect(Collectors.toList());
-    
+
     private static final List<String> supportedOutputFileNames =
             BooleanAssignmentListFormats.getInstance().getExtensions().stream()
                     .filter(IFormat::supportsWrite)
-                    .map(f -> f.getName() + " (" + f.getFileExtension() + ")")
+                    .map(f -> f.getName().toLowerCase())
+                    .collect(Collectors.toList());
+
+    private static final List<String> supportedOutputFileNamesWithExtensions =
+            BooleanAssignmentListFormats.getInstance().getExtensions().stream()
+                    .filter(IFormat::supportsWrite)
+                    .map(f -> f.getName().toLowerCase() + " (." + f.getFileExtension() + ")")
                     .collect(Collectors.toList());
 
     public static final Option<Path> INPUT_OPTION = Option.newOption("input", Option.PathParser)
             .setDescription("Path to input file. Accepted File Types: " + supportedInputFileExtensions);
 
     public static final Option<Path> OUTPUT_OPTION = Option.newOption("output", Option.PathParser)
-            .setDescription("Path to output file. Accepted File Types: " + supportedOutputFileNames);
+            .setDescription("Path to output file. Accepted File Types: " + supportedOutputFileNamesWithExtensions);
 
     public static final Option<Boolean> OVERWRITE =
             Option.newFlag("overwrite").setDescription("Overwrite existing file at output path.");
 
-    public static final Option<TypeTXT> FORMAT_TYPE = Option.newEnumOption("format", TypeTXT.class)
-            .setDescription("Specification necessary if output is desired to be .txt"); //TODO change to list object supportedOutputFileExtensions. 
-    // man soll extension angeben können und in die datei, die bei output angegeben sind unabhängig von der angegebenen extension im output path speichern können
+    public static final Option<String> FORMAT_TYPE = Option.newStringEnumOption(
+                    "format", supportedOutputFileNames.toArray(new String[0]))
+            .setDescription("Format can be specified. Necessary if output path has .list extension.");
 
     /**
      * @return all options registered for the calling class.
@@ -104,38 +110,46 @@ public class ConfigurationFormatConversion implements ICommand {
      * 		   1 on invalid input or output path
      * 		   2 on unsupported input or output file extension
      * 	 	   3 on failure to save BooleanAssignmentList because file already exists on path directory and --overwrite flag is not used
+     * TODO	   4 on conflicting .list extension in outputPath and no existing --format to specify the .list type
      */
     @Override
     public int run(OptionList optionParser) {
 
-        // validating input/output
+        if (!checkIfInputOutputIsPresent(optionParser)) {
+            return 1;
+        }
+        ;
+
+        String format_type = "";
+        if (optionParser.getResult(FORMAT_TYPE).isPresent()) {
+            format_type = optionParser.getResult(FORMAT_TYPE).get();
+
+        } else if (optionParser.getResult(OUTPUT_OPTION).get().toString().endsWith(".list")) {
+
+            String outputBooleanAssignmentListFormat =
+                    BooleanAssignmentListFormats.getInstance().getExtensions().stream()
+                            .filter(IFormat::supportsWrite)
+                            .map(f -> f.getName().toLowerCase())
+                            .filter(f -> f.endsWith("list"))
+                            .collect(Collectors.joining("', '"));
+
+            FeatJAR.log()
+                    .error("Specify format for .list file using the --format command. Possible options: '"
+                            + outputBooleanAssignmentListFormat + "'.");
+            return 4;
+        }
+
         String intputFileExtension =
                 IO.getFileExtension(optionParser.getResult(INPUT_OPTION).get().toString());
         String outputFileExtension =
                 IO.getFileExtension(optionParser.getResult(OUTPUT_OPTION).get().toString());
 
-        if (!checkIfInputOutputIsPresent(optionParser)) {
-            System.out.println("HEEEEEEEEEEEERE");
-            return 1;
-        }
-        ;
-
         if (!checkIfFileExtensionsValid(intputFileExtension, outputFileExtension)) {
             return 2;
         }
 
-        // --input and --typeTXT allow for conflicting file formats to be specified, in that case a warning is printed.
-        // In that case format of typeTXT is prioritized.
-        if (outputFileExtension != "list" && optionParser.getResult(FORMAT_TYPE).isPresent()) {
-            FeatJAR.log()
-                    .warning("Conflicting command line options: " + outputFileExtension.toLowerCase()
-                            + " file type in Path and .txt file type due to --typeTXT.\n         "
-                            + "Continuing to write with "
-                            + optionParser.getResult(FORMAT_TYPE).get().description + " format into ."
-                            + outputFileExtension.toLowerCase() + " file.");
-            FeatJAR.log()
-                    .warning(
-                            "Once written, data cannot be read from a txt file. Do not delete source file for this conversion.");
+        if (format_type.endsWith("list")) {
+            FeatJAR.log().warning("No parser exists for '.list' files.");
         }
 
         // loading list from input path
@@ -143,7 +157,9 @@ public class ConfigurationFormatConversion implements ICommand {
                         optionParser.getResult(INPUT_OPTION).orElseThrow(), BooleanAssignmentListFormats.getInstance())
                 .get();
 
-        return saveFile(optionParser.getResult(OUTPUT_OPTION).orElseThrow(), list, optionParser.get(OVERWRITE));
+        // writing data to file
+        return saveFile(
+                optionParser.getResult(OUTPUT_OPTION).orElseThrow(), list, format_type, optionParser.get(OVERWRITE));
     }
 
     /**
@@ -195,15 +211,38 @@ public class ConfigurationFormatConversion implements ICommand {
      * @return 0 on success
      *
      */
-    public int saveFile(Path outputPath, BooleanAssignmentList inputList, boolean overwriteDemanded) {
+    public int saveFile(
+            Path outputPath, BooleanAssignmentList inputList, String formatType, boolean overwriteDemanded) {
 
-        // Dynamically gathers corresponding BooleanAssignmentListFormat for given file extension.
-        Optional<IFormat<BooleanAssignmentList>> outputFormats =
-                BooleanAssignmentListFormats.getInstance().getExtensions().stream()
-                        .filter(IFormat::supportsWrite)
-                        .filter(formatTemp ->
-                                Objects.equals(IO.getFileExtension(outputPath), formatTemp.getFileExtension()))
-                        .findFirst();
+        Optional<IFormat<BooleanAssignmentList>> outputBooleanAssignmentListFormat = null;
+
+        // if --format specifies the format
+        if (supportedOutputFileNames.contains(formatType)) {
+
+            outputBooleanAssignmentListFormat = BooleanAssignmentListFormats.getInstance().getExtensions().stream()
+                    .filter(IFormat::supportsWrite)
+                    .filter(f -> f.getName().toLowerCase().equals(formatType.toLowerCase()))
+                    .findFirst();
+
+            // user can specify different formats by using both --format and a path with another file extension. In that
+            // case a warning is printed
+            if (!IO.getFileExtension(outputPath)
+                    .equals(outputBooleanAssignmentListFormat.get().getFileExtension())) {
+                FeatJAR.log()
+                        .warning("Writing using the "
+                                + outputBooleanAssignmentListFormat.get().getName() + " format into a ."
+                                + IO.getFileExtension(outputPath) + " file.");
+            }
+
+            // automatically extracting format from output path
+        } else {
+            outputBooleanAssignmentListFormat = BooleanAssignmentListFormats.getInstance().getExtensions().stream()
+                    .filter(IFormat::supportsWrite)
+                    .filter(formatTemp ->
+                            Objects.equals(IO.getFileExtension(outputPath), formatTemp.getFileExtension()))
+                    .findFirst();
+        }
+
         try {
             if (Files.exists(outputPath)) {
                 if (overwriteDemanded) {
@@ -215,12 +254,12 @@ public class ConfigurationFormatConversion implements ICommand {
                     return 3;
                 }
             }
-            IO.save(inputList, outputPath, outputFormats.get());
+            IO.save(inputList, outputPath, outputBooleanAssignmentListFormat.get());
+            FeatJAR.log().message("Output list successfully saved at: " + outputPath);
 
         } catch (Exception e) {
             FeatJAR.log().error(e);
         }
-        FeatJAR.log().message("Output list successfully saved at: " + outputPath);
 
         return 0;
     }
