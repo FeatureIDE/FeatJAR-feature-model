@@ -66,7 +66,7 @@ public class PrintSampleStatistics extends ACommand {
 
     public static final Option<Boolean> PRETTY_PRINT =
             Option.newFlag("pretty").setDescription("Pretty prints the numbers");
-    
+
     public static final Option<Boolean> UNPROCESSED =
             Option.newFlag("unprocessed").setDescription("Prints unprocessed data of uniformity statistics");
 
@@ -90,13 +90,12 @@ public class PrintSampleStatistics extends ACommand {
         LinkedHashMap<String, Object> data;
         IFeatureModel model = (IFeatureModel) loadedFM.orElseThrow();
         BooleanAssignmentList booleanAssignmentList = (BooleanAssignmentList) loadedConfig.orElseThrow();
-        
+
         if (optionParser.get(UNPROCESSED)) {
-        	data = collectStats(booleanAssignmentList, model, true);
+            data = collectStats(booleanAssignmentList, model, true);
         } else {
-        	data = collectStats(booleanAssignmentList, model);
+            data = collectStats(booleanAssignmentList, model);
         }
-        
 
         // if output path is specified, write statistics to file
         if (optionParser.getResult(OUTPUT_OPTION).isPresent()) {
@@ -148,9 +147,9 @@ public class PrintSampleStatistics extends ACommand {
     }
 
     public LinkedHashMap<String, Object> collectStats(BooleanAssignmentList boolList, IFeatureModel model) {
-    	return collectStats(boolList, model, false);
+        return collectStats(boolList, model, false);
     }
-    
+
     /**
      * Gathers statistics about given configuration set
      *
@@ -158,7 +157,8 @@ public class PrintSampleStatistics extends ACommand {
      * @param model - corresponding feature model
      * @return returns Map containing statistics
      */
-    public LinkedHashMap<String, Object> collectStats(BooleanAssignmentList boolList, IFeatureModel model, boolean unprocessed) {
+    public LinkedHashMap<String, Object> collectStats(
+            BooleanAssignmentList boolList, IFeatureModel model, boolean unprocessed) {
 
         LinkedHashMap<String, Object> data = new LinkedHashMap<>();
         data.put(
@@ -191,7 +191,7 @@ public class PrintSampleStatistics extends ACommand {
                             .set(ComputeUniformity.BOOLEAN_ASSIGNMENT_LIST, boolList)
                             .compute());
         }
-        
+
         return data;
     }
     /**
