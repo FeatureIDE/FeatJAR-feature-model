@@ -21,10 +21,9 @@
 package de.featjar.feature.model.analysis.visualization;
 
 import de.featjar.base.FeatJAR;
-import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.analysis.AnalysisTree;
-import de.featjar.feature.model.analysis.visitor.AnalysisTreeVisitor;
+import de.featjar.feature.model.analysis.visitor.AnalysisTreeKeywordVisitor;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -35,7 +34,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.swing.*;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -151,63 +149,31 @@ public abstract class AVisualizeFeatureModelStats {
      * Each value is another HashMap with one entry per piece of data extracted from the Analysis Tree. These pieces of data are
      * also alphabetically sorted.}
      */
-    public LinkedHashMap<String, LinkedHashMap<String, Object>> extractAnalysisTree() throws RuntimeException {
-        HashMap<String, Object> analysisMap = extractAnalysisMap();
-
-        // fetches keys for all trees for the data we want
-        // example: [Tree 1] Group Distribution, [Tree 2] Group Distribution, ...
-        List<String> featureTreeDataKeys = analysisMap.keySet().stream()
-                .filter(key -> key.contains(getAnalysisTreeDataName()))
-                .sorted()
-                .collect(Collectors.toList());
+    public LinkedHashMap<String, LinkedHashMap<String, Object>> extractAnalysisTree() {
+        HashMap<String, Object> relevantAnalysisSubTrees =
+                Trees.traverse(analysisTree, new AnalysisTreeKeywordVisitor(getAnalysisTreeDataName())).get();
 
         // preparing return value
         LinkedHashMap<String, LinkedHashMap<String, Object>> analysisTreeData = new LinkedHashMap<>();
 
         // for each tree: add a HashMap containing values per piece of information we need to extract
-        for (String key : featureTreeDataKeys) {
-            LinkedHashMap<String, Object> featureTreeData = new LinkedHashMap<>();
-            Object pieceOfInformation = analysisMap.get(key);
-            assert pieceOfInformation != null : "Could not retrieve data called \"" + key + "\" from AnalysisTree.";
+        for (String key : relevantAnalysisSubTrees.keySet()) {
+            Object value = relevantAnalysisSubTrees.get(key);
+            assert value != null : "Could not retrieve data called \"" + key + "\" from AnalysisTree.";
 
-            if (pieceOfInformation instanceof Map) {
+            analysisTreeData.put(key , new LinkedHashMap<>());
+
+            if (value instanceof List) {
                 @SuppressWarnings("unchecked")
-                HashMap<String, Object> nestedMap = (HashMap<String, Object>) pieceOfInformation;
-
-                nestedMap.keySet().stream().sorted().forEach(nestedMapKey -> {
-                    // the value relevant for us needs to be unpacked first
-                    Object rawValue = nestedMap.get(nestedMapKey);
-                    ArrayList<?> castedValue = (ArrayList<?>) rawValue;
-                    Object value = castedValue.get(2);
-                    featureTreeData.put(nestedMapKey, value);
-                });
-
-            } else if (pieceOfInformation instanceof ArrayList) {
-                ArrayList<?> castedValue = (ArrayList<?>) pieceOfInformation;
-                Object value = castedValue.get(2);
-                featureTreeData.put(getAnalysisTreeDataName(), value);
-            } else {
-                throw new RuntimeException("Analysis Tree contained unknown data type in key " + key);
+                List<AnalysisTree<?>> childAnalysisTrees = (List<AnalysisTree<?>>) value;
+                for (AnalysisTree<?> childTree: childAnalysisTrees) {
+                    analysisTreeData.get(key).put(childTree.getName(), childTree.getValue());
+                }
+            } else if (value instanceof Number) {
+                analysisTreeData.get(key).put(key, value);
             }
-            analysisTreeData.put(key, featureTreeData);
         }
         return analysisTreeData;
-    }
-
-    /**
-     * {@return the {@link AnalysisTree}'s general HashMap that more specific information is stored in.}
-     */
-    private HashMap<String, Object> extractAnalysisMap() {
-        Result<HashMap<String, Object>> result = Trees.traverse(analysisTree, new AnalysisTreeVisitor());
-        HashMap<String, Object> receivedResult = result.get();
-        assert receivedResult != null : "Analysis Tree Visitor failed to produce a result.";
-
-        // TODO we currently trust that this is always "Analysis"
-        @SuppressWarnings("unchecked")
-        HashMap<String, Object> analysisMap = (HashMap<String, Object>) receivedResult.get("Analysis");
-        assert analysisMap != null : "Received no \"Analysis\" HashMap from AnalysisTree";
-
-        return analysisMap;
     }
 
     /**
@@ -244,37 +210,6 @@ public abstract class AVisualizeFeatureModelStats {
                 FeatJAR.log().error("Pie chart cannot be built with negative values");
                 continue;
             }
-            charts.add(chart);
-        }
-        return charts;
-    }
-
-    /**
-     * Premade builder for box charts that you can use when implementing {@link #buildCharts()}.
-     * Not ready yet
-     * @return list containing one chart per tree in the feature model
-     */
-    protected ArrayList<Chart<?, ?>> buildBoxCharts() {
-        ArrayList<Chart<?, ?>> charts = new ArrayList<>();
-        // TODO in averagenumberofchildren only one double is provided instead of an double array, so I used testdata to
-        // test die BoxPlot
-        // TODO for example not the average number of children, but the number of children for every node as a double or
-        // int array is needed to plot a boxplot for the average number of children
-        double[] testdata = {0.9, 1.5, 2.22};
-
-        for (String treeKey : this.analysisTreeData.keySet()) {
-            // Momentan bauen wir pro Tree einen Chart mit einer Box mit mehreren Werten
-            // Wäre es für Boxplots nicht sinnvoller einen Chart für alle Trees zu machen,
-            // mit je eine Box pro Tree?
-            BoxChart chart =
-                    new BoxChartBuilder().width(getWidth()).height(getHeight()).build();
-            chart.setTitle(treeKey);
-            defaultStyler(chart);
-
-            HashMap<String, Object> treeData = analysisTreeData.get(treeKey);
-
-            treeData.forEach((key, value) -> chart.addSeries(key, (double[]) testdata));
-
             charts.add(chart);
         }
         return charts;
