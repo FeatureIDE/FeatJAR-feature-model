@@ -60,9 +60,9 @@ public class PrintStatisticsTest {
     @Test
     void inputTest() throws IOException {
 
-        int exit_code = FeatJAR.runTest(
+        int exitCode = FeatJAR.runTest(
                 "printStats", "--input", "src/test/java/de/featjar/feature/model/cli/resources/simpleTestModel.xml");
-        assertEquals(0, exit_code);
+        assertEquals(0, exitCode);
     }
 
     /**
@@ -81,14 +81,14 @@ public class PrintStatisticsTest {
     @Test
     void outputWithFileValidExtension() throws IOException {
 
-        int exit_code = FeatJAR.runTest(
+        int exitCode = FeatJAR.runTest(
                 "printStats",
                 "--input",
                 "src/test/java/de/featjar/feature/model/cli/resources/simpleTestModel.xml",
                 "--output",
                 "model_outputWithFileValidExtension.csv",
                 "--overwrite");
-        assertEquals(0, exit_code);
+        assertEquals(0, exitCode);
         Files.deleteIfExists(Paths.get("model_outputWithFileValidExtension.csv"));
     }
 
@@ -98,14 +98,14 @@ public class PrintStatisticsTest {
     @Test
     void outputWithFileInvalidExtension() throws IOException {
 
-        int exit_code = FeatJAR.runTest(
+        int exitCode = FeatJAR.runTest(
                 "printStats",
                 "--input",
                 "src/test/java/de/featjar/feature/model/cli/resources/simpleTestModel.xml",
                 "--output",
                 "model_outputWithFileInvalidExtension.exe",
                 "--overwrite");
-        assertEquals(1, exit_code);
+        assertEquals(1, exitCode);
     }
 
     /**
@@ -114,14 +114,14 @@ public class PrintStatisticsTest {
     @Test
     void outputWithoutFileExtension() throws IOException {
 
-        int exit_code = FeatJAR.runTest(
+        int exitCode = FeatJAR.runTest(
                 "printStats",
                 "--input",
                 "src/test/java/de/featjar/feature/model/cli/resources/simpleTestModel.xml",
                 "--output",
                 "model_outputWithoutFileExtension",
                 "--overwrite");
-        assertEquals(1, exit_code);
+        assertEquals(1, exitCode);
     }
 
     /**
@@ -201,7 +201,7 @@ public class PrintStatisticsTest {
     @Test
     void jsonOuputTest() throws IOException {
 
-        int exit_code = FeatJAR.runTest(
+        int exitCode = FeatJAR.runTest(
                 "printStats",
                 "--input",
                 "src/test/java/de/featjar/feature/model/cli/resources/simpleTestModel.xml",
@@ -211,13 +211,13 @@ public class PrintStatisticsTest {
 
         AnalysisTree<?> tree = IO.load(Paths.get("model_jsonOuputTest.json"), new JSONAnalysisFormat())
                 .get();
-        AnalysisTree<?> tree_expected = IO.load(
+        AnalysisTree<?> treeExpected = IO.load(
                         Paths.get("src/test/java/de/featjar/feature/model/cli/resources/expected_jsonOutputTest.json"),
                         new JSONAnalysisFormat())
                 .get();
 
-        assertEquals(tree.print(), tree_expected.print());
-        assertEquals(0, exit_code);
+        assertEquals(tree.print(), treeExpected.print());
+        assertEquals(0, exitCode);
 
         Files.deleteIfExists(Paths.get("model_jsonOuputTest.json"));
     }
@@ -228,7 +228,7 @@ public class PrintStatisticsTest {
     @Test
     void yamlOutputTest() throws IOException {
 
-        int exit_code = FeatJAR.runTest(
+        int exitCode = FeatJAR.runTest(
                 "printStats",
                 "--input",
                 "src/test/java/de/featjar/feature/model/cli/resources/simpleTestModel.xml",
@@ -238,13 +238,13 @@ public class PrintStatisticsTest {
 
         AnalysisTree<?> tree = IO.load(Paths.get("model_yamlOuputTest.yaml"), new YAMLAnalysisFormat())
                 .get();
-        AnalysisTree<?> tree_expected = IO.load(
+        AnalysisTree<?> treeExpected = IO.load(
                         Paths.get("src/test/java/de/featjar/feature/model/cli/resources/expected_yamlOuputTest.yaml"),
                         new YAMLAnalysisFormat())
                 .get();
 
-        assertEquals(tree.print(), tree_expected.print());
-        assertEquals(0, exit_code);
+        assertEquals(tree.print(), treeExpected.print());
+        assertEquals(0, exitCode);
 
         Files.deleteIfExists(Paths.get("model_yamlOuputTest.yaml"));
     }
@@ -255,7 +255,7 @@ public class PrintStatisticsTest {
     @Test
     void csvOutputTest() throws IOException {
 
-        int exit_code = FeatJAR.runTest(
+        int exitCode = FeatJAR.runTest(
                 "printStats",
                 "--input",
                 "src/test/java/de/featjar/feature/model/cli/resources/simpleTestModel.xml",
@@ -280,7 +280,7 @@ public class PrintStatisticsTest {
                 + "[Tree 1] Group Distribution;OrGroup;java.lang.Integer;0\n";
 
         assertEquals(expected, content);
-        assertEquals(0, exit_code);
+        assertEquals(0, exitCode);
 
         Files.deleteIfExists(Paths.get("model_csvOuputTest.csv"));
     }
