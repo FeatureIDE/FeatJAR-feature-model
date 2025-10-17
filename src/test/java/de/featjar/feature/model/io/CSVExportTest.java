@@ -26,6 +26,7 @@ import de.featjar.base.io.IO;
 import de.featjar.feature.model.TestDataProvider;
 import de.featjar.feature.model.io.csv.CSVAnalysisFormat;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
@@ -51,5 +52,6 @@ public class CSVExportTest {
                         + "Analysis;avgNumOfAsss;java.lang.Integer;4\n"
                         + "avgNumOfAtomsPerConstraints;test property;java.lang.Double;3.3\n"
                         + "avgNumOfAtomsPerConstraints;numOfLeafFeatures;java.lang.Float;12.4\n");
+        Files.deleteIfExists(Paths.get("file.csv"));
     }
 }
