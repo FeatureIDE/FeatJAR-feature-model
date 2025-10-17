@@ -83,9 +83,9 @@ public class PrintSampleStatisticsTest {
 
     @Test
     void printComparison() {
-    	if (! FeatJAR.isInitialized()) {
-    		FeatJAR.initialize();
-    	}
+        if (!FeatJAR.isInitialized()) {
+            FeatJAR.initialize();
+        }
         Result<BooleanAssignmentList> loadedConfig =
                 IO.load(Paths.get(configPath), BooleanAssignmentListFormats.getInstance());
         Result<IFeatureModel> loadedFM = IO.load(Paths.get(fmPath), FeatureModelFormats.getInstance());
@@ -111,9 +111,9 @@ public class PrintSampleStatisticsTest {
     @Test
     void prettyStringBuilder() {
 
-    	if (! FeatJAR.isInitialized()) {
-    		FeatJAR.initialize();
-    	}
+        if (!FeatJAR.isInitialized()) {
+            FeatJAR.initialize();
+        }
         Result<BooleanAssignmentList> loadedConfig =
                 IO.load(Paths.get(configPath), BooleanAssignmentListFormats.getInstance());
         Result<IFeatureModel> loadedFM = IO.load(Paths.get(fmPath), FeatureModelFormats.getInstance());
@@ -188,7 +188,9 @@ public class PrintSampleStatisticsTest {
                 + "";
 
         LinkedHashMap<String, Object> map = printSampleStats.collectStats(booleanAssignmentList, model);
-        assertEquals(comparison.replaceAll("[^a-zA-Z1-9:]", ""), printSampleStats.buildStringPrettyStats(map).toString().replaceAll("[^a-zA-Z1-9:]", ""));
+        assertEquals(
+                comparison.replaceAll("[^a-zA-Z1-9:]", ""),
+                printSampleStats.buildStringPrettyStats(map).toString().replaceAll("[^a-zA-Z1-9:]", ""));
         FeatJAR.deinitialize();
     }
 }

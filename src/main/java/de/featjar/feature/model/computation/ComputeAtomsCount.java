@@ -30,7 +30,6 @@ import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IConstraint;
 import de.featjar.feature.model.analysis.visitor.AtomsCountTreeVisitor;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;

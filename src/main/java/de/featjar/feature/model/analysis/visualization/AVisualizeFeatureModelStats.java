@@ -149,8 +149,9 @@ public abstract class AVisualizeFeatureModelStats {
      * also alphabetically sorted.}
      */
     public LinkedHashMap<String, LinkedHashMap<String, Object>> extractAnalysisTree() {
-        HashMap<String, Object> relevantAnalysisSubTrees =
-                Trees.traverse(analysisTree, new AnalysisTreeKeywordTreeVisitor(getAnalysisTreeDataName())).get();
+        HashMap<String, Object> relevantAnalysisSubTrees = Trees.traverse(
+                        analysisTree, new AnalysisTreeKeywordTreeVisitor(getAnalysisTreeDataName()))
+                .get();
 
         // preparing return value
         LinkedHashMap<String, LinkedHashMap<String, Object>> analysisTreeData = new LinkedHashMap<>();
@@ -160,12 +161,12 @@ public abstract class AVisualizeFeatureModelStats {
             Object value = relevantAnalysisSubTrees.get(key);
             assert value != null : "Could not retrieve data called \"" + key + "\" from AnalysisTree.";
 
-            analysisTreeData.put(key , new LinkedHashMap<>());
+            analysisTreeData.put(key, new LinkedHashMap<>());
 
             if (value instanceof List) {
                 @SuppressWarnings("unchecked")
                 List<AnalysisTree<?>> childAnalysisTrees = (List<AnalysisTree<?>>) value;
-                for (AnalysisTree<?> childTree: childAnalysisTrees) {
+                for (AnalysisTree<?> childTree : childAnalysisTrees) {
                     analysisTreeData.get(key).put(childTree.getName(), childTree.getValue());
                 }
             } else if (value instanceof Number) {

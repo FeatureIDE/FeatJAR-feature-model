@@ -222,10 +222,10 @@ public class PrintStatistics extends ACommand {
 
         if (!optionParser.getResult(VISUALIZATION_CONTENT).isPresent()) {
 
-            ArrayList<Chart<?, ?>> combinedCharts = new ArrayList<Chart<?, ?>>();
+            ArrayList<Chart<?, ?>> combinedCharts = new ArrayList<>();
             combinedCharts.addAll(groupViz.getCharts());
             combinedCharts.addAll(opViz.getCharts());
-            groupViz.exportAllChartsToPDF(combinedCharts, outputPath.toString());
+            AVisualizeFeatureModelStats.exportAllChartsToPDF(combinedCharts, outputPath.toString());
 
         } else if (optionParser.get(VISUALIZATION_CONTENT) == Visualize.GROUP) {
             groupViz.exportAllChartsToPDF(outputPath.toString());

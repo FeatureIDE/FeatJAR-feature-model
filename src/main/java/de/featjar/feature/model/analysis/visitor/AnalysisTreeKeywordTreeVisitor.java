@@ -23,9 +23,7 @@ package de.featjar.feature.model.analysis.visitor;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.visitor.ITreeVisitor;
 import de.featjar.feature.model.analysis.AnalysisTree;
-
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Searches a given {@link AnalysisTree} for nodes containing a {@link #keyword}, and returns these nodes.

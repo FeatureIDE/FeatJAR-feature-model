@@ -192,7 +192,9 @@ public class PrintStatisticsTest {
                 + "[Tree 1] Average Number of Children      : \n"
                 + "";
 
-        assertEquals(comparison.replaceAll("[^a-zA-Z1-9:]", ""), printStats.buildStringPrettyStats(testData).toString().replaceAll("[^a-zA-Z1-9:]", ""));
+        assertEquals(
+                comparison.replaceAll("[^a-zA-Z1-9:]", ""),
+                printStats.buildStringPrettyStats(testData).toString().replaceAll("[^a-zA-Z1-9:]", ""));
     }
     // TODO implement this test once the jsonHashMapToTree() function works in AnalysisTreeTransformer
     /**

@@ -186,9 +186,9 @@ public class SamplePropertiesTest {
 
     @Test
     public void computeUniformity() {
-        if (! FeatJAR.isInitialized()) {
-    		  FeatJAR.initialize();
-    	  }
+        if (!FeatJAR.isInitialized()) {
+            FeatJAR.initialize();
+        }
         FeatureModel testFM = TestDataProvider.createMediumFeatureModel();
         IComputation<LinkedHashMap<String, Float>> computation = Computations.of((IFeatureModel) testFM)
                 .map(ComputeUniformity::new)

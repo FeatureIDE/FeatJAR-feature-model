@@ -29,7 +29,6 @@ import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IConstraint;
 import de.featjar.feature.model.analysis.visitor.FeatureDensityTreeVisitor;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;

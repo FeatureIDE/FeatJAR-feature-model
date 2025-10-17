@@ -51,7 +51,8 @@ public class ConstraintPropertiesTest {
         IComputation<Integer> compuational = Computations.of(featureModel).map(ComputeAtomsCount::new);
 
         Trees.traverse(
-                featureModel.getConstraints().iterator().next().getFormula(), new AtomsCountTreeVisitor(false, false, false));
+                featureModel.getConstraints().iterator().next().getFormula(),
+                new AtomsCountTreeVisitor(false, false, false));
         assertEquals(23, compuational.compute());
         assertEquals(
                 3,

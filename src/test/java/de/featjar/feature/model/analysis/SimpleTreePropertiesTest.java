@@ -34,7 +34,6 @@ import de.featjar.feature.model.analysis.computation.ComputeFeatureFeaturesCount
 import de.featjar.feature.model.analysis.computation.ComputeFeatureGroupDistribution;
 import de.featjar.feature.model.analysis.computation.ComputeFeatureTopFeatures;
 import de.featjar.feature.model.analysis.computation.ComputeFeatureTreeDepth;
-
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 
