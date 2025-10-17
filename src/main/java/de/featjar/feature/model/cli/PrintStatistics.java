@@ -57,6 +57,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Prints statistics about a provided Feature Model.
@@ -71,9 +72,8 @@ public class PrintStatistics extends ACommand {
         CONSTRAINT_RELATED
     }
     public enum Visualize {
-        OPTION1,
-        OPTION2,
-        OPTION3
+        GROUP_DISTRIBUTION,
+        OPERATOR_DISTRIBUTION
     }
 
     private int exit_status = 0;
@@ -87,9 +87,16 @@ public class PrintStatistics extends ACommand {
     public static final Option<Boolean> OVERWRITE =
             Option.newFlag("overwrite").setDescription("Overwrite output file.");
     
-    public static final Option<Path> OUTPUT_OPTION_VISUALIZE =
-            Option.newOption("path_visualize", Option.PathParser).setDescription("Path to save visualization as pdf.");
-
+    public static final Option<Visualize> VISUALIZATION_CONTENT =
+            Option.newEnumOption("visualization_content", Visualize.class).setDescription("Specifies what statistics the visualization should include. Mandatory if 'visualize_as_pdf' or 'visualize_as_popup' are selected.");
+    
+    public static final Option<Path> VISUALIZE_AS_PDF =
+            Option.newOption("visualize_as_pdf", Option.PathParser).setDescription("Path to save visualization as pdf.");
+    
+    public static final Option<Boolean> VISUALIZE_AS_POPUP =
+            Option.newFlag("visualize_as_popup").setDescription("Opens pop-up to display visualisation of statistics.");
+    
+  
     /**
      * main method for gathering, printing and writing statistics of a feature model
      * @param optionParser the option parser
@@ -104,7 +111,6 @@ public class PrintStatistics extends ACommand {
             FeatJAR.log().error("No Input file attached");
             return 1;
         }
-        
 
         // opening input model
         Path path = optionParser.getResult(INPUT_OPTION).orElseThrow();
@@ -142,18 +148,65 @@ public class PrintStatistics extends ACommand {
                 }
             }
             writeTo(outputPath, data);
-            FeatJAR.log().message("Feature Model saved at: " + outputPath);
+            FeatJAR.log().message("Statistics saved at: " + outputPath);
         }
         
-        if(optionParser.getResult(OUTPUT_OPTION_VISUALIZE).isPresent() ) {
-        	//TODO aufrufen der Funktionen von Benjamin und Valentin aus VisualizeFeatureModelStats
-            AnalysisTree<?> tree = AnalysisTreeTransformer.hashMapToTree(data, IO.getFileExtension(path)).get();
-            VisualizeGroupDistribution vizGroup;
+        
+        // writing a pdf file with visualization of statistics if --visualize_as_pdf is called
+        if(optionParser.getResult(VISUALIZE_AS_PDF).isPresent()) {
+        	
+            AnalysisTree<?> tree = AnalysisTreeTransformer.hashMapToTree(data, "Analysis").get();
 
-            vizGroup = new VisualizeGroupDistribution(tree);
-            vizGroup.exportChartToPDF(0, optionParser.get(OUTPUT_OPTION).toString());
-
+        	if(!optionParser.getResult(VISUALIZATION_CONTENT).isPresent()) {
+        		FeatJAR.log().error("--visualize_as_pdf needs to be called in combination with --visualization_content.");
+        		return 1;
+        	}
+        	
+        	if(optionParser.get(VISUALIZATION_CONTENT) == Visualize.GROUP_DISTRIBUTION) {
+        		VisualizeGroupDistribution visualization = new VisualizeGroupDistribution(tree);
+            	visualization.exportAllChartsToPDF(optionParser.get(VISUALIZE_AS_PDF).toString());
+        	}else {
+        		VisualizeConstraintOperatorDistribution visualization = new VisualizeConstraintOperatorDistribution(tree);
+            	visualization.exportAllChartsToPDF(optionParser.get(VISUALIZE_AS_PDF).toString());
+        	}
+        	
         }
+        
+     // opening a pop-up with visualization of statistics if --visualize_as_popup is called
+        if(optionParser.getResult(VISUALIZE_AS_POPUP).isPresent()) {
+        	
+            AnalysisTree<?> tree = AnalysisTreeTransformer.hashMapToTree(data, "Analysis").get();
+
+        	if(!optionParser.getResult(VISUALIZATION_CONTENT).isPresent()) {
+        		FeatJAR.log().error("--visualize_as_popup needs to be called in combination with --visualization_content.");
+        		return 1;
+        	}
+        	
+        	if(optionParser.get(VISUALIZATION_CONTENT) == Visualize.GROUP_DISTRIBUTION) {
+        		VisualizeGroupDistribution visualization = new VisualizeGroupDistribution(tree);
+            	visualization.displayAllCharts();
+            	
+            	// temporary work around
+            	try {
+					TimeUnit.SECONDS.sleep(2);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
+        	}else {
+        		VisualizeConstraintOperatorDistribution visualization = new VisualizeConstraintOperatorDistribution(tree);
+            	visualization.displayAllCharts();
+            	
+            	// temporary work around
+        		try {
+					TimeUnit.SECONDS.sleep(2);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+        	}
+        	
+        }
+
         
         return exit_status;
     }
