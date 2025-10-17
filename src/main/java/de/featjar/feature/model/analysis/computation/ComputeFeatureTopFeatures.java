@@ -18,44 +18,31 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
  */
-package de.featjar.feature.model.analysis.visitor;
+package de.featjar.feature.model.analysis.computation;
 
+import de.featjar.base.computation.AComputation;
+import de.featjar.base.computation.Dependency;
+import de.featjar.base.computation.IComputation;
+import de.featjar.base.computation.Progress;
 import de.featjar.base.data.Result;
-import de.featjar.base.tree.structure.ITree;
-import de.featjar.base.tree.visitor.ITreeVisitor;
+import de.featjar.feature.model.IFeatureTree;
 import java.util.List;
 
 /**
- * Calculates the average amount of children per node in the tree.
- * Returns 0 if tree has no nodes.
+ * Calculates the number of features directly below the root of this subtree.
  *
- * @author Valentin Laubsch
  * @author Benjamin von Holt
  */
-public class TreeAvgChildrenCounter implements ITreeVisitor<ITree<?>, Double> {
-    private int nodeCount = 0;
-    private int childCount = 0;
+public class ComputeFeatureTopFeatures extends AComputation<Integer> {
+    protected static final Dependency<IFeatureTree> FEATURE_TREE = Dependency.newDependency(IFeatureTree.class);
 
-    @Override
-    public TraversalAction firstVisit(List<ITree<?>> path) {
-        final ITree<?> node = ITreeVisitor.getCurrentNode(path);
-        nodeCount++;
-        childCount += node.getChildrenCount();
-        return TraversalAction.CONTINUE;
+    public ComputeFeatureTopFeatures(IComputation<IFeatureTree> featureTree) {
+        super(featureTree);
     }
 
     @Override
-    public void reset() {
-        nodeCount = 0;
-        childCount = 0;
-    }
-
-    @Override
-    public Result<Double> getResult() {
-        double result = 0;
-        if (nodeCount > 0) {
-            result = (double) childCount / nodeCount;
-        }
-        return Result.of(result);
+    public Result<Integer> compute(List<Object> dependencyList, Progress progress) {
+        IFeatureTree tree = FEATURE_TREE.get(dependencyList);
+        return Result.of(tree.getChildrenCount());
     }
 }

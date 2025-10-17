@@ -18,43 +18,48 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
  */
-package de.featjar.feature.model.analysis;
+package de.featjar.feature.model.analysis.visitor;
 
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.structure.ITree;
 import de.featjar.base.tree.visitor.ITreeVisitor;
-import de.featjar.formula.structure.term.value.Variable;
-import java.util.HashSet;
+import de.featjar.formula.structure.connective.IConnective;
+import de.featjar.formula.structure.connective.Reference;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 /**
- * Enumerates the names of all distinct variables occurring in a tree.
+ * Counts the the absolute occurrence of different operators in a tree.
  * For further information on its methods see {@link ITreeVisitor}
  *
  * @author Mohammad Khair Almekkawi
  * @author Florian Beese
  */
-public class FeatureDensity implements ITreeVisitor<ITree<?>, Set<String>> {
-    private Set<String> containedFeatures;
+public class OperatorDistributionTreeVisitor implements ITreeVisitor<ITree<?>, HashMap<String, Integer>> {
+    // Saves the count of each operator, where each key is the name of the class of the operator
+    HashMap<String, Integer> operatorCount = new HashMap<String, Integer>();
 
     @Override
     public TraversalAction firstVisit(List<ITree<?>> path) {
         final ITree<?> node = ITreeVisitor.getCurrentNode(path);
-        if (node instanceof Variable) {
-            Variable nodeVar = (Variable) node;
-            containedFeatures.add(nodeVar.getName());
+        if (node instanceof IConnective && !(node instanceof Reference)) {
+            String nodeKey = node.getClass().getSimpleName();
+            if (!operatorCount.containsKey(nodeKey)) {
+                operatorCount.put(nodeKey, 1);
+            } else {
+                operatorCount.replace(nodeKey, operatorCount.get(nodeKey) + 1);
+            }
         }
         return TraversalAction.CONTINUE;
     }
 
     @Override
-    public Result<Set<String>> getResult() {
-        return Result.of(containedFeatures);
+    public Result<HashMap<String, Integer>> getResult() {
+        return Result.of(operatorCount);
     }
 
     @Override
     public void reset() {
-        containedFeatures = new HashSet<String>();
+        operatorCount.clear();
     }
 }

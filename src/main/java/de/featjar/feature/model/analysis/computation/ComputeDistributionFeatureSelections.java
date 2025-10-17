@@ -18,7 +18,7 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
  */
-package de.featjar.feature.model.analysis;
+package de.featjar.feature.model.analysis.computation;
 
 import de.featjar.base.computation.AComputation;
 import de.featjar.base.computation.Dependency;

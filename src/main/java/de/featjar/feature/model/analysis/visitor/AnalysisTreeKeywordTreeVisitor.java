@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  *
  * @author Benjamin von Holt
  */
-public class AnalysisTreeKeywordVisitor implements ITreeVisitor<AnalysisTree<?>, HashMap<String, Object>> {
+public class AnalysisTreeKeywordTreeVisitor implements ITreeVisitor<AnalysisTree<?>, HashMap<String, Object>> {
 
     HashMap<String, Object> foundTrees = new HashMap<>();
     final String keyword;
@@ -40,7 +40,7 @@ public class AnalysisTreeKeywordVisitor implements ITreeVisitor<AnalysisTree<?>,
     /**
      * @param keyword Searches a given {@link AnalysisTree} for nodes containing this keyword.
      */
-    public AnalysisTreeKeywordVisitor(String keyword) {
+    public AnalysisTreeKeywordTreeVisitor(String keyword) {
         this.keyword = keyword;
     }
 

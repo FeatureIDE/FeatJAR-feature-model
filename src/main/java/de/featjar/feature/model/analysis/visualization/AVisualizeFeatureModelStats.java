@@ -23,7 +23,7 @@ package de.featjar.feature.model.analysis.visualization;
 import de.featjar.base.FeatJAR;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.analysis.AnalysisTree;
-import de.featjar.feature.model.analysis.visitor.AnalysisTreeKeywordVisitor;
+import de.featjar.feature.model.analysis.visitor.AnalysisTreeKeywordTreeVisitor;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -150,7 +150,7 @@ public abstract class AVisualizeFeatureModelStats {
      */
     public LinkedHashMap<String, LinkedHashMap<String, Object>> extractAnalysisTree() {
         HashMap<String, Object> relevantAnalysisSubTrees =
-                Trees.traverse(analysisTree, new AnalysisTreeKeywordVisitor(getAnalysisTreeDataName())).get();
+                Trees.traverse(analysisTree, new AnalysisTreeKeywordTreeVisitor(getAnalysisTreeDataName())).get();
 
         // preparing return value
         LinkedHashMap<String, LinkedHashMap<String, Object>> analysisTreeData = new LinkedHashMap<>();

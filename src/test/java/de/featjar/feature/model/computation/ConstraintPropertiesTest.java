@@ -29,7 +29,7 @@ import de.featjar.base.computation.Computations;
 import de.featjar.base.computation.IComputation;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.FeatureModel;
-import de.featjar.feature.model.analysis.AtomsCount;
+import de.featjar.feature.model.analysis.visitor.AtomsCountTreeVisitor;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.And;
 import de.featjar.formula.structure.connective.Implies;
@@ -51,7 +51,7 @@ public class ConstraintPropertiesTest {
         IComputation<Integer> compuational = Computations.of(featureModel).map(ComputeAtomsCount::new);
 
         Trees.traverse(
-                featureModel.getConstraints().iterator().next().getFormula(), new AtomsCount(false, false, false));
+                featureModel.getConstraints().iterator().next().getFormula(), new AtomsCountTreeVisitor(false, false, false));
         assertEquals(23, compuational.compute());
         assertEquals(
                 3,
