@@ -20,11 +20,18 @@
  */
 package de.featjar.feature.model;
 
+import de.featjar.base.data.Result;
 import de.featjar.base.data.identifier.Identifiers;
+import de.featjar.base.io.IO;
 import de.featjar.feature.model.analysis.AnalysisTree;
+import de.featjar.feature.model.cli.PrintStatistics;
+import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
+import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
 import de.featjar.formula.structure.connective.Implies;
 import de.featjar.formula.structure.connective.Or;
 import de.featjar.formula.structure.predicate.Literal;
+import java.nio.file.Path;
+import java.util.LinkedHashMap;
 
 /**
  * Class to containing functions to provide test data shared by multiple unit tests
@@ -118,5 +125,27 @@ public class TestDataProvider {
         FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
         featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         return featureModel;
+    }
+
+    /**
+     * Helper function. Converts a feature model into an {@link AnalysisTree}
+     */
+    public static AnalysisTree<?> analysisTreeFromFeatureModel(FeatureModel featureModel) {
+        PrintStatistics printStatistics = new PrintStatistics();
+        LinkedHashMap<String, Object> map =
+                printStatistics.collectStats(featureModel, PrintStatistics.AnalysesScope.ALL);
+        return AnalysisTreeTransformer.hashMapToTree(map, "Analysis").get();
+    }
+
+    /**
+     * Helper function. Converts an XML file into an {@link AnalysisTree}
+     */
+    public static AnalysisTree<?> analysisTreeFromXML(Path path) {
+        Result<IFeatureModel> load = IO.load(path, new XMLFeatureModelFormat());
+        FeatureModel model = (FeatureModel) load.orElseThrow();
+
+        PrintStatistics printStatistics = new PrintStatistics();
+        LinkedHashMap<String, Object> map = printStatistics.collectStats(model, PrintStatistics.AnalysesScope.ALL);
+        return AnalysisTreeTransformer.hashMapToTree(map, "Analysis").get();
     }
 }

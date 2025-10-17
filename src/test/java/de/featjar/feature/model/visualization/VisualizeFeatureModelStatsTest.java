@@ -22,23 +22,16 @@ package de.featjar.feature.model.visualization;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import de.featjar.base.data.Result;
-import de.featjar.base.io.IO;
 import de.featjar.feature.model.FeatureModel;
-import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.TestDataProvider;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.analysis.visualization.VisualizeConstraintOperatorDistribution;
 import de.featjar.feature.model.analysis.visualization.VisualizeGroupDistribution;
-import de.featjar.feature.model.cli.PrintStatistics;
-import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
-import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Test;
 
 public class VisualizeFeatureModelStatsTest {
@@ -49,37 +42,16 @@ public class VisualizeFeatureModelStatsTest {
     String defaultExportName =
             "src/test/java/de/featjar/feature/model/visualization/VisualizeFeatureModelStatsTest.pdf";
 
-    /**
-     * Helper function. Converts a feature model into an {@link AnalysisTree}
-     */
-    public AnalysisTree<?> analysisTreeFromFeatureModel(FeatureModel featureModel) {
-        PrintStatistics printStatistics = new PrintStatistics();
-        LinkedHashMap<String, Object> map =
-                printStatistics.collectStats(featureModel, PrintStatistics.AnalysesScope.ALL);
-        return AnalysisTreeTransformer.hashMapToTree(map, "Analysis").get();
-    }
-
-    /**
-     * Helper function. Converts an XML file into an {@link AnalysisTree}
-     */
-    public AnalysisTree<?> analysisTreeFromXML(Path path) {
-        Result<IFeatureModel> load = IO.load(path, new XMLFeatureModelFormat());
-        FeatureModel model = (FeatureModel) load.orElseThrow();
-
-        PrintStatistics printStatistics = new PrintStatistics();
-        LinkedHashMap<String, Object> map = printStatistics.collectStats(model, PrintStatistics.AnalysesScope.ALL);
-        return AnalysisTreeTransformer.hashMapToTree(map, "Analysis").get();
-    }
-
     public AnalysisTree<?> getBigAnalysisTree() {
-        return analysisTreeFromXML(Paths.get("src/test/java/de/featjar/feature/model/visualization/model.xml"));
+        return TestDataProvider.analysisTreeFromXML(
+                Paths.get("src/test/java/de/featjar/feature/model/visualization/model.xml"));
     }
 
     /**
      * Warning: this tree does not have Constraint Operators
      */
     public AnalysisTree<?> getMediumAnalysisTree() {
-        return analysisTreeFromFeatureModel(TestDataProvider.createMediumFeatureModel());
+        return TestDataProvider.analysisTreeFromFeatureModel(TestDataProvider.createMediumFeatureModel());
     }
 
     /**
@@ -88,7 +60,7 @@ public class VisualizeFeatureModelStatsTest {
     public AnalysisTree<?> getDoubleTree() {
         FeatureModel featureModel = TestDataProvider.createMediumFeatureModel();
         featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("ConfigDB"));
-        return analysisTreeFromFeatureModel(featureModel);
+        return TestDataProvider.analysisTreeFromFeatureModel(featureModel);
     }
 
     @Test
