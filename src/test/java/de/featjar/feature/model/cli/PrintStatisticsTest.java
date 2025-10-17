@@ -103,7 +103,7 @@ public class PrintStatisticsTest {
                 "--input",
                 "src/test/java/de/featjar/feature/model/cli/resources/simpleTestModel.xml",
                 "--output",
-                "model_outputWithFileInvalidExtension.pdf",
+                "model_outputWithFileInvalidExtension.exe",
                 "--overwrite");
         assertEquals(1, exit_code);
     }

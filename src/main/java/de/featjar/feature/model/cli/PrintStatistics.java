@@ -36,6 +36,7 @@ import de.featjar.feature.model.analysis.ComputeFeatureFeaturesCounter;
 import de.featjar.feature.model.analysis.ComputeFeatureGroupDistribution;
 import de.featjar.feature.model.analysis.ComputeFeatureTopFeatures;
 import de.featjar.feature.model.analysis.ComputeFeatureTreeDepth;
+import de.featjar.feature.model.analysis.visualization.*;
 import de.featjar.feature.model.computation.ComputeAtomsCount;
 import de.featjar.feature.model.computation.ComputeAverageConstraint;
 import de.featjar.feature.model.computation.ComputeFeatureDensity;
@@ -48,11 +49,13 @@ import de.featjar.feature.model.io.yaml.YAMLAnalysisFormat;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.knowm.xchart.internal.chartpart.Chart;
 
 /**
  * Prints statistics about a provided Feature Model.
@@ -67,7 +70,15 @@ public class PrintStatistics extends ACommand {
         CONSTRAINT_RELATED
     }
 
+    public enum Visualize {
+        GROUP,
+        OPERATOR
+    }
+
     private int exit_status = 0;
+
+    public static final Option<Path> OUTPUT_OPTION = Option.newOption("output", Option.PathParser)
+            .setDescription("Path to output file. For visualization: '.pdf'. For document: '.csv','.yaml''.json'");
 
     public static final Option<AnalysesScope> ANALYSES_SCOPE =
             Option.newEnumOption("scope", AnalysesScope.class).setDescription("Specifies scope of statistics");
@@ -77,6 +88,12 @@ public class PrintStatistics extends ACommand {
 
     public static final Option<Boolean> OVERWRITE =
             Option.newFlag("overwrite").setDescription("Overwrite output file.");
+
+    public static final Option<Visualize> VISUALIZATION_CONTENT = Option.newEnumOption("visualize", Visualize.class)
+            .setDescription("Specifies what statistics the visualization should include.");
+
+    public static final Option<Boolean> SHOW =
+            Option.newFlag("show").setDescription("Opens pop-up to display visualisation of statistics.");
 
     /**
      * main method for gathering, printing and writing statistics of a feature model
@@ -97,6 +114,7 @@ public class PrintStatistics extends ACommand {
         Path path = optionParser.getResult(INPUT_OPTION).orElseThrow();
         Result<IFeatureModel> load = IO.load(path, FeatureModelFormats.getInstance());
         LinkedHashMap<String, Object> data;
+
         FeatureModel model = (FeatureModel) load.orElseThrow();
 
         // collecting statistics of the model, checking if scope is specified
@@ -113,25 +131,114 @@ public class PrintStatistics extends ACommand {
             printStats(data);
         }
 
+        AnalysisTree<?> tree =
+                AnalysisTreeTransformer.hashMapToTree(data, "Analysis").get();
+        VisualizeGroupDistribution groupViz = new VisualizeGroupDistribution(tree);
+        VisualizeConstraintOperatorDistribution opViz = new VisualizeConstraintOperatorDistribution(tree);
+
         // if output path is specified, write statistics to file
         if (optionParser.getResult(OUTPUT_OPTION).isPresent()) {
 
             Path outputPath = optionParser.get(OUTPUT_OPTION);
+            String output_extension = IO.getFileExtension(outputPath);
 
-            if (Files.exists(outputPath)) {
-                if (optionParser.get(OVERWRITE)) {
-                    FeatJAR.log().info("File already present at: " + outputPath + ". Continuing to overwrite File.");
-                } else {
-                    FeatJAR.log()
-                            .error("Saving outputModel in File unsuccessful: File already present at: " + outputPath
-                                    + ".\nTo overwrite present file add --overwrite");
-                    return 1;
-                }
+            exit_status = checkAndWarnOverwrite(optionParser, outputPath);
+            if (exit_status != 0) {
+                return exit_status;
             }
-            writeTo(outputPath, data);
-            FeatJAR.log().message("Feature Model saved at: " + outputPath);
+
+            if (output_extension.equals("pdf")) {
+                exit_status = writeToVisual(optionParser, outputPath, groupViz, opViz);
+            } else {
+                exit_status = writeToDoc(outputPath, data);
+                FeatJAR.log().message("Statistics saved at: " + outputPath);
+            }
+        }
+
+        if (optionParser.get(SHOW)) {
+            exit_status = show(optionParser, groupViz, opViz);
         }
         return exit_status;
+    }
+
+    /**
+     * handles overwriting of file if specified in optionParser
+     * @param optionParser: expects OptionList with command line arguments
+     * @param outputPath: expects Path to output file location
+     *
+     */
+    private int checkAndWarnOverwrite(OptionList optionParser, Path outputPath) {
+        if (Files.exists(outputPath)) {
+            if (optionParser.get(OVERWRITE)) {
+                FeatJAR.log().info("File already present at: " + outputPath + ". Continuing to overwrite File.");
+            } else {
+                FeatJAR.log()
+                        .error("Saving statistics in File unsuccessful: File already present at: " + outputPath
+                                + ".\nTo overwrite present file add --overwrite");
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * live-displays the wanted (group-/operator-distribution) statistics if --show is used as a pie chart.
+     * @param optionParser: expects OptionList with command line arguments
+     * @param groupViz: expects VisualizeGroupDistribution object for data visualization of group distribution
+     * @param opViz: expects VisualizeConstraintOperatorDistribution object for data visualization of operator distribution
+     */
+    private int show(
+            OptionList optionParser,
+            VisualizeGroupDistribution groupViz,
+            VisualizeConstraintOperatorDistribution opViz) {
+
+        if (!optionParser.getResult(VISUALIZATION_CONTENT).isPresent()) {
+            opViz.displayAllCharts();
+            groupViz.displayAllCharts();
+        } else if (optionParser.get(VISUALIZATION_CONTENT) == Visualize.GROUP) {
+            groupViz.displayAllCharts();
+
+        } else if (optionParser.get(VISUALIZATION_CONTENT) == Visualize.OPERATOR) {
+            opViz.displayAllCharts();
+        }
+
+        return 0;
+    }
+
+    /**
+     * saves the wanted (group-/operator-distribution) statistics if --show is used as a pie chart to the path at --outputPath.
+     * @param optionParser: expects OptionList with command line arguments
+     * @param outputPath: expects Path to output file location
+     * @param groupViz: expects VisualizeGroupDistribution object for data visualization of group distribution
+     * @param opViz: expects VisualizeConstraintOperatorDistribution object for data visualization of operator distribution
+     *
+     */
+    private int writeToVisual(
+            OptionList optionParser,
+            Path outputPath,
+            VisualizeGroupDistribution groupViz,
+            VisualizeConstraintOperatorDistribution opViz) {
+
+        if (!optionParser.getResult(VISUALIZATION_CONTENT).isPresent()) {
+
+            ArrayList<Chart<?, ?>> combinedCharts = new ArrayList<Chart<?, ?>>();
+            combinedCharts.addAll(groupViz.getCharts());
+            combinedCharts.addAll(opViz.getCharts());
+            groupViz.exportAllChartsToPDF(combinedCharts, outputPath.toString());
+
+        } else if (optionParser.get(VISUALIZATION_CONTENT) == Visualize.GROUP) {
+            groupViz.exportAllChartsToPDF(outputPath.toString());
+        } else {
+            opViz.exportAllChartsToPDF(outputPath.toString());
+        }
+        if (Files.exists(outputPath)) {
+            FeatJAR.log().message("Statistics visual saved at: " + outputPath);
+        } else {
+            FeatJAR.log().error("Visualization of statistics could not be saved");
+        }
+
+        return 0;
     }
 
     /**
@@ -140,7 +247,7 @@ public class PrintStatistics extends ACommand {
      * @param data: expects data about a feature model as LinkedHashMap<Strong, Object> but will be converted to Result<AnalysisTree<?>>
      * @throws IOException
      */
-    private void writeTo(Path path, LinkedHashMap<String, Object> data) {
+    private int writeToDoc(Path path, LinkedHashMap<String, Object> data) {
         String type = IO.getFileExtension(path);
         Result<AnalysisTree<?>> tree = AnalysisTreeTransformer.hashMapToTree(data, type);
 
@@ -157,15 +264,16 @@ public class PrintStatistics extends ACommand {
                     break;
                 case "":
                     FeatJAR.log().error("Output file does not include file type.");
-                    exit_status = 1;
-                    break;
+                    return 1;
                 default:
                     FeatJAR.log().error("File type not valid: " + type);
-                    exit_status = 1;
+                    return 1;
             }
         } catch (Exception e) {
             FeatJAR.log().error(e);
+            return 1;
         }
+        return 0;
     }
 
     /**
