@@ -81,7 +81,6 @@ public abstract class AVisualizeFeatureModelStats {
 
     public void setCharts(ArrayList<Chart<?, ?>> charts) {
         this.charts = charts;
-        this.charts = buildCharts();
     }
 
     public String getChartTitle() {
@@ -238,7 +237,7 @@ public abstract class AVisualizeFeatureModelStats {
      * @param chart the chart that will be displayed
      * @return 0 on success, 1 on general error
      */
-    public int displayChart(Chart<?, ?> chart) {
+    public static int displayChart(Chart<?, ?> chart) {
         try {
             JFrame jframe = new SwingWrapper<>(chart).displayChart();
             if (jframe == null) {
@@ -286,19 +285,26 @@ public abstract class AVisualizeFeatureModelStats {
      * @return 0 on success, 1 on general error, 2 on empty internal chart list
      */
     public int displayAllCharts() {
-        if (chartsAreEmptyDisplay()) {
+        return displayAllCharts(charts);
+    }
+
+    /**
+     * Creates live preview pop-up windows of ALL charts passed as argument
+     * @return 0 on success, 1 on general error, 2 on empty internal chart list
+     */
+    public static int displayAllCharts(ArrayList<Chart<?, ?>> charts) {
+        if (charts.isEmpty()) {
             return 2;
         }
 
         int returnValue = 0;
 
-        for (Chart<?, ?> chart : this.charts) {
-            returnValue = this.displayChart(chart);
+        for (Chart<?, ?> chart : charts) {
+            returnValue = displayChart(chart);
             if (returnValue != 0) {
                 break;
             }
         }
-
         return returnValue;
     }
 
@@ -308,9 +314,11 @@ public abstract class AVisualizeFeatureModelStats {
      * @param document existing PDF document
      * @return 0 on success, 1 on IOException
      */
-    private int exportChartToPDF(Chart<?, ?> chart, PDDocument document) {
+    private static int exportChartToPDF(Chart<?, ?> chart, PDDocument document) {
         PDPage page = new PDPage();
         document.addPage(page);
+        int chartWidth = chart.getWidth();
+        int chartHeight = chart.getHeight();
 
         // Create a PdfBoxGraphics2D object and draw the chart into it
         PdfBoxGraphics2D graphics;
@@ -325,7 +333,7 @@ public abstract class AVisualizeFeatureModelStats {
 
         // transforms the chart so it fits on the page, then draws it
         try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
-            Matrix transformationMatrix = getPDFCenteringMatrix(page);
+            Matrix transformationMatrix = getPDFCenteringMatrix(page, chartWidth, chartHeight);
             contentStream.transform(transformationMatrix);
             contentStream.drawForm(graphics.getXFormObject());
         } catch (IOException e) {
@@ -342,7 +350,7 @@ public abstract class AVisualizeFeatureModelStats {
      * @param path  full path to the destination file. Does not check whether you specified an extension.
      * @return 0 on success, 1 otherwise.
      */
-    public int exportChartToPDF(Chart<?, ?> chart, String path) {
+    public static int exportChartToPDF(Chart<?, ?> chart, String path) {
         return exportAllChartsToPDF(Collections.singletonList(chart), path);
     }
 
@@ -382,7 +390,7 @@ public abstract class AVisualizeFeatureModelStats {
      * @param path     full path to the destination file. Does not check whether you specified an extension.
      * @return 0 on success, 1 otherwise
      */
-    public int exportAllChartsToPDF(List<Chart<?, ?>> charts, String path) {
+    public static int exportAllChartsToPDF(List<Chart<?, ?>> charts, String path) {
         try (PDDocument document = new PDDocument()) {
 
             int iExitCode;
@@ -421,10 +429,9 @@ public abstract class AVisualizeFeatureModelStats {
     }
 
     /**
-     * @param page
      * {@return transformation matrix that scales a given chart to fill the page and be centered}
      */
-    private Matrix getPDFCenteringMatrix(PDPage page) {
+    private static Matrix getPDFCenteringMatrix(PDPage page, int chartWidth, int chartHeight) {
         float pageWidth = page.getMediaBox().getWidth();
         float pageHeight = page.getMediaBox().getHeight();
 
