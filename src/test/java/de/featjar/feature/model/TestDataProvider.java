@@ -70,14 +70,21 @@ public class TestDataProvider {
 
         return treeRoot;
     }
-
+    /**
+     * Takes feature tree of {@link #generateMediumTree())} transforms it to a FeatureModel and adds exemplary constraint.
+     * Constraint: Transactions implies Put or Delete
+     * @return Described feature model
+     */
     public static FeatureModel createMediumFeatureModel() {
         FeatureModel fm = new FeatureModel();
         fm.addFeatureTreeRoot(generateMediumTree());
         fm.addConstraint(new Implies(new Literal("Transactions"), new Or(new Literal("Put"), new Literal("Delete"))));
         return fm;
     }
-
+    /**
+     * Creates an AnalysisTree with root Analysis, 8 children with value and another containing a nested analysistree with 2 children
+     * @return described AnalysisTree
+     */
     public static AnalysisTree<?> createSmallAnalysisTree() {
         AnalysisTree<?> innereanalysisTree = new AnalysisTree<>(
                 "avgNumOfAtomsPerConstraints",
@@ -97,7 +104,10 @@ public class TestDataProvider {
                 innereanalysisTree);
         return analysisTree;
     }
-
+    /**
+     * Creates a feature model containing solely a root node
+     * @return created feature model
+     */
     public static FeatureModel generateModel() {
         FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
         featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
