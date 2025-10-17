@@ -272,7 +272,7 @@ public abstract class AVisualizeFeatureModelStats {
             return 2;
         }
         try {
-            this.displayChart(this.charts.get(index));
+            displayChart(this.charts.get(index));
         } catch (IndexOutOfBoundsException e) {
             FeatJAR.log().error("Unable to fetch chart with index " + index + ": " + e);
             return 1;
