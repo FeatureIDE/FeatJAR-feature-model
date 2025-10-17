@@ -117,7 +117,8 @@ public class ConfigurationFormatConversion implements ICommand {
 
         if (!checkIfInputOutputIsPresent(optionParser)) {
             return 1;
-        };
+        }
+        ;
 
         String format_type = "";
         if (optionParser.getResult(FORMAT_TYPE).isPresent()) {
