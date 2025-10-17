@@ -75,7 +75,7 @@ public class PrintStatistics extends ACommand {
         OPERATOR
     }
 
-    private int exit_status = 0;
+    private int exitStatus = 0;
 
     public static final Option<Path> OUTPUT_OPTION = Option.newOption("output", Option.PathParser)
             .setDescription("Path to output file. For visualization: '.pdf'. For document: '.csv','.yaml''.json'");
@@ -142,23 +142,23 @@ public class PrintStatistics extends ACommand {
             Path outputPath = optionParser.get(OUTPUT_OPTION);
             String output_extension = IO.getFileExtension(outputPath);
 
-            exit_status = checkAndWarnOverwrite(optionParser, outputPath);
-            if (exit_status != 0) {
-                return exit_status;
+            exitStatus = checkAndWarnOverwrite(optionParser, outputPath);
+            if (exitStatus != 0) {
+                return exitStatus;
             }
 
             if (output_extension.equals("pdf")) {
-                exit_status = writeToVisual(optionParser, outputPath, groupViz, opViz);
+                exitStatus = writeToVisual(optionParser, outputPath, groupViz, opViz);
             } else {
-                exit_status = writeToDoc(outputPath, data);
+                exitStatus = writeToDoc(outputPath, data);
                 FeatJAR.log().message("Statistics saved at: " + outputPath);
             }
         }
 
         if (optionParser.get(SHOW)) {
-            exit_status = show(optionParser, groupViz, opViz);
+            exitStatus = show(optionParser, groupViz, opViz);
         }
-        return exit_status;
+        return exitStatus;
     }
 
     /**

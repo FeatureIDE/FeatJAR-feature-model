@@ -44,8 +44,8 @@ public class PrintSampleStatisticsTest {
     @Test
     void inputTest() {
 
-        int exit_code = FeatJAR.runTest("printSampleStats", "--inputFM", fmPath, "--inputConfig", configPath);
-        assertEquals(0, exit_code);
+        int exitCode = FeatJAR.runTest("printSampleStats", "--inputFM", fmPath, "--inputConfig", configPath);
+        assertEquals(0, exitCode);
     }
 
     @Test
@@ -58,9 +58,9 @@ public class PrintSampleStatisticsTest {
     @Test
     void outputWithFileValidExtension() throws IOException {
 
-        int exit_code = FeatJAR.runTest(
+        int exitCode = FeatJAR.runTest(
                 "printSampleStats", "--inputFM", fmPath, "--inputConfig", configPath, "--output", "model.csv");
-        assertEquals(0, exit_code);
+        assertEquals(0, exitCode);
         assertTrue(Files.exists(Paths.get("model.csv")) && !Files.isDirectory(Paths.get("model.csv")));
         Files.deleteIfExists(Paths.get("model.csv"));
     }
@@ -68,17 +68,17 @@ public class PrintSampleStatisticsTest {
     @Test
     void outputWithFileInvalidExtension() {
 
-        int exit_code = FeatJAR.runTest(
-                "printSampleStats", "--inputFM", fmPath, "--inputConfig", configPath, "--output", "model.pdf");
-        assertEquals(1, exit_code);
+        int exitCode = FeatJAR.runTest(
+                "printSampleStats", "--inputFM", fmPath, "--inputConfig", configPath, "--output", "model.exe");
+        assertEquals(1, exitCode);
     }
 
     @Test
     void outputWithoutFileExtension() {
 
-        int exit_code = FeatJAR.runTest(
+        int exitCode = FeatJAR.runTest(
                 "printSampleStats", "--inputFM", fmPath, "--inputConfig", configPath, "--output", "desktop/folder");
-        assertEquals(1, exit_code);
+        assertEquals(1, exitCode);
     }
 
     @Test
