@@ -28,7 +28,8 @@ import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IConstraint;
-import de.featjar.feature.model.analysis.FeatureDensity;
+import de.featjar.feature.model.analysis.visitor.FeatureDensityTreeVisitor;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -58,7 +59,7 @@ public class ComputeFeatureDensity extends AComputation<Float> {
 
         Iterator<IConstraint> constraintIterator = Constraints.iterator();
         while (constraintIterator.hasNext()) {
-            unionSet.addAll(Trees.traverse(constraintIterator.next().getFormula(), new FeatureDensity())
+            unionSet.addAll(Trees.traverse(constraintIterator.next().getFormula(), new FeatureDensityTreeVisitor())
                     .orElse(Collections.emptySet()));
         }
         return Result.of((float) unionSet.size()

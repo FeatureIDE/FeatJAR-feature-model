@@ -29,7 +29,8 @@ import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IConstraint;
-import de.featjar.feature.model.analysis.AtomsCount;
+import de.featjar.feature.model.analysis.visitor.AtomsCountTreeVisitor;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -70,7 +71,7 @@ public class ComputeAtomsCount extends AComputation<Integer> {
             atomsSum = atomsSum
                     + Trees.traverse(
                                     constraintIterator.next().getFormula(),
-                                    new AtomsCount(
+                                    new AtomsCountTreeVisitor(
                                             COUNTVARIABLES.get(dependencyList),
                                             COUNTCONSTANTS.get(dependencyList),
                                             COUNTBOOLEAN.get(dependencyList)))

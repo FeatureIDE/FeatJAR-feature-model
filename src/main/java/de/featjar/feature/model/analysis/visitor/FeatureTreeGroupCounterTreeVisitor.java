@@ -34,7 +34,7 @@ import java.util.List;
  * @author Valentin Laubsch
  * @author Benjamin von Holt
  */
-public class FeatureTreeGroupCounter implements ITreeVisitor<ITree<IFeatureTree>, HashMap<String, Integer>> {
+public class FeatureTreeGroupCounterTreeVisitor implements ITreeVisitor<ITree<IFeatureTree>, HashMap<String, Integer>> {
     int altCounter = 0, orCounter = 0, andCounter = 0, otherCounter = 0;
 
     @Override

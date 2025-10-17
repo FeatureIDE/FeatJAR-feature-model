@@ -18,48 +18,44 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
  */
-package de.featjar.feature.model.analysis;
+package de.featjar.feature.model.analysis.visitor;
 
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.structure.ITree;
 import de.featjar.base.tree.visitor.ITreeVisitor;
-import de.featjar.formula.structure.connective.IConnective;
-import de.featjar.formula.structure.connective.Reference;
-import java.util.HashMap;
 import java.util.List;
 
 /**
- * Counts the the absolute occurrence of different operators in a tree.
- * For further information on its methods see {@link ITreeVisitor}
+ * Calculates the average amount of children per node in the tree.
+ * Returns 0 if tree has no nodes.
  *
- * @author Mohammad Khair Almekkawi
- * @author Florian Beese
+ * @author Valentin Laubsch
+ * @author Benjamin von Holt
  */
-public class OperatorDistribution implements ITreeVisitor<ITree<?>, HashMap<String, Integer>> {
-    // Saves the count of each operator, where each key is the name of the class of the operator
-    HashMap<String, Integer> operatorCount = new HashMap<String, Integer>();
+public class TreeAvgChildrenCounterTreeVisitor implements ITreeVisitor<ITree<?>, Double> {
+    private int nodeCount = 0;
+    private int childCount = 0;
 
     @Override
     public TraversalAction firstVisit(List<ITree<?>> path) {
         final ITree<?> node = ITreeVisitor.getCurrentNode(path);
-        if (node instanceof IConnective && !(node instanceof Reference)) {
-            String nodeKey = node.getClass().getSimpleName();
-            if (!operatorCount.containsKey(nodeKey)) {
-                operatorCount.put(nodeKey, 1);
-            } else {
-                operatorCount.replace(nodeKey, operatorCount.get(nodeKey) + 1);
-            }
-        }
+        nodeCount++;
+        childCount += node.getChildrenCount();
         return TraversalAction.CONTINUE;
     }
 
     @Override
-    public Result<HashMap<String, Integer>> getResult() {
-        return Result.of(operatorCount);
+    public void reset() {
+        nodeCount = 0;
+        childCount = 0;
     }
 
     @Override
-    public void reset() {
-        operatorCount.clear();
+    public Result<Double> getResult() {
+        double result = 0;
+        if (nodeCount > 0) {
+            result = (double) childCount / nodeCount;
+        }
+        return Result.of(result);
     }
 }

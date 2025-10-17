@@ -18,7 +18,7 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
  */
-package de.featjar.feature.model.analysis;
+package de.featjar.feature.model.analysis.computation;
 
 import de.featjar.base.computation.AComputation;
 import de.featjar.base.computation.Dependency;
@@ -27,7 +27,7 @@ import de.featjar.base.computation.Progress;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.IFeatureTree;
-import de.featjar.feature.model.analysis.visitor.FeatureTreeGroupCounter;
+import de.featjar.feature.model.analysis.visitor.FeatureTreeGroupCounterTreeVisitor;
 import java.util.HashMap;
 import java.util.List;
 
@@ -47,6 +47,6 @@ public class ComputeFeatureGroupDistribution extends AComputation<HashMap<String
     @Override
     public Result<HashMap<String, Integer>> compute(List<Object> dependencyList, Progress progress) {
         IFeatureTree tree = FEATURE_TREE.get(dependencyList);
-        return Trees.traverse(tree, new FeatureTreeGroupCounter());
+        return Trees.traverse(tree, new FeatureTreeGroupCounterTreeVisitor());
     }
 }

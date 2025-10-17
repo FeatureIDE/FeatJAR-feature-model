@@ -18,33 +18,34 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
  */
-package de.featjar.feature.model.analysis;
+package de.featjar.feature.model.analysis.computation;
 
 import de.featjar.base.computation.AComputation;
 import de.featjar.base.computation.Dependency;
 import de.featjar.base.computation.IComputation;
 import de.featjar.base.computation.Progress;
 import de.featjar.base.data.Result;
-import de.featjar.base.tree.Trees;
-import de.featjar.feature.model.IFeatureTree;
-import de.featjar.feature.model.analysis.visitor.TreeLeafCounter;
+import de.featjar.formula.assignment.BooleanAssignmentList;
 import java.util.List;
 
 /**
- * Calculates the number of features that have no child features.
+ * Compute how many assignments are in the assignmentList
  *
- * @author Benjamin von Holt
+ * @author Mohammad Khair Almekkawi
+ * @author Florian Beese
  */
-public class ComputeFeatureFeaturesCounter extends AComputation<Integer> {
-    protected static final Dependency<IFeatureTree> FEATURE_TREE = Dependency.newDependency(IFeatureTree.class);
+public class ComputeNumberConfigurations extends AComputation<Integer> {
 
-    public ComputeFeatureFeaturesCounter(IComputation<IFeatureTree> featureTree) {
-        super(featureTree);
+    public static final Dependency<BooleanAssignmentList> BOOLEAN_ASSIGNMENT_LIST =
+            Dependency.newDependency(BooleanAssignmentList.class);
+
+    public ComputeNumberConfigurations(IComputation<BooleanAssignmentList> booleanAssignmentList) {
+        super(booleanAssignmentList);
     }
 
     @Override
     public Result<Integer> compute(List<Object> dependencyList, Progress progress) {
-        IFeatureTree tree = FEATURE_TREE.get(dependencyList);
-        return Trees.traverse(tree, new TreeLeafCounter());
+        BooleanAssignmentList booleanAssigmenAssignmentList = BOOLEAN_ASSIGNMENT_LIST.get(dependencyList);
+        return Result.of(booleanAssigmenAssignmentList.getAll().size());
     }
 }

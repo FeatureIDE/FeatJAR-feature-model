@@ -18,33 +18,39 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
  */
-package de.featjar.feature.model.analysis;
+package de.featjar.feature.model.analysis.visitor;
 
-import de.featjar.base.computation.AComputation;
-import de.featjar.base.computation.Dependency;
-import de.featjar.base.computation.IComputation;
-import de.featjar.base.computation.Progress;
 import de.featjar.base.data.Result;
-import de.featjar.base.tree.Trees;
-import de.featjar.base.tree.visitor.TreeDepthCounter;
-import de.featjar.feature.model.IFeatureTree;
+import de.featjar.base.tree.structure.ITree;
+import de.featjar.base.tree.visitor.ITreeVisitor;
 import java.util.List;
 
 /**
- * Calculates the number of features that have no child features.
+ * Counts the number of nodes that have no child nodes
+ * Can be passed a class up to which should be counted (e.g., to exclude details in a tree).
  *
+ * @author Valentin Laubsch
  * @author Benjamin von Holt
  */
-public class ComputeFeatureTreeDepth extends AComputation<Integer> {
-    protected static final Dependency<IFeatureTree> FEATURE_TREE = Dependency.newDependency(IFeatureTree.class);
+public class TreeLeafCounterTreeVisitor implements ITreeVisitor<ITree<?>, Integer> {
+    private int leafCount = 0;
 
-    public ComputeFeatureTreeDepth(IComputation<IFeatureTree> featureTree) {
-        super(featureTree);
+    @Override
+    public TraversalAction firstVisit(List<ITree<?>> path) {
+        final ITree<?> node = ITreeVisitor.getCurrentNode(path);
+        if (!node.hasChildren()) {
+            leafCount++;
+        }
+        return TraversalAction.CONTINUE;
     }
 
     @Override
-    public Result<Integer> compute(List<Object> dependencyList, Progress progress) {
-        IFeatureTree tree = FEATURE_TREE.get(dependencyList);
-        return Trees.traverse(tree, new TreeDepthCounter());
+    public void reset() {
+        leafCount = 0;
+    }
+
+    @Override
+    public Result<Integer> getResult() {
+        return Result.of(leafCount);
     }
 }

@@ -18,31 +18,33 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
  */
-package de.featjar.feature.model.analysis;
+package de.featjar.feature.model.analysis.computation;
 
 import de.featjar.base.computation.AComputation;
 import de.featjar.base.computation.Dependency;
 import de.featjar.base.computation.IComputation;
 import de.featjar.base.computation.Progress;
 import de.featjar.base.data.Result;
+import de.featjar.base.tree.Trees;
+import de.featjar.base.tree.visitor.TreeDepthCounter;
 import de.featjar.feature.model.IFeatureTree;
 import java.util.List;
 
 /**
- * Calculates the number of features directly below the root of this subtree.
+ * Calculates the number of features that have no child features.
  *
  * @author Benjamin von Holt
  */
-public class ComputeFeatureTopFeatures extends AComputation<Integer> {
+public class ComputeFeatureTreeDepth extends AComputation<Integer> {
     protected static final Dependency<IFeatureTree> FEATURE_TREE = Dependency.newDependency(IFeatureTree.class);
 
-    public ComputeFeatureTopFeatures(IComputation<IFeatureTree> featureTree) {
+    public ComputeFeatureTreeDepth(IComputation<IFeatureTree> featureTree) {
         super(featureTree);
     }
 
     @Override
     public Result<Integer> compute(List<Object> dependencyList, Progress progress) {
         IFeatureTree tree = FEATURE_TREE.get(dependencyList);
-        return Result.of(tree.getChildrenCount());
+        return Trees.traverse(tree, new TreeDepthCounter());
     }
 }

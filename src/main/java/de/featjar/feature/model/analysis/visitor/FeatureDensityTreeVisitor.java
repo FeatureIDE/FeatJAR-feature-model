@@ -23,34 +23,38 @@ package de.featjar.feature.model.analysis.visitor;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.structure.ITree;
 import de.featjar.base.tree.visitor.ITreeVisitor;
+import de.featjar.formula.structure.term.value.Variable;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
- * Counts the number of nodes that have no child nodes
- * Can be passed a class up to which should be counted (e.g., to exclude details in a tree).
+ * Enumerates the names of all distinct variables occurring in a tree.
+ * For further information on its methods see {@link ITreeVisitor}
  *
- * @author Valentin Laubsch
- * @author Benjamin von Holt
+ * @author Mohammad Khair Almekkawi
+ * @author Florian Beese
  */
-public class TreeLeafCounter implements ITreeVisitor<ITree<?>, Integer> {
-    private int leafCount = 0;
+public class FeatureDensityTreeVisitor implements ITreeVisitor<ITree<?>, Set<String>> {
+    private Set<String> containedFeatures;
 
     @Override
     public TraversalAction firstVisit(List<ITree<?>> path) {
         final ITree<?> node = ITreeVisitor.getCurrentNode(path);
-        if (!node.hasChildren()) {
-            leafCount++;
+        if (node instanceof Variable) {
+            Variable nodeVar = (Variable) node;
+            containedFeatures.add(nodeVar.getName());
         }
         return TraversalAction.CONTINUE;
     }
 
     @Override
-    public void reset() {
-        leafCount = 0;
+    public Result<Set<String>> getResult() {
+        return Result.of(containedFeatures);
     }
 
     @Override
-    public Result<Integer> getResult() {
-        return Result.of(leafCount);
+    public void reset() {
+        containedFeatures = new HashSet<String>();
     }
 }
