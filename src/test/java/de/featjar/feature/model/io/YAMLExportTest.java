@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import de.featjar.base.io.IO;
 import de.featjar.base.tree.Trees;
+import de.featjar.feature.model.TestDataProvider;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
 import de.featjar.feature.model.io.yaml.YAMLAnalysisFormat;
@@ -31,38 +32,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
 
 public class YAMLExportTest {
-
-    LinkedHashMap<String, Object> data = new LinkedHashMap<String, Object>();
-
-    public AnalysisTree<?> createDefaultTree() {
-        AnalysisTree<?> innereAnalysisTree = new AnalysisTree<>(
-                "avgNumOfAtomsPerConstraints",
-                new AnalysisTree<>("test property", 3.3),
-                new AnalysisTree<>("numOfLeafFeatures", (float) 12.4));
-
-        AnalysisTree<?> analysisTree = new AnalysisTree<>(
-                "Analysis",
-                new AnalysisTree<>("numOfLeafFeatures", (float) 12.4),
-                new AnalysisTree<>("numOfTopFeatures", 3.3),
-                new AnalysisTree<>("treeDepth", 3),
-                new AnalysisTree<>("avgNumOfChildren", 3),
-                new AnalysisTree<>("numInOrGroups", 7),
-                new AnalysisTree<>("numInAltGroups", 5),
-                new AnalysisTree<>("numOfAtoms", 8),
-                new AnalysisTree<>("avgNumOfAsss", 4),
-                innereAnalysisTree);
-        return analysisTree;
-    }
-
     @Test
     public void YAMLTest() throws IOException {
-        AnalysisTree<?> analysisTree = createDefaultTree();
+        AnalysisTree<?> analysisTree = TestDataProvider.createSmallAnalysisTree();
         IO.save(analysisTree, Paths.get("filename.yaml"), new YAMLAnalysisFormat());
         AnalysisTree<?> outputAnalysisTree =
                 IO.load(Paths.get("filename.yaml"), new YAMLAnalysisFormat()).get();
@@ -76,22 +53,8 @@ public class YAMLExportTest {
 
     @Test
     public void YAMLSerialize() throws IOException {
-        LinkedHashMap<String, Object> innerMap = new LinkedHashMap<String, Object>();
-        innerMap.put("test property", 3.3);
-        innerMap.put("numOfLeafFeatures", (float) 12.4);
-        data.put("numOfTopFeatures", 3.3);
-        data.put("numOfLeafFeatures", (float) 12.4);
-        data.put("treeDepth", 3);
-        data.put("avgNumOfChildren", 3);
-        data.put("numInOrGroups", 7);
-        data.put("numInAltGroups", 5);
-        data.put("avgNumOfAtomsPerConstraints", innerMap);
-        data.put("numOfAtoms", 8);
-        data.put("avgNumOfAsss", 4);
-
-        AnalysisTree<?> analsyisTree = createDefaultTree();
+        AnalysisTree<?> analsyisTree = TestDataProvider.createSmallAnalysisTree();
         YAMLAnalysisFormat yamlFormat = new YAMLAnalysisFormat();
-        Yaml yaml = new Yaml();
         String output = yamlFormat.serialize(analsyisTree).get();
 
         Yaml yaml2 = new Yaml();
@@ -108,7 +71,7 @@ public class YAMLExportTest {
         assertTrue(
                 Trees.equals(analsyisTree, analysisTreeAfterConversion),
                 "firstTree\n" + analsyisTree.print() + "\nsecond tree\n" + analysisTreeAfterConversion.print());
-        AnalysisTree<?> manualAnalysisTree = createDefaultTree();
+        AnalysisTree<?> manualAnalysisTree = TestDataProvider.createSmallAnalysisTree();
         manualAnalysisTree.sort();
         assertTrue(
                 Trees.equals(manualAnalysisTree, analysisTreeAfterConversion),

@@ -22,9 +22,9 @@ package de.featjar.feature.model.io;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
 import de.featjar.base.tree.Trees;
+import de.featjar.feature.model.TestDataProvider;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.io.json.JSONAnalysisFormat;
 import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
@@ -32,51 +32,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 public class JSONExportTest {
 
-    LinkedHashMap<String, Object> data = new LinkedHashMap<String, Object>();
-
-    public AnalysisTree<?> createDefaultTree() {
-        AnalysisTree<?> innereanalysisTree = new AnalysisTree<>(
-                "avgNumOfAtomsPerConstraints",
-                new AnalysisTree<>("test property", 3.3),
-                new AnalysisTree<>("numOfLeafFeatures", (float) 12.4));
-
-        AnalysisTree<?> analysisTree = new AnalysisTree<>(
-                "Analysis",
-                new AnalysisTree<>("numOfLeafFeatures", (float) 12.4),
-                new AnalysisTree<>("numOfTopFeatures", 3.3),
-                new AnalysisTree<>("treeDepth", 3),
-                new AnalysisTree<>("avgNumOfChildren", 3),
-                new AnalysisTree<>("numInOrGroups", 7),
-                new AnalysisTree<>("numInAltGroups", 5),
-                new AnalysisTree<>("numOfAtoms", 8),
-                new AnalysisTree<>("avgNumOfAsss", 4),
-                innereanalysisTree);
-        return analysisTree;
-    }
-
     @Test
     public void JSONSerialize() throws IOException {
-        LinkedHashMap<String, Object> innerMap = new LinkedHashMap<String, Object>();
-        innerMap.put("test property", 3.3);
-        innerMap.put("numOfLeafFeatures", (float) 12.4);
-        data.put("numOfTopFeatures", 3.3);
-        data.put("numOfLeafFeatures", (float) 12.4);
-        data.put("treeDepth", 3);
-        data.put("avgNumOfChildren", 3);
-        data.put("numInOrGroups", 7);
-        data.put("numInAltGroups", 5);
-        data.put("avgNumOfAtomsPerConstraints", innerMap);
-        data.put("numOfAtoms", 8);
-        data.put("avgNumOfAsss", 4);
-
-        Result<AnalysisTree<?>> analsyisTreeResult = AnalysisTreeTransformer.hashMapToTree(data, "Analysis");
-        AnalysisTree<?> analsyisTree = analsyisTreeResult.get();
+        AnalysisTree<?> analsyisTree = TestDataProvider.createSmallAnalysisTree();
         JSONAnalysisFormat jsonFormat = new JSONAnalysisFormat();
         JSONObject firstJSONObject =
                 new JSONObject(jsonFormat.serialize(analsyisTree).get());
@@ -91,7 +54,7 @@ public class JSONExportTest {
         assertTrue(
                 Trees.equals(analsyisTree, analsyisTreeAfterConversion),
                 "firstTree\n" + analsyisTree.print() + "\nsecond tree\n" + analsyisTreeAfterConversion.print());
-        AnalysisTree<?> manualAnalysisTree = createDefaultTree();
+        AnalysisTree<?> manualAnalysisTree = TestDataProvider.createSmallAnalysisTree();
         manualAnalysisTree.sort();
         assertTrue(
                 Trees.equals(manualAnalysisTree, analsyisTreeAfterConversion),
@@ -100,7 +63,7 @@ public class JSONExportTest {
 
     @Test
     public void JSONSaveLoadTest() throws IOException {
-        AnalysisTree<?> analysisTree = createDefaultTree();
+        AnalysisTree<?> analysisTree = TestDataProvider.createSmallAnalysisTree();
         IO.save(analysisTree, Paths.get("filename.json"), new JSONAnalysisFormat());
         AnalysisTree<?> outputAnalysisTree =
                 IO.load(Paths.get("filename.json"), new JSONAnalysisFormat()).get();

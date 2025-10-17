@@ -22,25 +22,16 @@ package de.featjar.feature.model.visualization;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import de.featjar.base.data.Result;
-import de.featjar.base.data.identifier.Identifiers;
-import de.featjar.base.io.IO;
 import de.featjar.feature.model.FeatureModel;
-import de.featjar.feature.model.IFeature;
-import de.featjar.feature.model.IFeatureModel;
-import de.featjar.feature.model.IFeatureTree;
+import de.featjar.feature.model.TestDataProvider;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.analysis.visualization.VisualizeConstraintOperatorDistribution;
 import de.featjar.feature.model.analysis.visualization.VisualizeGroupDistribution;
-import de.featjar.feature.model.cli.PrintStatistics;
-import de.featjar.feature.model.io.transformer.AnalysisTreeTransformer;
-import de.featjar.feature.model.io.xml.XMLFeatureModelFormat;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Test;
 
 public class VisualizeFeatureModelStatsTest {
@@ -51,86 +42,25 @@ public class VisualizeFeatureModelStatsTest {
     String defaultExportName =
             "src/test/java/de/featjar/feature/model/visualization/VisualizeFeatureModelStatsTest.pdf";
 
-    /**
-     * Helper function.
-     * Yields feature model with a single tree. This feature tree has three nodes under the root:
-     * API is mandatory and below it is an or-group with the features Get, Put, Delete.
-     * OS is also mandatory and below it is an alternative group with the features Windows, Linux.
-     * Transactions is an optional feature below the root.
-     * @return a medium-sized feature model for testing purposes.
-     */
-    public FeatureModel buildMediumFeatureModel() {
-        FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
-        IFeatureTree treeRoot =
-                featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("ConfigDB"));
-
-        IFeature featureAPI = featureModel.mutate().addFeature("API");
-        IFeatureTree treeAPI = treeRoot.mutate().addFeatureBelow(featureAPI);
-        treeAPI.mutate().makeMandatory();
-        IFeature featureGet = featureModel.mutate().addFeature("Get");
-        treeAPI.mutate().addFeatureBelow(featureGet);
-        IFeature featurePut = featureModel.mutate().addFeature("Put");
-        treeAPI.mutate().addFeatureBelow(featurePut);
-        IFeature featureDelete = featureModel.mutate().addFeature("Delete");
-        treeAPI.mutate().addFeatureBelow(featureDelete);
-        treeAPI.mutate().toOrGroup();
-
-        IFeature featureOS = featureModel.mutate().addFeature("OS");
-        IFeatureTree treeOS = treeRoot.mutate().addFeatureBelow(featureOS);
-        treeOS.mutate().makeMandatory();
-        IFeature featureWindows = featureModel.mutate().addFeature("Windows");
-        treeOS.mutate().addFeatureBelow(featureWindows);
-        IFeature featureLinux = featureModel.mutate().addFeature("Linux");
-        treeOS.mutate().addFeatureBelow(featureLinux);
-        treeOS.mutate().toAlternativeGroup();
-
-        IFeature featureTransactions = featureModel.mutate().addFeature("Transactions");
-        IFeatureTree treeTransactions = treeRoot.mutate().addFeatureBelow(featureTransactions);
-        treeTransactions.mutate().makeOptional();
-
-        return featureModel;
-    }
-
-    /**
-     * Helper function. Converts a feature model into an {@link AnalysisTree}
-     */
-    public AnalysisTree<?> analysisTreeFromFeatureModel(FeatureModel featureModel) {
-        PrintStatistics printStatistics = new PrintStatistics();
-        LinkedHashMap<String, Object> map =
-                printStatistics.collectStats(featureModel, PrintStatistics.AnalysesScope.ALL);
-        return AnalysisTreeTransformer.hashMapToTree(map, "Analysis").get();
-    }
-
-    /**
-     * Helper function. Converts an XML file into an {@link AnalysisTree}
-     */
-    public AnalysisTree<?> analysisTreeFromXML(Path path) {
-        Result<IFeatureModel> load = IO.load(path, new XMLFeatureModelFormat());
-        FeatureModel model = (FeatureModel) load.orElseThrow();
-
-        PrintStatistics printStatistics = new PrintStatistics();
-        LinkedHashMap<String, Object> map = printStatistics.collectStats(model, PrintStatistics.AnalysesScope.ALL);
-        return AnalysisTreeTransformer.hashMapToTree(map, "Analysis").get();
-    }
-
     public AnalysisTree<?> getBigAnalysisTree() {
-        return analysisTreeFromXML(Paths.get("src/test/java/de/featjar/feature/model/visualization/model.xml"));
+        return TestDataProvider.analysisTreeFromXML(
+                Paths.get("src/test/java/de/featjar/feature/model/visualization/model.xml"));
     }
 
     /**
      * Warning: this tree does not have Constraint Operators
      */
     public AnalysisTree<?> getMediumAnalysisTree() {
-        return analysisTreeFromFeatureModel(buildMediumFeatureModel());
+        return TestDataProvider.analysisTreeFromFeatureModel(TestDataProvider.createMediumFeatureModel());
     }
 
     /**
      * {@return Feature Model with two identical trees.}
      */
     public AnalysisTree<?> getDoubleTree() {
-        FeatureModel featureModel = buildMediumFeatureModel();
+        FeatureModel featureModel = TestDataProvider.createMediumFeatureModel();
         featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("ConfigDB"));
-        return analysisTreeFromFeatureModel(featureModel);
+        return TestDataProvider.analysisTreeFromFeatureModel(featureModel);
     }
 
     @Test
