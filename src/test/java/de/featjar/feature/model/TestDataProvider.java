@@ -26,6 +26,12 @@ import de.featjar.formula.structure.connective.Implies;
 import de.featjar.formula.structure.connective.Or;
 import de.featjar.formula.structure.predicate.Literal;
 
+/**
+ * Class to containing functions to provide test data shared by multiple unit tests
+ *
+ * @author Mohammad Khair Almekkawi
+ * @author Florian Beese
+ */
 public class TestDataProvider {
 
     /**
