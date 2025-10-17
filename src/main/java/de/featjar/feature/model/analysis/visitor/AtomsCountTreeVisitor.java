@@ -18,7 +18,7 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
  */
-package de.featjar.feature.model.analysis;
+package de.featjar.feature.model.analysis.visitor;
 
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.structure.ITree;
@@ -37,7 +37,7 @@ import java.util.List;
  * @author Mohammad Khair Almekkawi
  * @author Florian Beese
  */
-public class AtomsCount implements ITreeVisitor<ITree<?>, Integer> {
+public class AtomsCountTreeVisitor implements ITreeVisitor<ITree<?>, Integer> {
     private int atomsCount = 0;
     private boolean countVariables = true;
     private boolean countConstants = true;
@@ -49,7 +49,7 @@ public class AtomsCount implements ITreeVisitor<ITree<?>, Integer> {
      * @param countConstants decide if Atoms of type constants should be counted
      * @param countBoolean decide if Atoms of type True or False should be counted
      */
-    public AtomsCount(boolean countVariables, boolean countConstants, boolean countBoolean) {
+    public AtomsCountTreeVisitor(boolean countVariables, boolean countConstants, boolean countBoolean) {
         this.countConstants = countConstants;
         this.countVariables = countVariables;
         this.countBoolean = countBoolean;

@@ -28,7 +28,8 @@ import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IConstraint;
-import de.featjar.feature.model.analysis.OperatorDistribution;
+import de.featjar.feature.model.analysis.visitor.OperatorDistributionTreeVisitor;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -57,7 +58,7 @@ public class ComputeOperatorDistribution extends AComputation<HashMap<String, In
 
         while (constraintIterator.hasNext()) {
             HashMap<String, Integer> currentOperatorCount = Trees.traverse(
-                            constraintIterator.next().getFormula(), new OperatorDistribution())
+                            constraintIterator.next().getFormula(), new OperatorDistributionTreeVisitor())
                     .orElse(new HashMap<String, Integer>());
             currentOperatorCount.forEach((key, value) -> {
                 if (operatorCount.containsKey(key)) {

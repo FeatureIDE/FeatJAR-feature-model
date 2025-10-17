@@ -29,6 +29,12 @@ import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureTree;
 import de.featjar.feature.model.TestDataProvider;
+import de.featjar.feature.model.analysis.computation.ComputeFeatureAverageNumberOfChildren;
+import de.featjar.feature.model.analysis.computation.ComputeFeatureFeaturesCounter;
+import de.featjar.feature.model.analysis.computation.ComputeFeatureGroupDistribution;
+import de.featjar.feature.model.analysis.computation.ComputeFeatureTopFeatures;
+import de.featjar.feature.model.analysis.computation.ComputeFeatureTreeDepth;
+
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 

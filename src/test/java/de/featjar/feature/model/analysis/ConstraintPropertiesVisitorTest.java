@@ -30,6 +30,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IConstraint;
+import de.featjar.feature.model.analysis.visitor.AtomsCountTreeVisitor;
+import de.featjar.feature.model.analysis.visitor.FeatureDensityTreeVisitor;
+import de.featjar.feature.model.analysis.visitor.OperatorDistributionTreeVisitor;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.And;
 import de.featjar.formula.structure.connective.Implies;
@@ -56,16 +59,16 @@ public class ConstraintPropertiesVisitorTest {
         IFormula formula2 = constraintsIterator.next().getFormula();
         IFormula formula3 = constraintsIterator.next().getFormula();
         int formula1BooleansCount =
-                Trees.traverse(formula1, new AtomsCount(false, false, true)).orElseThrow();
+                Trees.traverse(formula1, new AtomsCountTreeVisitor(false, false, true)).orElseThrow();
         int formula2ConstantsCount =
-                Trees.traverse(formula3, new AtomsCount(false, true, false)).orElseThrow();
+                Trees.traverse(formula3, new AtomsCountTreeVisitor(false, true, false)).orElseThrow();
         int formula3VariablesCount =
-                Trees.traverse(formula3, new AtomsCount(true, false, false)).orElseThrow();
+                Trees.traverse(formula3, new AtomsCountTreeVisitor(true, false, false)).orElseThrow();
         assertEquals(1, formula1BooleansCount);
         assertEquals(3, formula2ConstantsCount);
         assertEquals(1, formula3VariablesCount);
         assertEquals(
-                0, Trees.traverse(new And(), new AtomsCount(true, true, true)).orElseThrow());
+                0, Trees.traverse(new And(), new AtomsCountTreeVisitor(true, true, true)).orElseThrow());
     }
 
     @Test
@@ -73,11 +76,11 @@ public class ConstraintPropertiesVisitorTest {
         FeatureModel featureModel = createFeatureModel();
         Iterator<IConstraint> constraintsIterator =
                 featureModel.getConstraints().iterator();
-        Set<String> formula1Features = Trees.traverse(constraintsIterator.next().getFormula(), new FeatureDensity())
+        Set<String> formula1Features = Trees.traverse(constraintsIterator.next().getFormula(), new FeatureDensityTreeVisitor())
                 .orElseThrow();
-        Set<String> formula2Features = Trees.traverse(constraintsIterator.next().getFormula(), new FeatureDensity())
+        Set<String> formula2Features = Trees.traverse(constraintsIterator.next().getFormula(), new FeatureDensityTreeVisitor())
                 .orElseThrow();
-        Set<String> formula3Features = Trees.traverse(constraintsIterator.next().getFormula(), new FeatureDensity())
+        Set<String> formula3Features = Trees.traverse(constraintsIterator.next().getFormula(), new FeatureDensityTreeVisitor())
                 .orElseThrow();
 
         assertEquals(5, formula1Features.size());
@@ -100,7 +103,7 @@ public class ConstraintPropertiesVisitorTest {
         assertTrue(formula3Features.contains("a"));
         assertFalse(formula3Features.contains("b"));
         assertEquals(
-                0, Trees.traverse(new And(), new FeatureDensity()).orElseThrow().size());
+                0, Trees.traverse(new And(), new FeatureDensityTreeVisitor()).orElseThrow().size());
     }
 
     @Test
@@ -109,13 +112,13 @@ public class ConstraintPropertiesVisitorTest {
         Iterator<IConstraint> constraintsIterator =
                 featureModel.getConstraints().iterator();
         HashMap<String, Integer> formula1Count = Trees.traverse(
-                        constraintsIterator.next().getFormula(), new OperatorDistribution())
+                        constraintsIterator.next().getFormula(), new OperatorDistributionTreeVisitor())
                 .orElseThrow();
         HashMap<String, Integer> formula2Count = Trees.traverse(
-                        constraintsIterator.next().getFormula(), new OperatorDistribution())
+                        constraintsIterator.next().getFormula(), new OperatorDistributionTreeVisitor())
                 .orElseThrow();
         HashMap<String, Integer> formula3Count = Trees.traverse(
-                        constraintsIterator.next().getFormula(), new OperatorDistribution())
+                        constraintsIterator.next().getFormula(), new OperatorDistributionTreeVisitor())
                 .orElseThrow();
 
         assertEquals(2, formula1Count.get("And"));
@@ -133,7 +136,7 @@ public class ConstraintPropertiesVisitorTest {
         assertEquals(0, formula3Count.size());
         assertEquals(
                 0,
-                Trees.traverse(null, new OperatorDistribution()).orElseThrow().size());
+                Trees.traverse(null, new OperatorDistributionTreeVisitor()).orElseThrow().size());
     }
 
     public FeatureModel createFeatureModel() {

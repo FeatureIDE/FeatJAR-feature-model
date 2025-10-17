@@ -18,7 +18,7 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-feature-model> for further information.
  */
-package de.featjar.feature.model.analysis;
+package de.featjar.feature.model.analysis.computation;
 
 import de.featjar.base.computation.AComputation;
 import de.featjar.base.computation.Dependency;
@@ -27,7 +27,7 @@ import de.featjar.base.computation.Progress;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.IFeatureTree;
-import de.featjar.feature.model.analysis.visitor.TreeAvgChildrenCounter;
+import de.featjar.feature.model.analysis.visitor.TreeLeafCounterTreeVisitor;
 import java.util.List;
 
 /**
@@ -35,16 +35,16 @@ import java.util.List;
  *
  * @author Benjamin von Holt
  */
-public class ComputeFeatureAverageNumberOfChildren extends AComputation<Double> {
+public class ComputeFeatureFeaturesCounter extends AComputation<Integer> {
     protected static final Dependency<IFeatureTree> FEATURE_TREE = Dependency.newDependency(IFeatureTree.class);
 
-    public ComputeFeatureAverageNumberOfChildren(IComputation<IFeatureTree> featureTree) {
+    public ComputeFeatureFeaturesCounter(IComputation<IFeatureTree> featureTree) {
         super(featureTree);
     }
 
     @Override
-    public Result<Double> compute(List<Object> dependencyList, Progress progress) {
+    public Result<Integer> compute(List<Object> dependencyList, Progress progress) {
         IFeatureTree tree = FEATURE_TREE.get(dependencyList);
-        return Trees.traverse(tree, new TreeAvgChildrenCounter());
+        return Trees.traverse(tree, new TreeLeafCounterTreeVisitor());
     }
 }
