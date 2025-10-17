@@ -25,20 +25,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import de.featjar.base.FeatJAR;
 import de.featjar.base.computation.Computations;
 import de.featjar.base.computation.IComputation;
-import de.featjar.base.data.identifier.Identifiers;
 import de.featjar.feature.model.FeatureModel;
-import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureModel;
-import de.featjar.feature.model.IFeatureTree;
 import de.featjar.feature.model.TestDataProvider;
 import de.featjar.feature.model.transformer.ComputeFormula;
 import de.featjar.formula.VariableMap;
 import de.featjar.formula.assignment.BooleanAssignment;
 import de.featjar.formula.assignment.BooleanAssignmentList;
 import de.featjar.formula.structure.IFormula;
-import de.featjar.formula.structure.connective.Implies;
-import de.featjar.formula.structure.connective.Or;
-import de.featjar.formula.structure.predicate.Literal;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -68,7 +62,6 @@ public class SamplePropertiesTest {
     }
 
     public BooleanAssignmentList createAssignmentListUniformity(FeatureModel featureModel) {
-        LinkedList<String> variableNames = new LinkedList<String>();
         IComputation<IFormula> iFormula =
                 Computations.of((IFeatureModel) featureModel).map(ComputeFormula::new);
         IFormula fmFormula = iFormula.compute();
@@ -190,12 +183,9 @@ public class SamplePropertiesTest {
     public void computeUniformity() {
         FeatJAR.initialize();
         FeatureModel testFM = TestDataProvider.createMediumFeatureModel();
-        IComputation<LinkedHashMap<String, Float>> computation = Computations.of(
-                        (IFeatureModel) testFM)
+        IComputation<LinkedHashMap<String, Float>> computation = Computations.of((IFeatureModel) testFM)
                 .map(ComputeUniformity::new)
-                .set(
-                        ComputeUniformity.BOOLEAN_ASSIGNMENT_LIST,
-                        createAssignmentListUniformity(testFM))
+                .set(ComputeUniformity.BOOLEAN_ASSIGNMENT_LIST, createAssignmentListUniformity(testFM))
                 .set(ComputeUniformity.ANALYSIS, false);
 
         HashMap<String, Float> result = computation.compute();
@@ -282,7 +272,7 @@ public class SamplePropertiesTest {
         assertEquals(((float) 0 / 3) - ((float) 0 / 26), result.get("Windows_undefined"));
         assertEquals(((float) 0 / 3) - ((float) 0 / 26), result.get("Linux_undefined"));
         assertEquals(((float) 0 / 3) - ((float) 0 / 26), result.get("Transactions_undefined"));
-        
+
         FeatJAR.deinitialize();
     }
 }

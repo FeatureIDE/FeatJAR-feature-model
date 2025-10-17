@@ -23,14 +23,12 @@ package de.featjar.feature.model.analysis;
 import static org.junit.jupiter.api.Assertions.*;
 
 import de.featjar.Common;
-import de.featjar.base.FeatJAR;
 import de.featjar.base.computation.Computations;
 import de.featjar.base.data.identifier.Identifiers;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureTree;
 import de.featjar.feature.model.TestDataProvider;
-
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 

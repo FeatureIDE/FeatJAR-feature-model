@@ -22,7 +22,6 @@ package de.featjar.feature.model.io;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.TestDataProvider;
@@ -33,7 +32,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -41,22 +39,6 @@ public class JSONExportTest {
 
     @Test
     public void JSONSerialize() throws IOException {
-    	LinkedHashMap<String, Object> data = new LinkedHashMap<String, Object>();
-        LinkedHashMap<String, Object> innerMap = new LinkedHashMap<String, Object>();
-        innerMap.put("test property", 3.3);
-        innerMap.put("numOfLeafFeatures", (float) 12.4);
-        data.put("numOfTopFeatures", 3.3);
-        data.put("numOfLeafFeatures", (float) 12.4);
-        data.put("treeDepth", 3);
-        data.put("avgNumOfChildren", 3);
-        data.put("numInOrGroups", 7);
-        data.put("numInAltGroups", 5);
-        data.put("avgNumOfAtomsPerConstraints", innerMap);
-        data.put("numOfAtoms", 8);
-        data.put("avgNumOfAsss", 4);
-
-        Result<AnalysisTree<?>> analsyisTreeResult = AnalysisTreeTransformer.hashMapToTree(data, "Analysis");
-        //AnalysisTree<?> analsyisTree = analsyisTreeResult.get();
         AnalysisTree<?> analsyisTree = TestDataProvider.createSmallAnalysisTree();
         JSONAnalysisFormat jsonFormat = new JSONAnalysisFormat();
         JSONObject firstJSONObject =

@@ -122,7 +122,7 @@ public class PrintStatisticsTest {
                 "model_outputWithoutFileExtension",
                 "--overwrite");
         assertEquals(1, exit_code);
-    } 
+    }
 
     /**
      * Testing whether collecting statistics with scope specified to ALL actually returns values for all parameters.

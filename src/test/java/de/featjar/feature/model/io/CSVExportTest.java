@@ -34,7 +34,9 @@ public class CSVExportTest {
     @Test
     public void CSVTest() throws IOException {
         CSVAnalysisFormat csvAnalysisFormat = new CSVAnalysisFormat();
-        String csvString = csvAnalysisFormat.serialize(TestDataProvider.createSmallAnalysisTree()).orElseThrow();
+        String csvString = csvAnalysisFormat
+                .serialize(TestDataProvider.createSmallAnalysisTree())
+                .orElseThrow();
         IO.save(TestDataProvider.createSmallAnalysisTree(), Paths.get("file.csv"), csvAnalysisFormat);
         assertEquals(
                 csvString,

@@ -23,12 +23,9 @@ package de.featjar.feature.model.visualization;
 import static org.junit.jupiter.api.Assertions.*;
 
 import de.featjar.base.data.Result;
-import de.featjar.base.data.identifier.Identifiers;
 import de.featjar.base.io.IO;
 import de.featjar.feature.model.FeatureModel;
-import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureModel;
-import de.featjar.feature.model.IFeatureTree;
 import de.featjar.feature.model.TestDataProvider;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.analysis.visualization.VisualizeConstraintOperatorDistribution;
