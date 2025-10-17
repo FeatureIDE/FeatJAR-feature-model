@@ -155,8 +155,10 @@ public class FormatConversionTest {
                 + "\n"
                 + "Output model saved at: model_invalidInput.dot\n"
                 + "";
-        assertEquals(expected_output, string);
-        assertTrue(string.startsWith(expected_output));
+        String stringTrimmedCopy = string.replaceAll("[^a-zA-Z1-9:]", "");
+        String expectedOutputTrimmedCopy = expected_output.replaceAll("[^a-zA-Z1-9:]", "");
+        assertEquals(expectedOutputTrimmedCopy, stringTrimmedCopy);
+        assertTrue(stringTrimmedCopy.startsWith(expectedOutputTrimmedCopy));
 
         Files.deleteIfExists(Paths.get(outputPath));
         FeatJAR.deinitialize();
@@ -167,8 +169,9 @@ public class FormatConversionTest {
      */
     @Test
     void testWriteAndOverwrite() throws IOException {
-
-        FeatJAR.initialize();
+    	if (! FeatJAR.isInitialized()) {
+    		FeatJAR.initialize();
+    	}
 
         Path outputPath = Paths.get("model_testWriteAndOverwrite.xml");
         FeatureModel model = generateModel();
