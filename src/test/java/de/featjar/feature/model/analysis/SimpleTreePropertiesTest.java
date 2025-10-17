@@ -29,13 +29,15 @@ import de.featjar.base.data.identifier.Identifiers;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureTree;
+import de.featjar.feature.model.TestDataProvider;
+
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 
 public class SimpleTreePropertiesTest extends Common {
     IFeatureTree minimalTree = generateMinimalTree();
     IFeatureTree smallTree = generateSmallTree();
-    IFeatureTree mediumTree = generateMediumTree();
+    IFeatureTree mediumTree = TestDataProvider.generateMediumTree();
 
     /**
      * @return bare-bones feature tree with just a root node to test edge cases.
@@ -64,44 +66,6 @@ public class SimpleTreePropertiesTest extends Common {
         childTree1.mutate().addFeatureBelow(childFeature3);
 
         return rootTree;
-    }
-
-    /**
-     * Feature tree with three nodes under the root. API is mandatory and below it is an or-group with the features
-     * Get, Put, Delete. OS is also mandatory and below it is an alternative group with the features Windows, Linux.
-     * Transactions is an optional feature below the root.
-     * @return a medium-sized feature tree for testing purposes.
-     */
-    private IFeatureTree generateMediumTree() {
-        FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
-        IFeatureTree treeRoot =
-                featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("ConfigDB"));
-
-        IFeature featureAPI = featureModel.mutate().addFeature("API");
-        IFeatureTree treeAPI = treeRoot.mutate().addFeatureBelow(featureAPI);
-        treeAPI.isMandatory();
-        IFeature featureGet = featureModel.mutate().addFeature("Get");
-        treeAPI.mutate().addFeatureBelow(featureGet);
-        IFeature featurePut = featureModel.mutate().addFeature("Put");
-        treeAPI.mutate().addFeatureBelow(featurePut);
-        IFeature featureDelete = featureModel.mutate().addFeature("Delete");
-        treeAPI.mutate().addFeatureBelow(featureDelete);
-        treeAPI.mutate().toOrGroup();
-
-        IFeature featureOS = featureModel.mutate().addFeature("OS");
-        IFeatureTree treeOS = treeRoot.mutate().addFeatureBelow(featureOS);
-        treeOS.isMandatory();
-        IFeature featureWindows = featureModel.mutate().addFeature("Windows");
-        treeOS.mutate().addFeatureBelow(featureWindows);
-        IFeature featureLinux = featureModel.mutate().addFeature("Linux");
-        treeOS.mutate().addFeatureBelow(featureLinux);
-        treeOS.mutate().toAlternativeGroup();
-
-        IFeature featureTransactions = featureModel.mutate().addFeature("Transactions");
-        IFeatureTree treeTransactions = treeRoot.mutate().addFeatureBelow(featureTransactions);
-        treeTransactions.isOptional();
-
-        return treeRoot;
     }
 
     @Test

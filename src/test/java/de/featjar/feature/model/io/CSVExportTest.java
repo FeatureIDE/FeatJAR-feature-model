@@ -23,7 +23,7 @@ package de.featjar.feature.model.io;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import de.featjar.base.io.IO;
-import de.featjar.feature.model.analysis.AnalysisTree;
+import de.featjar.feature.model.TestDataProvider;
 import de.featjar.feature.model.io.csv.CSVAnalysisFormat;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -31,31 +31,11 @@ import org.junit.jupiter.api.Test;
 
 public class CSVExportTest {
 
-    public AnalysisTree<?> createDefaultTree() {
-        AnalysisTree<?> innereanalysisTree = new AnalysisTree<>(
-                "avgNumOfAtomsPerConstraints",
-                new AnalysisTree<>("test property", 3.3),
-                new AnalysisTree<>("numOfLeafFeatures", (float) 12.4));
-
-        AnalysisTree<?> analysisTree = new AnalysisTree<>(
-                "Analysis",
-                new AnalysisTree<>("numOfLeafFeatures", (float) 12.4),
-                new AnalysisTree<>("numOfTopFeatures", 3.3),
-                new AnalysisTree<>("treeDepth", 3),
-                new AnalysisTree<>("avgNumOfChildren", 3),
-                new AnalysisTree<>("numInOrGroups", 7),
-                new AnalysisTree<>("numInAltGroups", 5),
-                new AnalysisTree<>("numOfAtoms", 8),
-                new AnalysisTree<>("avgNumOfAsss", 4),
-                innereanalysisTree);
-        return analysisTree;
-    }
-
     @Test
     public void CSVTest() throws IOException {
         CSVAnalysisFormat csvAnalysisFormat = new CSVAnalysisFormat();
-        String csvString = csvAnalysisFormat.serialize(createDefaultTree()).orElseThrow();
-        IO.save(createDefaultTree(), Paths.get("file.csv"), csvAnalysisFormat);
+        String csvString = csvAnalysisFormat.serialize(TestDataProvider.createSmallAnalysisTree()).orElseThrow();
+        IO.save(TestDataProvider.createSmallAnalysisTree(), Paths.get("file.csv"), csvAnalysisFormat);
         assertEquals(
                 csvString,
                 "AnalysisType;Name;Class;Value\n"

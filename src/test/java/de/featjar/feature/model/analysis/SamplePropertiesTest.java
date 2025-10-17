@@ -30,6 +30,7 @@ import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.IFeatureTree;
+import de.featjar.feature.model.TestDataProvider;
 import de.featjar.feature.model.transformer.ComputeFormula;
 import de.featjar.formula.VariableMap;
 import de.featjar.formula.assignment.BooleanAssignment;
@@ -127,13 +128,6 @@ public class SamplePropertiesTest {
         return booleanAssignmentList;
     }
 
-    public FeatureModel createMediumFeatureModel() {
-        FeatureModel fm = new FeatureModel();
-        fm.addFeatureTreeRoot(generateMediumTree());
-        fm.addConstraint(new Implies(new Literal("Transactions"), new Or(new Literal("Put"), new Literal("Delete"))));
-        return fm;
-    }
-
     @Test
     public void computeDistributionFeaturesSelectionsTest() {
         BooleanAssignmentList booleanAssignmentList = createAssignmentList();
@@ -195,12 +189,13 @@ public class SamplePropertiesTest {
     @Test
     public void computeUniformity() {
         FeatJAR.initialize();
+        FeatureModel testFM = TestDataProvider.createMediumFeatureModel();
         IComputation<LinkedHashMap<String, Float>> computation = Computations.of(
-                        (IFeatureModel) createMediumFeatureModel())
+                        (IFeatureModel) testFM)
                 .map(ComputeUniformity::new)
                 .set(
                         ComputeUniformity.BOOLEAN_ASSIGNMENT_LIST,
-                        createAssignmentListUniformity(createMediumFeatureModel()))
+                        createAssignmentListUniformity(testFM))
                 .set(ComputeUniformity.ANALYSIS, false);
 
         HashMap<String, Float> result = computation.compute();
@@ -289,38 +284,5 @@ public class SamplePropertiesTest {
         assertEquals(((float) 0 / 3) - ((float) 0 / 26), result.get("Transactions_undefined"));
         
         FeatJAR.deinitialize();
-    }
-
-    private IFeatureTree generateMediumTree() {
-        FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
-        IFeatureTree treeRoot =
-                featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("ConfigDB"));
-
-        IFeature featureAPI = featureModel.mutate().addFeature("API");
-        IFeature featureGet = featureModel.mutate().addFeature("Get");
-        IFeature featurePut = featureModel.mutate().addFeature("Put");
-        IFeature featureDelete = featureModel.mutate().addFeature("Delete");
-
-        IFeature featureOS = featureModel.mutate().addFeature("OS");
-        IFeature featureWindows = featureModel.mutate().addFeature("Windows");
-
-        IFeatureTree treeAPI = treeRoot.mutate().addFeatureBelow(featureAPI);
-        IFeatureTree treeOS = treeRoot.mutate().addFeatureBelow(featureOS);
-        IFeature featureLinux = featureModel.mutate().addFeature("Linux");
-
-        treeAPI.mutate().addFeatureBelow(featureGet);
-        treeAPI.mutate().addFeatureBelow(featurePut);
-        treeAPI.mutate().addFeatureBelow(featureDelete);
-        treeOS.mutate().addFeatureBelow(featureWindows);
-        treeOS.mutate().addFeatureBelow(featureLinux);
-
-        treeAPI.mutate().toOrGroup();
-        treeOS.mutate().toAlternativeGroup();
-
-        treeRoot.mutate().makeMandatory();
-        treeAPI.mutate().makeMandatory();
-        treeOS.mutate().makeMandatory();
-
-        return treeRoot;
     }
 }
