@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Knut, Kilian & Benjamin
  */
-public class FormatConversionTest {
+public class FeatureModelFormatConversionTest {
 
     private FeatureModel generateModel() {
         FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
@@ -63,7 +63,7 @@ public class FormatConversionTest {
 
         Files.deleteIfExists(Paths.get(outputPath));
 
-        int exit_code = FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", outputPath);
+        int exit_code = FeatJAR.runTest("featureModelFormatConversion", "--input", inputPath, "--output", outputPath);
         assertEquals(0, exit_code);
         assertTrue(new File(outputPath).exists());
 
@@ -81,7 +81,7 @@ public class FormatConversionTest {
 
         Files.deleteIfExists(Paths.get(outputPath));
 
-        int exit_code = FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", outputPath);
+        int exit_code = FeatJAR.runTest("featureModelFormatConversion", "--input", inputPath, "--output", outputPath);
         assertEquals(1, exit_code);
 
         Files.deleteIfExists(Paths.get(outputPath));
@@ -97,7 +97,7 @@ public class FormatConversionTest {
 
         Files.deleteIfExists(Paths.get(outputPath));
 
-        int exit_code = FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", outputPath);
+        int exit_code = FeatJAR.runTest("featureModelFormatConversion", "--input", inputPath, "--output", outputPath);
         assertEquals(2, exit_code);
 
         Files.deleteIfExists(Paths.get(outputPath));
@@ -112,7 +112,7 @@ public class FormatConversionTest {
         inputPath = "src/test/java/de/featjar/feature/model/cli/resources/emptyModel.xml";
         outputPath = "model_modelNotParsed.xml";
 
-        int exit_code = FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", outputPath);
+        int exit_code = FeatJAR.runTest("featureModelFormatConversion", "--input", inputPath, "--output", outputPath);
         assertEquals(3, exit_code);
     }
 
@@ -121,7 +121,7 @@ public class FormatConversionTest {
      */
     @Test
     void modelPresentNoOverwrite() {
-        int exit_code = FeatJAR.runTest("formatConversion", "--input", inputPath, "--output", inputPath);
+        int exit_code = FeatJAR.runTest("featureModelFormatConversion", "--input", inputPath, "--output", inputPath);
         assertEquals(4, exit_code);
     }
 
@@ -143,7 +143,7 @@ public class FormatConversionTest {
         de.featjar.base.FeatJAR.Configuration config = FeatJAR.configure();
         config.logConfig.logToStream(stream, "", Verbosity.MESSAGE, Verbosity.WARNING);
         FeatJAR.initialize(config);
-        FeatJAR.runInternally("formatConversion", "--input", inputPath, "--output", outputPath);
+        FeatJAR.runInternally("featureModelFormatConversion", "--input", inputPath, "--output", outputPath);
 
         byte[] byteArray = out.toByteArray();
         String string = new String(byteArray);
@@ -179,7 +179,7 @@ public class FormatConversionTest {
         Files.deleteIfExists(outputPath);
 
         // let program write model to XML file
-        new FormatConversion().saveFile(outputPath, model, "xml", true);
+        new FeatureModelFormatConversion().saveFile(outputPath, model, "xml", true);
 
         // round trip: rebuild model from XML file
         FeatureModel retrievedModel =

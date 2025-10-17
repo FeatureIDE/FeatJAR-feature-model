@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  *
  * @author Knut, Kilian & Benjamin
  */
-public class FormatConversion implements ICommand {
+public class FeatureModelFormatConversion implements ICommand {
 
     private static final List<String> supportedInputFileExtensions =
             FeatureModelFormats.getInstance().getExtensions().stream()
@@ -396,6 +396,6 @@ public class FormatConversion implements ICommand {
      */
     @Override
     public Optional<String> getShortName() {
-        return Optional.of("formatConversion");
+        return Optional.of("featureModelFormatConversion");
     }
 }
