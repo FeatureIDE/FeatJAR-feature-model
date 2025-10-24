@@ -23,6 +23,8 @@ package de.featjar.feature.model.analysis.visitor;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.structure.ITree;
 import de.featjar.base.tree.visitor.ITreeVisitor;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,30 +34,42 @@ import java.util.List;
  * @author Valentin Laubsch
  * @author Benjamin von Holt
  */
-public class TreeAvgChildrenCounterTreeVisitor implements ITreeVisitor<ITree<?>, Double> {
-    private int nodeCount = 0;
-    private int childCount = 0;
+public class TreeAvgChildrenCounterTreeVisitor implements ITreeVisitor<ITree<?>, int[]> {
+    private ArrayList<Integer> childrenPerNode = new ArrayList<>();
 
     @Override
     public TraversalAction firstVisit(List<ITree<?>> path) {
         final ITree<?> node = ITreeVisitor.getCurrentNode(path);
-        nodeCount++;
-        childCount += node.getChildrenCount();
+        childrenPerNode.add(node.getChildrenCount());
         return TraversalAction.CONTINUE;
     }
 
     @Override
     public void reset() {
-        nodeCount = 0;
-        childCount = 0;
+        childrenPerNode.clear();
+    }
+
+    /**
+     * The old Visitor calculated the average number, instead of returning the Array
+     * In case the old funktionality is needed it is implemented as getAverage() now.
+     *
+     * @return Average Number Of Children per Node as double for whole tree
+     * @author Valentin Laubsch
+     */
+    public Result<Double> getAverage() {
+        if (childrenPerNode.isEmpty()) return Result.of(0.0);
+        long sum = 0;
+        for (int c : childrenPerNode) sum += c;
+        double avg = (double) sum / childrenPerNode.size();
+        return Result.of(avg);
     }
 
     @Override
-    public Result<Double> getResult() {
-        double result = 0;
-        if (nodeCount > 0) {
-            result = (double) childCount / nodeCount;
+    public Result<int[]> getResult() {
+        int[] resultArray = new int[childrenPerNode.size()];
+        for (int i = 0; i < childrenPerNode.size(); i++) {
+            resultArray[i] = childrenPerNode.get(i);
         }
-        return Result.of(result);
+        return Result.of(resultArray);
     }
 }

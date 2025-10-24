@@ -45,6 +45,12 @@ public class ComputeFeatureAverageNumberOfChildren extends AComputation<Double> 
     @Override
     public Result<Double> compute(List<Object> dependencyList, Progress progress) {
         IFeatureTree tree = FEATURE_TREE.get(dependencyList);
-        return Trees.traverse(tree, new TreeAvgChildrenCounterTreeVisitor());
+        Result<int[]> r = Trees.traverse(tree, new TreeAvgChildrenCounterTreeVisitor());
+        if (r.isEmpty()) return Result.of(0.0);
+        int[] arr = r.get();
+        if (arr.length == 0) return Result.of(0.0);
+        long sum = 0;
+        for (int c : arr) sum += c;
+        return Result.of((double) sum / arr.length);
     }
 }
