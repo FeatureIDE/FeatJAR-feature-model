@@ -44,7 +44,7 @@ public class VisualizeAverageNumberOfChildren extends AVisualizeFeatureModelStat
 
     @Override
     protected String getAnalysisTreeDataName() {
-        return "Average Number of Children";
+        return "Average Number of Children Counts";
     }
 
     @Override

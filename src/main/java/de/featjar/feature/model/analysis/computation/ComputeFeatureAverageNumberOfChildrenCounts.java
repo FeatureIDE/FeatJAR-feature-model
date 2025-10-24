@@ -28,29 +28,24 @@ import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.IFeatureTree;
 import de.featjar.feature.model.analysis.visitor.TreeAvgChildrenCounterTreeVisitor;
+
 import java.util.List;
 
 /**
- * Calculates the Average Number Of Children per Node per Tree
+ * Calculates the Number of Children per Node as Array
  *
- * @author Benjamin von Holt
+ * @author Valentin Laubsch
  */
-public class ComputeFeatureAverageNumberOfChildren extends AComputation<Double> {
+public class ComputeFeatureAverageNumberOfChildrenCounts extends AComputation<int[]> {
     protected static final Dependency<IFeatureTree> FEATURE_TREE = Dependency.newDependency(IFeatureTree.class);
 
-    public ComputeFeatureAverageNumberOfChildren(IComputation<IFeatureTree> featureTree) {
+    public ComputeFeatureAverageNumberOfChildrenCounts(IComputation<IFeatureTree> featureTree) {
         super(featureTree);
     }
 
     @Override
-    public Result<Double> compute(List<Object> dependencyList, Progress progress) {
+    public Result<int[]> compute(List<Object> dependencyList, Progress progress) {
         IFeatureTree tree = FEATURE_TREE.get(dependencyList);
-        Result<int[]> r = Trees.traverse(tree, new TreeAvgChildrenCounterTreeVisitor());
-        if (r.isEmpty()) return Result.of(0.0);
-        int[] arr = r.get();
-        if (arr.length == 0) return Result.of(0.0);
-        long sum = 0;
-        for (int c : arr) sum += c;
-        return Result.of((double) sum / arr.length);
+        return Trees.traverse(tree, new TreeAvgChildrenCounterTreeVisitor());
     }
 }

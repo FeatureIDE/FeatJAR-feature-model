@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import de.featjar.feature.model.FeatureModel;
 import de.featjar.feature.model.TestDataProvider;
 import de.featjar.feature.model.analysis.AnalysisTree;
+import de.featjar.feature.model.analysis.visualization.VisualizeAverageNumberOfChildren;
 import de.featjar.feature.model.analysis.visualization.VisualizeConstraintOperatorDistribution;
 import de.featjar.feature.model.analysis.visualization.VisualizeGroupDistribution;
 import java.io.File;
@@ -109,6 +110,14 @@ public class VisualizeFeatureModelStatsTest {
         VisualizeConstraintOperatorDistribution vizOpDis;
         vizOpDis = new VisualizeConstraintOperatorDistribution(bigTree);
         assertEquals(1, vizOpDis.exportChartToPDF(99, defaultExportName));
+    }
+
+    @Test
+    void boxPlot() {
+        VisualizeAverageNumberOfChildren vizAvChild;
+        vizAvChild = new VisualizeAverageNumberOfChildren(bigTree);
+        assertEquals(0, vizAvChild.exportChartToPDF(0, defaultExportName));
+        assertTrue(Files.exists(Paths.get(defaultExportName)));
     }
 
     @Test
