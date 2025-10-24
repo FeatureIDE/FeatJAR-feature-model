@@ -31,6 +31,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import static de.featjar.feature.model.analysis.util.AnalysisArrays.isSeries;
+import static de.featjar.feature.model.analysis.util.AnalysisArrays.toDoubleArray;
+
 /**
  * A class that handles transformations into AnalysisTree.
  *
@@ -60,6 +63,8 @@ public class AnalysisTreeTransformer {
                 root.addChild(new AnalysisTree<>(currentKey, (float) currentValue));
             } else if (currentValue instanceof Double) {
                 root.addChild(new AnalysisTree<>(currentKey, (double) currentValue));
+            } else if (currentValue instanceof double[]) {
+                root.addChild(new AnalysisTree<>(currentKey, (double[]) currentValue));
             } else if (currentValue instanceof HashMap) {
                 Result<AnalysisTree<?>> result = hashMapToTree((HashMap<String, Object>) currentValue, currentKey);
                 if (result.isPresent()) {
@@ -71,7 +76,7 @@ public class AnalysisTreeTransformer {
             } else {
                 FeatJAR.log()
                         .error("An innermost element of the Map data structure was not of type "
-                                + "Float, Double, Integer, or HashMap");
+                                + "Float, Double, Integer, double[], or HashMap");
                 return Result.empty();
             }
         }

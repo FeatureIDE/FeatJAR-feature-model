@@ -32,6 +32,7 @@ import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.IFeatureTree;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.analysis.computation.ComputeFeatureAverageNumberOfChildren;
+import de.featjar.feature.model.analysis.computation.ComputeFeatureAverageNumberOfChildrenCounts;
 import de.featjar.feature.model.analysis.computation.ComputeFeatureFeaturesCounter;
 import de.featjar.feature.model.analysis.computation.ComputeFeatureGroupDistribution;
 import de.featjar.feature.model.analysis.computation.ComputeFeatureTopFeatures;
@@ -50,12 +51,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.knowm.xchart.internal.chartpart.Chart;
+
+import static de.featjar.feature.model.analysis.util.AnalysisArrays.*;
+import static de.featjar.feature.model.analysis.util.SeriesStats.*;
 
 /**
  * Prints statistics about a provided Feature Model.
@@ -321,6 +326,12 @@ public class PrintStatistics extends ACommand {
                         Computations.of(tree)
                                 .map(ComputeFeatureAverageNumberOfChildren::new)
                                 .compute());
+
+                data.put(
+                        treePrefix + "Average Number of Children Counts",
+                        toDoubleArray(Computations.of(tree)
+                                .map(ComputeFeatureAverageNumberOfChildrenCounts::new)
+                                .compute()));
                 data.put(
                         treePrefix + "Number of Top Features",
                         Computations.of(tree)
@@ -361,21 +372,46 @@ public class PrintStatistics extends ACommand {
     public StringBuilder buildStringPrettyStats(LinkedHashMap<String, Object> data) {
         StringBuilder outputString = new StringBuilder();
 
+        boolean printedConstraintHeader = false;
+        boolean printedTreeHeader = false;
+
         for (Map.Entry<?, ?> entry : data.entrySet()) {
-            if (entry.getKey().equals("Number of Atoms")) {
+            String key = String.valueOf(entry.getKey());
+            Object val = entry.getValue();
+
+            if (!printedConstraintHeader && key.equals("Number of Atoms")) {
                 outputString.append(String.format("\n                %-40s  %n", "CONSTRAINT RELATED STATS\n"));
-            } else if (entry.getKey().equals("[Tree 1] Average Number of Children")) {
-                outputString.append(String.format("\n                %-40s  %n", "TREE RELATED STATS\n"));
+                printedConstraintHeader = true;
+
             }
-            if (entry.getValue() instanceof Map) {
-                Map<?, ?> nestedMap = (Map<?, ?>) entry.getValue();
-                outputString.append(String.format("%-40s%n", entry.getKey()));
+            if (!printedTreeHeader && key.startsWith("[Tree")) {
+                outputString.append(String.format("\n                %-40s  %n", "TREE RELATED STATS\n"));
+                printedTreeHeader = true;
+            }
+
+            // For all Stats that are Series (Arrays or List<Number>
+            if (isSeries(val)) {
+                double[] series = toDoubleArray(val);
+                outputString.append(String.format("%-40s : %s%n", key, toReadableString(val)));
+                outputString.append(String.format(
+                        "%-40s    avg=%.4f    median=%.4f    min=%.4f    max=%.4f%n",
+                        "",
+                        avg(series), median(series), min(series), max(series)
+                ));
+                continue;
+            }
+
+            // For nested Maps like Operator or Group Distribution
+            if (val instanceof Map) {
+                Map<?, ?> nestedMap = (Map<?, ?>) val;
+                outputString.append(String.format("%-40s%n", key));
                 for (Map.Entry<?, ?> nestedEntry : nestedMap.entrySet()) {
                     outputString.append(String.format(
                             "%-40s : %s%n", "           " + nestedEntry.getKey(), nestedEntry.getValue()));
                 }
             } else {
-                outputString.append(String.format("%-40s : %s%n", entry.getKey(), entry.getValue()));
+                // Fallback for Numbers, Strings etc.
+                outputString.append(String.format("%-40s : %s%n", key, val));
             }
         }
         return outputString;

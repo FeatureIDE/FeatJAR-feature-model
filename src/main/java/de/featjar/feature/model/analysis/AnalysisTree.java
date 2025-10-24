@@ -21,7 +21,10 @@
 package de.featjar.feature.model.analysis;
 
 import de.featjar.base.tree.structure.ATree;
+import de.featjar.feature.model.analysis.util.ValueUtils;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -77,30 +80,17 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
 
     @Override
     public boolean equalsNode(AnalysisTree<?> other) {
-        if (other.value == null && this.value != null) {
-            return false;
-        }
-        if (other.value != null && this.value == null) {
-            return false;
-        }
-        if (this.value == null && other.value == null) {
-            return this.name.equals(other.name);
-        }
-        return this.name.equals(other.name) && this.value.equals(other.value);
+        return Objects.equals(name, other.name)
+                && ValueUtils.equalsValue(value, other.value);
     }
 
     @Override
     public int hashCodeNode() {
-        return Objects.hash(this.getClass(), this.name, this.value);
+        return Objects.hash(getClass(), name, ValueUtils.hashValue(value));
     }
 
     @Override
     public String toString() {
-        if (this.value == null) {
-            return "Name: " + this.name + " - Value: " + this.value + " - Value class: " + "No class";
-        } else {
-            return "Name: " + this.name + " - Value: " + this.value + " - Value class: "
-                    + this.value.getClass().getName();
-        }
+        return "Name: " + name + " - Value: " + ValueUtils.toStringValue(value);
     }
 }

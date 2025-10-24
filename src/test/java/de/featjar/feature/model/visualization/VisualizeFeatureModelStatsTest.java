@@ -115,8 +115,8 @@ public class VisualizeFeatureModelStatsTest {
     @Test
     void boxPlot() {
         VisualizeAverageNumberOfChildren vizAvChild;
-        vizAvChild = new VisualizeAverageNumberOfChildren(bigTree);
-        assertEquals(0, vizAvChild.exportChartToPDF(0, defaultExportName));
+        vizAvChild = new VisualizeAverageNumberOfChildren(doubleTree);
+        assertEquals(0, vizAvChild.exportAllChartsToPDF(defaultExportName));
         assertTrue(Files.exists(Paths.get(defaultExportName)));
     }
 

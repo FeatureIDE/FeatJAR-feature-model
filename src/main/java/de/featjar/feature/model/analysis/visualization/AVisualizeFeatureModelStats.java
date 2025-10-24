@@ -171,6 +171,8 @@ public abstract class AVisualizeFeatureModelStats {
                 }
             } else if (value instanceof Number) {
                 analysisTreeData.get(key).put(key, value);
+            } else if  (value instanceof double[]) {
+                analysisTreeData.get(key).put(key, value);
             }
         }
         return analysisTreeData;
@@ -222,11 +224,6 @@ public abstract class AVisualizeFeatureModelStats {
      */
     protected ArrayList<Chart<?, ?>> buildBoxCharts() {
         ArrayList<Chart<?, ?>> charts = new ArrayList<>();
-        // TODO in averagenumberofchildren only one double is provided instead of an double array, so I used testdata to
-        // test die BoxPlot
-        // TODO for example not the average number of children, but the number of children for every node as a double or
-        // int array is needed to plot a boxplot for the average number of children
-        double[] testdata = {0.9, 1.5, 2.22};
 
         for (String treeKey : this.analysisTreeData.keySet()) {
             // Momentan bauen wir pro Tree einen Chart mit einer Box mit mehreren Werten
@@ -234,10 +231,11 @@ public abstract class AVisualizeFeatureModelStats {
             // mit je eine Box pro Tree?
             BoxChart chart =
                     new BoxChartBuilder().width(getWidth()).height(getHeight()).build();
-            chart.setTitle(treeKey);
+            chart.setTitle((this.chartTitle == null) ? treeKey : this.chartTitle);
             defaultStyler(chart);
+
             HashMap<String, Object> treeData = analysisTreeData.get(treeKey);
-            treeData.forEach((key, value) -> chart.addSeries(key, (double[]) testdata));
+            treeData.forEach((key, value) -> chart.addSeries(key, (double[]) value));
             charts.add(chart);
         }
         return charts;
@@ -252,6 +250,9 @@ public abstract class AVisualizeFeatureModelStats {
         if (chart instanceof PieChart) {
             defaultStylerPieChartExtension((PieChart) chart);
         }
+        if (chart instanceof BoxChart) {
+            defaultStylerBoxChartExtension((BoxChart) chart);
+        }
     }
 
     /**
@@ -259,6 +260,13 @@ public abstract class AVisualizeFeatureModelStats {
      */
     private void defaultStylerPieChartExtension(PieChart chart) {
         chart.getStyler().setLabelsFont(fontLabels);
+    }
+
+    /**
+     * extends {@link #defaultStyler(Chart)} with BoxChart-specific calls
+     */
+    private void defaultStylerBoxChartExtension(BoxChart chart) {
+        chart.getStyler().setShowWithinAreaPoint(false);
     }
 
     /**
