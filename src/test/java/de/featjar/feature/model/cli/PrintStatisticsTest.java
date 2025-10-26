@@ -143,10 +143,9 @@ public class PrintStatisticsTest {
     void scopeTreeRelated() throws IOException {
 
         String content =
-                "{[Tree 1] Average Number of Children=0.0, [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
-        String comparison = printStats
-                .collectStats(minimalModel, AnalysesScope.TREE_RELATED)
-                .toString();
+                "{[Tree 1] Average Number of Children=0.0, [Tree 1] Average Number of Children Counts=[0.0], [Tree 1] Number of Top Features=0, [Tree 1] Number of Leaf Features=1, [Tree 1] Tree Depth=1, [Tree 1] Group Distribution={AlternativeGroup=0, AndGroup=1, OtherGroup=0, OrGroup=0}}";
+        LinkedHashMap<String, Object> data = printStats.collectStats(minimalModel, AnalysesScope.TREE_RELATED);
+        String comparison = PrintStatistics.mapToString(data);
         assertEquals(content, comparison);
     }
 
@@ -155,11 +154,9 @@ public class PrintStatisticsTest {
      */
     @Test
     void scopeConstraintRelated() throws IOException {
-        String content = "{Number of Atoms=0, Feature Density=0.0, Average Constraints=0.0}" + "";
-        String comparison = printStats
-                .collectStats(minimalModel, AnalysesScope.CONSTRAINT_RELATED)
-                .toString();
-
+        String content = "{Number of Atoms=0, Feature Density=0.0, Average Constraints=0.0}";
+        LinkedHashMap<String, Object> data = printStats.collectStats(minimalModel, AnalysesScope.CONSTRAINT_RELATED);
+        String comparison = PrintStatistics.mapToString(data);
         assertEquals(content, comparison);
     }
 
@@ -189,8 +186,7 @@ public class PrintStatisticsTest {
                 + "\n"
                 + "                TREE RELATED STATS\n"
                 + "                       \n"
-                + "[Tree 1] Average Number of Children      : \n"
-                + "";
+                + "[Tree 1] Average Number of Children      : \n";
 
         assertEquals(
                 comparison.replaceAll("[^a-zA-Z1-9:]", ""),
