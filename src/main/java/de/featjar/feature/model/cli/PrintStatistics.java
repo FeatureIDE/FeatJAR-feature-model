@@ -37,6 +37,7 @@ import de.featjar.feature.model.analysis.computation.ComputeFeatureFeaturesCount
 import de.featjar.feature.model.analysis.computation.ComputeFeatureGroupDistribution;
 import de.featjar.feature.model.analysis.computation.ComputeFeatureTopFeatures;
 import de.featjar.feature.model.analysis.computation.ComputeFeatureTreeDepth;
+import de.featjar.feature.model.analysis.util.ValueUtils;
 import de.featjar.feature.model.analysis.visualization.*;
 import de.featjar.feature.model.computation.ComputeAtomsCount;
 import de.featjar.feature.model.computation.ComputeAverageConstraint;
@@ -422,7 +423,38 @@ public class PrintStatistics extends ACommand {
      * @param data: the previously computed data packaged line by line: String names the stat, Object holds the data.
      */
     public void printStats(LinkedHashMap<String, Object> data) {
-        FeatJAR.log().message("STATISTICS ABOUT THE FEATURE MODEL:\n" + data);
+        StringBuilder sb = new StringBuilder("{");
+
+        boolean first = true;
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+            if (!first) sb.append(", ");
+            sb.append(entry.getKey()).append("=");
+            sb.append(ValueUtils.toStringValue(entry.getValue()));
+            first = false;
+        }
+        sb.append("}");
+
+        FeatJAR.log().message("STATISTICS ABOUT THE FEATURE MODEL:\n" + sb);
+    }
+
+    /**
+     * Util for Test
+     * @param data
+     * @return
+     */
+    public static String mapToString(Map<String, Object> data) {
+        StringBuilder sb = new StringBuilder("{");
+
+        boolean first = true;
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+            if (!first) sb.append(", ");
+            sb.append(entry.getKey()).append("=");
+            sb.append(ValueUtils.toStringValue(entry.getValue()));
+            first = false;
+        }
+        sb.append("}");
+
+        return sb.toString();
     }
 
     /**
