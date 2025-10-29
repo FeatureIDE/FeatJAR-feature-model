@@ -21,7 +21,6 @@
 package de.featjar.feature.model.analysis.util;
 
 import de.featjar.feature.model.analysis.AnalysisTree;
-
 import java.util.Arrays;
 
 /**

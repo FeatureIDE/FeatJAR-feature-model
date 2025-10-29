@@ -171,7 +171,7 @@ public abstract class AVisualizeFeatureModelStats {
                 }
             } else if (value instanceof Number) {
                 analysisTreeData.get(key).put(key, value);
-            } else if  (value instanceof double[]) {
+            } else if (value instanceof double[]) {
                 analysisTreeData.get(key).put(key, value);
             }
         }

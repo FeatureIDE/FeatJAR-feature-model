@@ -2,6 +2,8 @@ yaml:
   Number of Atoms: [Number of Atoms, java.lang.Integer, 1]
   Feature Density: [Feature Density, java.lang.Float, 0.33333334]
   Average Constraints: [Average Constraints, java.lang.Float, 1.0]
+  '[Tree 1] Average Number of Children Counts': [ '[Tree 1] Average Number of Children Counts', '[D',
+    [ 2.0, 0.0, 0.0 ] ]
   '[Tree 1] Group Distribution':
     AlternativeGroup: [AlternativeGroup, java.lang.Integer, 0]
     AndGroup: [AndGroup, java.lang.Integer, 3]

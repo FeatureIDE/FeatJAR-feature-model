@@ -20,6 +20,9 @@
  */
 package de.featjar.feature.model.io.transformer;
 
+import static de.featjar.feature.model.analysis.util.AnalysisArrays.isSeries;
+import static de.featjar.feature.model.analysis.util.AnalysisArrays.toDoubleArray;
+
 import de.featjar.base.FeatJAR;
 import de.featjar.base.data.Result;
 import de.featjar.feature.model.analysis.AnalysisTree;
@@ -30,9 +33,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
-
-import static de.featjar.feature.model.analysis.util.AnalysisArrays.isSeries;
-import static de.featjar.feature.model.analysis.util.AnalysisArrays.toDoubleArray;
 
 /**
  * A class that handles transformations into AnalysisTree.
@@ -126,10 +126,14 @@ public class AnalysisTreeTransformer {
                                     + "was not from the type String");
                     return Result.empty();
                 }
-                if (!(currentElement.get(2) instanceof BigDecimal || currentElement.get(2) instanceof Integer)) {
-                    FeatJAR.log()
-                            .error("The third element of an innermost element of the Map/YAML data structure "
-                                    + "was not from the type String");
+                if (!(currentElement.get(2) instanceof BigDecimal
+                        || currentElement.get(2) instanceof Integer
+                        || currentElement.get(2) instanceof Double
+                        || (((currentElement.get(1).equals("double[]"))
+                                        || (currentElement.get(1).equals("[D")))
+                                && (currentElement.get(2) instanceof ArrayList
+                                        || currentElement.get(2) instanceof double[])))) {
+                    FeatJAR.log().error("The third element ... was not from the type String");
                     return Result.empty();
                 }
 
@@ -152,6 +156,21 @@ public class AnalysisTreeTransformer {
                     } else if (currentElement.get(2) instanceof Integer) {
                         Integer intValue = (Integer) currentElement.get(2);
                         root.addChild(new AnalysisTree<>(currentKey, intValue.floatValue()));
+                    } else {
+                        return Result.empty();
+                    }
+                } else if (currentElement.get(1).equals("double[]")
+                        || currentElement.get(1).equals("[D")) {
+                    if (currentElement.get(2) instanceof ArrayList) {
+                        ArrayList<?> list = (ArrayList<?>) currentElement.get(2);
+                        if (isSeries(list)) {
+                            root.addChild(new AnalysisTree<>(currentKey, toDoubleArray(list)));
+                        } else {
+                            FeatJAR.log().error("Expected numeric list for key " + currentKey);
+                            return Result.empty();
+                        }
+                    } else if (currentElement.get(2) instanceof double[]) {
+                        root.addChild(new AnalysisTree<>(currentKey, (double[]) currentElement.get(2)));
                     } else {
                         return Result.empty();
                     }
@@ -220,7 +239,11 @@ public class AnalysisTreeTransformer {
                                     + "was not from the type String");
                     return Result.empty();
                 }
-                if (!(currentElement.get(2) instanceof Double || currentElement.get(2) instanceof Integer)) {
+                if (!(currentElement.get(2) instanceof Double
+                        || currentElement.get(2) instanceof Integer
+                        || (((currentElement.get(1)).equals("double[]") || (currentElement.get(1)).equals("[D"))
+                                && (currentElement.get(2) instanceof ArrayList
+                                        || currentElement.get(2) instanceof double[])))) {
                     FeatJAR.log()
                             .error("The third element of an innermost element of the Map/YAML data structure "
                                     + "was not from the type String");
@@ -236,6 +259,20 @@ public class AnalysisTreeTransformer {
                     double currentDouble = (double) currentElement.get(2);
                     float currentDeccimal = (float) currentDouble;
                     root.addChild(new AnalysisTree<>(currentKey, currentDeccimal));
+                } else if ("double[]".equals(typeString) || "[D".equals(typeString)) {
+                    if (currentElement.get(2) instanceof ArrayList) {
+                        ArrayList<?> list = (ArrayList<?>) currentElement.get(2);
+                        if (isSeries(list)) {
+                            root.addChild(new AnalysisTree<>(currentKey, toDoubleArray(list)));
+                        } else {
+                            FeatJAR.log().error("Expected numeric list for key " + currentKey);
+                            return Result.empty();
+                        }
+                    } else if (currentElement.get(2) instanceof double[]) {
+                        root.addChild(new AnalysisTree<>(currentKey, (double[]) currentElement.get(2)));
+                    } else {
+                        return Result.empty();
+                    }
                 }
             }
         }

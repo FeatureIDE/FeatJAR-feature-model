@@ -20,6 +20,9 @@
  */
 package de.featjar.feature.model.cli;
 
+import static de.featjar.feature.model.analysis.util.AnalysisArrays.*;
+import static de.featjar.feature.model.analysis.util.SeriesStats.*;
+
 import de.featjar.base.FeatJAR;
 import de.featjar.base.cli.ACommand;
 import de.featjar.base.cli.Option;
@@ -52,16 +55,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.knowm.xchart.internal.chartpart.Chart;
-
-import static de.featjar.feature.model.analysis.util.AnalysisArrays.*;
-import static de.featjar.feature.model.analysis.util.SeriesStats.*;
 
 /**
  * Prints statistics about a provided Feature Model.
@@ -245,7 +244,7 @@ public class PrintStatistics extends ACommand {
 
         } else if (optionParser.get(VISUALIZATION_CONTENT) == Visualize.GROUP) {
             groupViz.exportAllChartsToPDF(outputPath.toString());
-        } else if  (optionParser.get(VISUALIZATION_CONTENT) == Visualize.OPERATOR) {
+        } else if (optionParser.get(VISUALIZATION_CONTENT) == Visualize.OPERATOR) {
             opViz.exportAllChartsToPDF(outputPath.toString());
         } else if (optionParser.get(VISUALIZATION_CONTENT) == Visualize.CHILDREN) {
             avgChildViz.exportAllChartsToPDF(outputPath.toString());
@@ -395,7 +394,6 @@ public class PrintStatistics extends ACommand {
             if (!printedConstraintHeader && key.equals("Number of Atoms")) {
                 outputString.append(String.format("\n                %-40s  %n", "CONSTRAINT RELATED STATS\n"));
                 printedConstraintHeader = true;
-
             }
             if (!printedTreeHeader && key.startsWith("[Tree")) {
                 outputString.append(String.format("\n                %-40s  %n", "TREE RELATED STATS\n"));
@@ -408,9 +406,7 @@ public class PrintStatistics extends ACommand {
                 outputString.append(String.format("%-40s : %s%n", key, toReadableString(val)));
                 outputString.append(String.format(
                         "%-40s    avg=%.4f    median=%.4f    min=%.4f    max=%.4f%n",
-                        "",
-                        avg(series), median(series), min(series), max(series)
-                ));
+                        "", avg(series), median(series), min(series), max(series)));
                 continue;
             }
 

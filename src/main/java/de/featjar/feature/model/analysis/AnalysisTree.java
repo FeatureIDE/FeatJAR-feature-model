@@ -22,9 +22,7 @@ package de.featjar.feature.model.analysis;
 
 import de.featjar.base.tree.structure.ATree;
 import de.featjar.feature.model.analysis.util.ValueUtils;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -80,8 +78,7 @@ public class AnalysisTree<T> extends ATree<AnalysisTree<?>> {
 
     @Override
     public boolean equalsNode(AnalysisTree<?> other) {
-        return Objects.equals(name, other.name)
-                && ValueUtils.equalsValue(value, other.value);
+        return Objects.equals(name, other.name) && ValueUtils.equalsValue(value, other.value);
     }
 
     @Override

@@ -21,7 +21,6 @@
 package de.featjar.feature.model.analysis.util;
 
 import de.featjar.feature.model.analysis.AnalysisTree;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -85,11 +84,11 @@ public final class AnalysisArrays {
     }
 
     public static String toReadableString(Object v) {
-        if (v instanceof int[])    return Arrays.toString((int[]) v);
+        if (v instanceof int[]) return Arrays.toString((int[]) v);
         if (v instanceof double[]) return Arrays.toString((double[]) v);
-        if (v instanceof long[])   return Arrays.toString((long[]) v);
-        if (v instanceof float[])  return Arrays.toString((float[]) v);
-        if (v instanceof List<?>)  return toReadableString(toDoubleArray(v));
+        if (v instanceof long[]) return Arrays.toString((long[]) v);
+        if (v instanceof float[]) return Arrays.toString((float[]) v);
+        if (v instanceof List<?>) return toReadableString(toDoubleArray(v));
         return String.valueOf(v);
     }
 }

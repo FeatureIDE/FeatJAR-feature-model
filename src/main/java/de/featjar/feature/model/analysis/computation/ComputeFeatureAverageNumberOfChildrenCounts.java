@@ -28,7 +28,6 @@ import de.featjar.base.data.Result;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.IFeatureTree;
 import de.featjar.feature.model.analysis.visitor.TreeAvgChildrenCounterTreeVisitor;
-
 import java.util.List;
 
 /**

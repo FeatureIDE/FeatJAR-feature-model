@@ -14,6 +14,11 @@
   "java.lang.Float",
   1
  ],
+ "[Tree 1] Average Number of Children Counts": [
+  "[Tree 1] Average Number of Children Counts",
+  "[D",
+  [ 2.0, 0.0, 0.0]
+ ],
  "[Tree 1] Group Distribution": {
   "AlternativeGroup": [
    "AlternativeGroup",
