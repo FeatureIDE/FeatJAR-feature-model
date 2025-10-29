@@ -78,7 +78,8 @@ public class PrintStatistics extends ACommand {
 
     public enum Visualize {
         GROUP,
-        OPERATOR
+        OPERATOR,
+        CHILDREN
     }
 
     private int exitStatus = 0;
@@ -141,6 +142,7 @@ public class PrintStatistics extends ACommand {
                 AnalysisTreeTransformer.hashMapToTree(data, "Analysis").get();
         VisualizeGroupDistribution groupViz = new VisualizeGroupDistribution(tree);
         VisualizeConstraintOperatorDistribution opViz = new VisualizeConstraintOperatorDistribution(tree);
+        VisualizeAverageNumberOfChildren avgChildViz = new VisualizeAverageNumberOfChildren(tree);
 
         // if output path is specified, write statistics to file
         if (optionParser.getResult(OUTPUT_OPTION).isPresent()) {
@@ -154,7 +156,7 @@ public class PrintStatistics extends ACommand {
             }
 
             if (output_extension.equals("pdf")) {
-                exitStatus = writeToVisual(optionParser, outputPath, groupViz, opViz);
+                exitStatus = writeToVisual(optionParser, outputPath, groupViz, opViz, avgChildViz);
             } else {
                 exitStatus = writeToDoc(outputPath, data);
                 FeatJAR.log().message("Statistics saved at: " + outputPath);
@@ -162,7 +164,7 @@ public class PrintStatistics extends ACommand {
         }
 
         if (optionParser.get(SHOW)) {
-            exitStatus = show(optionParser, groupViz, opViz);
+            exitStatus = show(optionParser, groupViz, opViz, avgChildViz);
         }
         return exitStatus;
     }
@@ -193,20 +195,25 @@ public class PrintStatistics extends ACommand {
      * @param optionParser: expects OptionList with command line arguments
      * @param groupViz: expects VisualizeGroupDistribution object for data visualization of group distribution
      * @param opViz: expects VisualizeConstraintOperatorDistribution object for data visualization of operator distribution
+     * @param avgChildViz: expects VisualizeAverageNumberOfChildren object for data visualization of averageNumberOfChildren
      */
     private int show(
             OptionList optionParser,
             VisualizeGroupDistribution groupViz,
-            VisualizeConstraintOperatorDistribution opViz) {
+            VisualizeConstraintOperatorDistribution opViz,
+            VisualizeAverageNumberOfChildren avgChildViz) {
 
         if (!optionParser.getResult(VISUALIZATION_CONTENT).isPresent()) {
             opViz.displayAllCharts();
             groupViz.displayAllCharts();
+            avgChildViz.displayAllCharts();
         } else if (optionParser.get(VISUALIZATION_CONTENT) == Visualize.GROUP) {
             groupViz.displayAllCharts();
 
         } else if (optionParser.get(VISUALIZATION_CONTENT) == Visualize.OPERATOR) {
             opViz.displayAllCharts();
+        } else if (optionParser.get(VISUALIZATION_CONTENT) == Visualize.CHILDREN) {
+            avgChildViz.displayAllCharts();
         }
 
         return 0;
@@ -218,25 +225,30 @@ public class PrintStatistics extends ACommand {
      * @param outputPath: expects Path to output file location
      * @param groupViz: expects VisualizeGroupDistribution object for data visualization of group distribution
      * @param opViz: expects VisualizeConstraintOperatorDistribution object for data visualization of operator distribution
+     * @param avgChildViz: expects VisualizeAverageNumberOfChildren object for data visualization of averageNumberOfChildren
      *
      */
     private int writeToVisual(
             OptionList optionParser,
             Path outputPath,
             VisualizeGroupDistribution groupViz,
-            VisualizeConstraintOperatorDistribution opViz) {
+            VisualizeConstraintOperatorDistribution opViz,
+            VisualizeAverageNumberOfChildren avgChildViz) {
 
         if (!optionParser.getResult(VISUALIZATION_CONTENT).isPresent()) {
 
             ArrayList<Chart<?, ?>> combinedCharts = new ArrayList<>();
             combinedCharts.addAll(groupViz.getCharts());
             combinedCharts.addAll(opViz.getCharts());
+            combinedCharts.addAll(avgChildViz.getCharts());
             AVisualizeFeatureModelStats.exportAllChartsToPDF(combinedCharts, outputPath.toString());
 
         } else if (optionParser.get(VISUALIZATION_CONTENT) == Visualize.GROUP) {
             groupViz.exportAllChartsToPDF(outputPath.toString());
-        } else {
+        } else if  (optionParser.get(VISUALIZATION_CONTENT) == Visualize.OPERATOR) {
             opViz.exportAllChartsToPDF(outputPath.toString());
+        } else if (optionParser.get(VISUALIZATION_CONTENT) == Visualize.CHILDREN) {
+            avgChildViz.exportAllChartsToPDF(outputPath.toString());
         }
         if (Files.exists(outputPath)) {
             FeatJAR.log().message("Statistics visual saved at: " + outputPath);
@@ -390,7 +402,7 @@ public class PrintStatistics extends ACommand {
                 printedTreeHeader = true;
             }
 
-            // For all Stats that are Series (Arrays or List<Number>
+            // For all Stats that are Series
             if (isSeries(val)) {
                 double[] series = toDoubleArray(val);
                 outputString.append(String.format("%-40s : %s%n", key, toReadableString(val)));
@@ -438,8 +450,8 @@ public class PrintStatistics extends ACommand {
     }
 
     /**
-     * Util for Test
-     * @param data
+     * Util for testing the printStats Method. It returns the String instead of putting it in the output stream
+     * @param data the previously computed data packaged line by line: String names the stat, Object holds the data.
      * @return
      */
     public static String mapToString(Map<String, Object> data) {
