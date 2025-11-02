@@ -24,7 +24,6 @@ import de.featjar.base.data.Result;
 import de.featjar.base.tree.visitor.ITreeVisitor;
 import de.featjar.feature.model.analysis.AnalysisTree;
 import de.featjar.feature.model.analysis.util.AnalysisArrays;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,8 +48,7 @@ public class AnalysisTreeVisitorCSV implements ITreeVisitor<AnalysisTree<?>, Arr
             final Object valueForCsv = AnalysisArrays.toReadableString(rawValue);
             final String className = rawValue.getClass().getName();
 
-            nodesList.add(Arrays.asList(
-                    parent.getName(), node.getName(), className, valueForCsv));
+            nodesList.add(Arrays.asList(parent.getName(), node.getName(), className, valueForCsv));
         }
         return TraversalAction.CONTINUE;
     }
