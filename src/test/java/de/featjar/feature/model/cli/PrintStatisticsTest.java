@@ -269,7 +269,7 @@ public class PrintStatisticsTest {
                 + "csv;Feature Density;java.lang.Float;0.33333334\n"
                 + "csv;Average Constraints;java.lang.Float;1.0\n"
                 + "csv;[Tree 1] Average Number of Children;java.lang.Double;0.6666666666666666\n"
-                + "csv;[Tree 1] Average Number of Children Counts;[D;2.0;0.0;0.0\n"
+                + "csv;[Tree 1] Average Number of Children Counts;[D;[2.0, 0.0, 0.0]\n"
                 + "csv;[Tree 1] Number of Top Features;java.lang.Integer;2\n"
                 + "csv;[Tree 1] Number of Leaf Features;java.lang.Integer;2\n"
                 + "csv;[Tree 1] Tree Depth;java.lang.Integer;2\n"
