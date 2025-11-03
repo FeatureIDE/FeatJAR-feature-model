@@ -4,5 +4,7 @@
         <extension id="de.featjar.feature.model.io.xml.GraphVizFeatureModelFormat" />
         <extension id="de.featjar.feature.model.io.xml.XMLFeatureModelFormat" />
         <extension id="de.featjar.feature.model.io.dimacs.DimacsFeatureModelFormat" />
+        <extension id="de.featjar.feature.model.io.tikz.LatexFeatureModelFormat" />
+        <extension id="de.featjar.feature.model.io.tikz.TikzFeatureModelFormat" />
     </point>
 </extensions>
