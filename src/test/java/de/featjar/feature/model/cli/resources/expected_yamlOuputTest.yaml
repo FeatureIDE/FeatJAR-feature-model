@@ -1,0 +1,18 @@
+yaml:
+  Number of Atoms: [Number of Atoms, java.lang.Integer, 1]
+  Feature Density: [Feature Density, java.lang.Float, 0.33333334]
+  Average Constraints: [Average Constraints, java.lang.Float, 1.0]
+  '[Tree 1] Average Number of Children Counts': [ '[Tree 1] Average Number of Children Counts', '[D',
+    [ 2.0, 0.0, 0.0 ] ]
+  '[Tree 1] Group Distribution':
+    AlternativeGroup: [AlternativeGroup, java.lang.Integer, 0]
+    AndGroup: [AndGroup, java.lang.Integer, 3]
+    OtherGroup: [OtherGroup, java.lang.Integer, 0]
+    OrGroup: [OrGroup, java.lang.Integer, 0]
+  '[Tree 1] Number of Top Features': ['[Tree 1] Number of Top Features', java.lang.Integer,
+    2]
+  '[Tree 1] Average Number of Children': ['[Tree 1] Average Number of Children', java.lang.Double,
+    0.6666666666666666]
+  '[Tree 1] Tree Depth': ['[Tree 1] Tree Depth', java.lang.Integer, 2]
+  '[Tree 1] Number of Leaf Features': ['[Tree 1] Number of Leaf Features', java.lang.Integer,
+    2]

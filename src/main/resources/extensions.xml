@@ -5,4 +5,10 @@
         <extension id="de.featjar.feature.model.io.xml.XMLFeatureModelFormat" />
         <extension id="de.featjar.feature.model.io.dimacs.DimacsFeatureModelFormat" />
     </point>
+    <point id="de.featjar.base.cli.Commands">
+		<extension id="de.featjar.feature.model.cli.PrintStatistics" />
+		<extension id="de.featjar.feature.model.cli.PrintSampleStatistics" />
+		<extension id="de.featjar.feature.model.cli.FeatureModelFormatConversion" />
+		<extension id="de.featjar.feature.model.cli.ConfigurationFormatConversion" />
+	</point>
 </extensions>
