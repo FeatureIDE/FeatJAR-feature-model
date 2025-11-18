@@ -6,6 +6,8 @@ plugins {
 dependencies {
     api 'de.featjar:formula'
     api testFixtures('de.featjar:formula')
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
+    // testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 license {
