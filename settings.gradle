@@ -7,3 +7,4 @@ plugins {
 }
 
 includeBuild '../formula'
+includeBuild '../formula-analysis-sat4j'
