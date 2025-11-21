@@ -20,7 +20,19 @@
  */
 package de.featjar.feature.model.io;
 
-import de.featjar.base.data.*;
+import de.featjar.base.data.Attribute;
+import de.featjar.base.data.IAttributable;
+import de.featjar.base.data.Name;
+import de.featjar.base.data.Problem;
+import de.featjar.base.data.Result;
+import de.featjar.base.data.type.BooleanType;
+import de.featjar.base.data.type.DoubleType;
+import de.featjar.base.data.type.FloatType;
+import de.featjar.base.data.type.GenericType;
+import de.featjar.base.data.type.IntegerType;
+import de.featjar.base.data.type.LongType;
+import de.featjar.base.data.type.StringType;
+import de.featjar.base.data.type.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -52,19 +64,21 @@ public class AttributeIO {
         }
     }
 
-    public static Result<String> getTypeString(Class<?> type) {
-        if (String.class.equals(type)) {
+    public static Result<String> getTypeString(Type<?> type) {
+        if (type == StringType.INSTANCE) {
             return Result.of("string");
-        } else if (Boolean.class.equals(type)) {
+        } else if (type == BooleanType.INSTANCE) {
             return Result.of("boolean");
-        } else if (Integer.class.equals(type)) {
+        } else if (type == IntegerType.INSTANCE) {
             return Result.of("integer");
-        } else if (Long.class.equals(type)) {
+        } else if (type == LongType.INSTANCE) {
             return Result.of("long");
-        } else if (Float.class.equals(type)) {
+        } else if (type == FloatType.INSTANCE) {
             return Result.of("float");
-        } else if (Double.class.equals(type)) {
+        } else if (type == DoubleType.INSTANCE) {
             return Result.of("double");
+        } else if (type instanceof GenericType<?>) {
+            return Result.of(((GenericType<?>) type).toTypeString());
         }
         return Result.empty();
     }
