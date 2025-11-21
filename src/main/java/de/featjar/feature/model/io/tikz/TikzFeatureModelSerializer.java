@@ -21,6 +21,7 @@
 package de.featjar.feature.model.io.tikz;
 
 import de.featjar.base.data.IAttribute;
+import de.featjar.base.data.Name;
 import de.featjar.base.tree.Trees;
 import de.featjar.base.tree.visitor.ITreeVisitor;
 import de.featjar.feature.model.FeatureTree;
@@ -103,9 +104,9 @@ public class TikzFeatureModelSerializer {
 
             Map<IAttribute<?>, Object> filteredAttributes = new LinkedHashMap<>();
             feature.getAttributes().ifPresent(m -> m.entrySet().stream()
-                    .filter(e -> (include.isEmpty()
-                                    || include.contains(e.getKey().getName().toLowerCase()))
-                            && !exclude.contains(e.getKey().getName().toLowerCase()))
+                    .filter(e ->
+                            (include.isEmpty() || include.contains(e.getKey().getName()))
+                                    && !exclude.contains(e.getKey().getName()))
                     .sorted(Comparator.comparing(e -> e.getKey().getName()))
                     .forEach(e -> filteredAttributes.put(e.getKey(), e.getValue())));
             if (filteredAttributes.isEmpty()) {
@@ -123,7 +124,7 @@ public class TikzFeatureModelSerializer {
                             .append("\\small\\texttt{")
                             .append(attribute.getKey().getName())
                             .append(" (")
-                            .append(attribute.getKey().getType().getSimpleName())
+                            .append(attribute.getKey().getClassType().getSimpleName())
                             .append(")} &\\small\\texttt{= ")
                             .append(attribute.getValue())
                             .append("} \\\\")
@@ -196,30 +197,26 @@ public class TikzFeatureModelSerializer {
         }
     }
 
-    private final HashSet<String> include = new HashSet<>();
-    private final HashSet<String> exclude = new HashSet<>(List.of("abstract", "name"));
+    private final HashSet<Name> include = new HashSet<>();
+    private final HashSet<Name> exclude = new HashSet<>(List.of(new Name("abstract"), new Name("name")));
 
     /**
      * Set the list of attributes that are shown in the Tikz output.
      * If no inclusion list is provided, all attributes will be shown that are not explicitly {@link #setAttributeExclusionList(List) excluded}.
      * @param attributeNames the list of attribute names
      */
-    public void setAttributeInclusionList(List<String> attributeNames) {
+    public void setAttributeInclusionList(List<Name> attributeNames) {
         include.clear();
-        for (String name : attributeNames) {
-            include.add(name.toLowerCase());
-        }
+        include.addAll(attributeNames);
     }
 
     /**
      * Set the list of attributes that are **not** shown in the Tikz output.
      * @param attributeNames the list of attribute names
      */
-    public void setAttributeExclusionList(List<String> attributeNames) {
+    public void setAttributeExclusionList(List<Name> attributeNames) {
         exclude.clear();
-        for (String name : attributeNames) {
-            exclude.add(name.toLowerCase());
-        }
+        exclude.addAll(attributeNames);
     }
 
     /**

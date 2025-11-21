@@ -21,6 +21,7 @@
 package de.featjar.feature.model;
 
 import de.featjar.base.data.Attribute;
+import de.featjar.base.data.Name;
 import de.featjar.base.data.Sets;
 import de.featjar.base.data.identifier.IIdentifiable;
 import java.util.Collection;
@@ -81,16 +82,16 @@ public class Attributes {
 
     @SuppressWarnings("rawtypes")
     public static Attribute getRaw(String namespace, String name, Class<?> type) {
-        Attribute attribute = new Attribute<>(namespace, name, type);
+        Attribute attribute = new Attribute<>(new Name(namespace, name), type);
         Attribute cachedAttribute = attributeSet.get(attribute);
         if (cachedAttribute == null) {
             attributeSet.put(attribute, attribute);
             return attribute;
         } else {
-            if (type != cachedAttribute.getType()) {
+            if (type != cachedAttribute.getClassType()) {
                 throw new IllegalArgumentException(String.format(
                         "Cannot create attribute for type %s. Attribute already defined for type %s.",
-                        type.toString(), cachedAttribute.getType()));
+                        type.toString(), cachedAttribute.getClassType()));
             }
             return cachedAttribute;
         }

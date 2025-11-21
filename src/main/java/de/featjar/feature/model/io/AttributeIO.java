@@ -69,12 +69,8 @@ public class AttributeIO {
         return Result.empty();
     }
 
-    public static Result<Attribute<?>> parseAttribute(String name, String typeString) {
+    public static Result<Attribute<?>> parseAttribute(Name name, String typeString) {
         return getType(typeString).map(type -> new Attribute<>(name, type));
-    }
-
-    public static Result<Attribute<?>> parseAttribute(String namespace, String name, String typeString) {
-        return getType(typeString).map(type -> new Attribute<>(namespace, name, type));
     }
 
     public static Result<Object> parseAttributeValue(Class<?> type, String valueString) {
@@ -100,9 +96,9 @@ public class AttributeIO {
 
     @SuppressWarnings("unchecked")
     public static List<Problem> parseAndSetAttributeValue(
-            IAttributable attributable, String namespace, String name, String typeString, String valueString) {
+            IAttributable attributable, Name name, String typeString, String valueString) {
         List<Problem> problems = new ArrayList<>();
-        Result<Attribute<?>> attribute = AttributeIO.parseAttribute(namespace, name, typeString);
+        Result<Attribute<?>> attribute = AttributeIO.parseAttribute(name, typeString);
         Result<?> value = parseAttributeValue(typeString, valueString);
         if (attribute.isEmpty()) {
             problems.add(new Problem("invalid type for attribute " + name, Problem.Severity.WARNING));

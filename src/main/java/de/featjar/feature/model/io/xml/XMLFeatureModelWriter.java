@@ -221,9 +221,9 @@ public class XMLFeatureModelWriter extends AXMLWriter<IFeatureModel> {
             propNode.setAttribute(NAMESPACE_TAG, property.getKey().getNamespace());
             propNode.setAttribute(
                     DATA_TYPE,
-                    AttributeIO.getTypeString(property.getKey().getType())
+                    AttributeIO.getTypeString(property.getKey().getClassType())
                             .orElseThrow(p -> new IllegalArgumentException()));
-            propNode.setAttribute(KEY, property.getKey().getName());
+            propNode.setAttribute(KEY, property.getKey().getSimpleName());
             propNode.setAttribute(VALUE, property.getValue().toString()); // TODO
             fnod.appendChild(propNode);
         }

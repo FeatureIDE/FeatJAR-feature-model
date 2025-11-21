@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import de.featjar.base.data.Attribute;
 import de.featjar.base.data.IAttributable;
 import de.featjar.base.data.IAttribute;
+import de.featjar.base.data.Name;
 import de.featjar.base.data.Result;
 import de.featjar.base.data.identifier.Identifiers;
 import java.util.LinkedHashMap;
@@ -42,7 +43,7 @@ import org.junit.jupiter.api.Test;
  */
 public class AttributeTest {
     FeatureModel featureModel;
-    Attribute<String> attribute = new Attribute<>("any", "test", String.class);
+    Attribute<String> attribute = new Attribute<>(new Name("any", "test"), String.class);
 
     @BeforeEach
     public void createFeatureModel() {
@@ -52,8 +53,8 @@ public class AttributeTest {
     @Test
     public void attribute() {
         assertEquals("any", attribute.getNamespace());
-        assertEquals("test", attribute.getName());
-        assertEquals(String.class, attribute.getType());
+        assertEquals("test", attribute.getSimpleName());
+        assertEquals(String.class, attribute.getClassType());
     }
 
     @Test
