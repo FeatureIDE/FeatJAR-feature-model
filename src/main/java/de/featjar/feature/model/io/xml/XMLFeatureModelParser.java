@@ -200,9 +200,10 @@ public class XMLFeatureModelParser extends AXMLFeatureModelParser<IFeatureModel,
     }
 
     protected void parseProperty(IFeatureModelElement featureModelElement, Element e) throws ParseException {
-        if (!e.hasAttribute(KEY) || !e.hasAttribute(VALUE)) {
-            addParseProblem(
-                    "Missing one of the required attributes: " + KEY + " or " + VALUE, e, Problem.Severity.WARNING);
+        if (!e.hasAttribute(KEY)) {
+            addParseProblem("Missing required attributes " + KEY, e, Problem.Severity.WARNING);
+        } else if (!e.hasAttribute(VALUE)) {
+            addParseProblem("Missing required attributes: " + VALUE, e, Problem.Severity.WARNING);
         } else {
             String typeString = e.hasAttribute(DATA_TYPE) ? e.getAttribute(DATA_TYPE) : "string";
             final String namespace =

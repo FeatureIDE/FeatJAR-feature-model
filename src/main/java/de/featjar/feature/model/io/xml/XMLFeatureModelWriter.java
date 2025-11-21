@@ -64,6 +64,7 @@ import de.featjar.formula.structure.connective.Implies;
 import de.featjar.formula.structure.connective.Not;
 import de.featjar.formula.structure.connective.Or;
 import de.featjar.formula.structure.predicate.Literal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -79,29 +80,27 @@ import org.w3c.dom.Element;
  */
 public class XMLFeatureModelWriter extends AXMLWriter<IFeatureModel> {
 
-    private IFeatureModel featureModel;
-
     @Override
     public void writeDocument(IFeatureModel featureModel, Document doc) {
-        this.featureModel = featureModel;
         final Element root = doc.createElement(FEATURE_MODEL);
         doc.appendChild(root);
 
-        writeFeatures(doc, root);
-        writeConstraints(doc, root);
+        writeFeatures(doc, root, featureModel);
+        writeConstraints(doc, root, featureModel);
     }
 
-    protected void writeFeatures(Document doc, final Element root) {
+    protected void writeFeatures(Document doc, final Element root, IFeatureModel featureModel) {
         final Element struct = doc.createElement(STRUCT);
         root.appendChild(struct);
         writeFeatureTreeRec(doc, struct, featureModel.getRoots().get(0));
     }
 
-    protected void writeConstraints(Document doc, final Element root) {
-        if (!featureModel.getConstraints().isEmpty()) {
+    protected void writeConstraints(Document doc, final Element root, IFeatureModel featureModel) {
+        Collection<IConstraint> constraintList = featureModel.getConstraints();
+        if (!constraintList.isEmpty()) {
             final Element constraints = doc.createElement(CONSTRAINTS);
             root.appendChild(constraints);
-            for (final IConstraint constraint : featureModel.getConstraints()) {
+            for (final IConstraint constraint : constraintList) {
                 Element rule;
                 rule = doc.createElement(RULE);
 
