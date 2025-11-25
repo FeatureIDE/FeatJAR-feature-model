@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
     api 'de.featjar:formula'
+    api 'de.featjar:formula-analysis-sat4j'
     api testFixtures('de.featjar:formula')
 }
 

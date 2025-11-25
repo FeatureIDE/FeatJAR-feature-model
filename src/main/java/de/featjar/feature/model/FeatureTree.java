@@ -23,6 +23,7 @@ package de.featjar.feature.model;
 import de.featjar.base.data.Attribute;
 import de.featjar.base.data.IAttribute;
 import de.featjar.base.data.Range;
+import de.featjar.base.data.Result;
 import de.featjar.base.tree.structure.ARootedTree;
 import de.featjar.base.tree.structure.ITree;
 import de.featjar.feature.model.IFeatureTree.IMutableFeatureTree;
@@ -34,10 +35,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class FeatureTree extends ARootedTree<IFeatureTree> implements IMutableFeatureTree {
 
-    public final class Group {
+    public static final class Group {
         private Range groupCardinality;
 
         private Group(int lowerBound, int upperBound) {
@@ -84,13 +86,8 @@ public class FeatureTree extends ARootedTree<IFeatureTree> implements IMutableFe
             return groupCardinality.getLowerBound() <= 0;
         }
 
-        public List<IFeatureTree> getGroupSiblings() {
-            IFeatureTree parent = getParent().orElse(null);
-            return (parent == null)
-                    ? List.of()
-                    : parent.getChildren().stream()
-                            .filter(t -> t.getParentGroupID() == parentGroupID)
-                            .collect(Collectors.toList());
+        public boolean hasSameBoundaries(Group group) {
+            return groupCardinality.is(group.groupCardinality);
         }
 
         @Override
@@ -122,6 +119,13 @@ public class FeatureTree extends ARootedTree<IFeatureTree> implements IMutableFe
     protected ArrayList<Group> childrenGroups;
 
     protected LinkedHashMap<IAttribute<?>, Object> attributeValues;
+
+    protected FeatureTree() {
+        this.feature = null;
+        cardinality = Range.of(0, 1);
+        childrenGroups = new ArrayList<>(1);
+        childrenGroups.add(new Group(Range.atLeast(0)));
+    }
 
     protected FeatureTree(IFeature feature) {
         this.feature = Objects.requireNonNull(feature);
@@ -160,8 +164,15 @@ public class FeatureTree extends ARootedTree<IFeatureTree> implements IMutableFe
     }
 
     @Override
+    public int[] getChildrenGroupIDs() {
+        return IntStream.range(0, childrenGroups.size())
+                .filter(id -> childrenGroups.get(id) != null)
+                .toArray();
+    }
+
+    @Override
     public Optional<Group> getChildrenGroup(int groupID) {
-        return Optional.ofNullable(getChildrenGroups().get(groupID));
+        return isValidGroupID(groupID) ? Optional.of(getChildrenGroups().get(groupID)) : Optional.empty();
     }
 
     @Override
@@ -171,9 +182,13 @@ public class FeatureTree extends ARootedTree<IFeatureTree> implements IMutableFe
                 .collect(Collectors.toList());
     }
 
+    public List<IFeatureTree> getGroupSiblings() {
+        return getParent().map(parent -> parent.getChildren(parentGroupID)).orElse(List.of());
+    }
+
     @Override
     public String toString() {
-        return feature.getName().orElse("");
+        return Result.ofNullable(feature).flatMap(IFeature::getName).orElse("?");
     }
 
     @Override
@@ -218,14 +233,43 @@ public class FeatureTree extends ARootedTree<IFeatureTree> implements IMutableFe
 
     @Override
     public int addCardinalityGroup(int lowerBound, int upperBound) {
-        childrenGroups.add(new Group(lowerBound, upperBound));
-        return childrenGroups.size() - 1;
+        return addGroup(new Group(lowerBound, upperBound));
     }
 
     @Override
     public int addCardinalityGroup(Range groupRange) {
-        childrenGroups.add(new Group(groupRange));
+        return addGroup(new Group(groupRange));
+    }
+
+    private int addGroup(Group newGroup) {
+        for (int i = 1; i < childrenGroups.size(); i++) {
+            if (childrenGroups.get(i) == null) {
+                childrenGroups.set(i, newGroup);
+                return i;
+            }
+        }
+        childrenGroups.add(newGroup);
         return childrenGroups.size() - 1;
+    }
+
+    @Override
+    public void removeCardinalityGroup(int groupID, int substituteGroupID) {
+        if (groupID == 0) {
+            throw new IllegalArgumentException("Cannot remove first group!");
+        }
+        if (groupID < 0) {
+            throw new IllegalArgumentException("GroupID must be greater than 0!");
+        }
+        if (!isValidGroupID(substituteGroupID)) {
+            throw new IllegalArgumentException(String.format("Invalid substitute group id %d!", substituteGroupID));
+        }
+        childrenGroups.set(groupID, null);
+        getChildren().stream().filter(c -> c.getParentGroupID() == groupID).forEach(c -> c.mutate()
+                .setParentGroupID(substituteGroupID));
+    }
+
+    public boolean isValidGroupID(int groupID) {
+        return groupID >= 0 && groupID <= childrenGroups.size() && childrenGroups.get(groupID) != null;
     }
 
     public void setParentGroupID(int groupID) {

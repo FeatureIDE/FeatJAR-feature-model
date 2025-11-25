@@ -55,6 +55,14 @@ public interface IFeatureTree extends IRootedTree<IFeatureTree>, IAttributable, 
     Optional<Group> getChildrenGroup(int groupID);
 
     /**
+     * {@return the group IDs of this feature's children.}
+     * Contains only {@link #isValidGroupID valid} group IDs.
+     */
+    int[] getChildrenGroupIDs();
+
+    boolean isValidGroupID(int groupID);
+
+    /**
      * {@return all children within the group with the given id.}
      * @param groupID the groupID
      */
@@ -116,17 +124,35 @@ public interface IFeatureTree extends IRootedTree<IFeatureTree>, IAttributable, 
             return newTree;
         }
 
-        default void removeFromTree() { // TODO what about the containing constraints?
-            Result<IFeatureTree> parent = getParent();
-            if (parent.isPresent()) {
-                int childIndex = parent.get().getChildIndex(this).orElseThrow();
-                parent.get().removeChild(this);
-                // TODO improve group handling, probably needs slicing
-                for (Group group : getChildrenGroups()) {
-                    parent.get().mutate().addCardinalityGroup(group.getLowerBound(), group.getUpperBound());
+        default void removeFromTree() {
+            IMutableFeatureTree parent = getParent()
+                    .orElseThrow(p -> new IllegalStateException("Cannot remove root feature"))
+                    .mutate();
+
+            int childIndex = parent.getChildIndex(this).orElseThrow();
+            Group group = getParentGroup().get();
+            parent.removeChild(childIndex);
+
+            for (int groupID : getChildrenGroupIDs()) {
+                List<IFeatureTree> children = getChildren(groupID);
+                if (children.isEmpty()) {
+                    continue;
                 }
-                for (IFeatureTree child : getChildren()) {
-                    parent.get().mutate().addChild(childIndex++, child);
+                Group childrenGroup = getChildrenGroup(groupID).get();
+                if (group.hasSameBoundaries(childrenGroup)
+                        && group.getLowerBound() <= 1
+                        && (group.getUpperBound() == 1 || group.getUpperBound() == Range.OPEN)) {
+                    for (IFeatureTree child : children) {
+                        parent.addChild(childIndex++, child);
+                        child.mutate().setParentGroupID(getParentGroupID());
+                    }
+                } else {
+                    parent.addCardinalityGroup(childrenGroup.getLowerBound(), childrenGroup.getUpperBound());
+                    for (IFeatureTree child : children) {
+                        parent.addChild(childIndex++, child);
+                        child.mutate().setParentGroupID(groupID);
+                    }
+                    parent.toCardinalityGroup(getParentGroupID(), Range.atLeast(0));
                 }
             }
         }
@@ -155,6 +181,30 @@ public interface IFeatureTree extends IRootedTree<IFeatureTree>, IAttributable, 
 
         default int addOrGroup() {
             return addCardinalityGroup(1, Range.OPEN);
+        }
+
+        /**
+         * Removes a cardinality group and moves all features in this group to the group with the given substitute id.
+         * The first group can never be removed.
+         * The substitute id must be a {@link #isValidGroupID valid} group id in this feature tree node.
+         *
+         * @param groupID the group id of the group to remove
+         * @param substituteGroupID the new group id of all features within the removed group
+         *
+         * @see #removeCardinalityGroup(int)
+         */
+        void removeCardinalityGroup(int groupID, int substituteGroupID);
+
+        /**
+         * Removes a cardinality group and moves all features in this group to the first group in this feature tree node.
+         * The first group can never be removed.
+         *
+         * @param groupID the group id of the group to remove
+         *
+         * @see #removeCardinalityGroup(int, int)
+         */
+        default void removeCardinalityGroup(int groupID) {
+            removeCardinalityGroup(groupID, 0);
         }
 
         /**
