@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import de.featjar.base.data.Attribute;
+import de.featjar.base.data.Attributes;
 import de.featjar.base.data.IAttributable;
 import de.featjar.base.data.IAttribute;
 import de.featjar.base.data.Name;
@@ -37,13 +38,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for {@link Attribute}, {@link Attributes}, and {@link IAttributable}.
+ * Tests for {@link Attribute}, {@link FeatureModelAttributes}, and {@link IAttributable}.
  *
  * @author Elias Kuiter
  */
 public class AttributeTest {
     FeatureModel featureModel;
-    Attribute<String> attribute = new Attribute<>(new Name("any", "test"), String.class);
+    Attribute<String> attribute = Attributes.get(new Name("any", "test"), String.class);
 
     @BeforeEach
     public void createFeatureModel() {
@@ -60,7 +61,8 @@ public class AttributeTest {
     @Test
     public void attributableGetSet() {
         LinkedHashMap<IAttribute<?>, Object> attributeToValueMap = new LinkedHashMap<>();
-        Attribute<String> attributeWithDefaultValue = new Attribute<>("test", String.class).setDefaultValue("default");
+        Attribute<String> attributeWithDefaultValue =
+                Attributes.get("test", String.class).setDefaultValue("default");
         Assertions.assertTrue(featureModel.getAttributeValue(attribute).isEmpty());
         Assertions.assertEquals(Result.of("default"), featureModel.getAttributeValue(attributeWithDefaultValue));
         assertEquals(attributeToValueMap, featureModel.getAttributes().get());
@@ -84,7 +86,8 @@ public class AttributeTest {
 
     @Test
     public void attributableToggle() {
-        Attribute<Boolean> booleanAttribute = new Attribute<>("test", Boolean.class).setDefaultValue(false);
+        Attribute<Boolean> booleanAttribute =
+                Attributes.get("test", Boolean.class).setDefaultValue(false);
         Assertions.assertEquals(Result.of(false), featureModel.getAttributeValue(booleanAttribute));
         featureModel.mutate().toggleAttributeValue(booleanAttribute);
         Assertions.assertEquals(Result.of(true), featureModel.getAttributeValue(booleanAttribute));
@@ -92,7 +95,7 @@ public class AttributeTest {
 
     @Test
     public void attributesName() {
-        Assertions.assertEquals(featureModel.getName(), featureModel.getAttributeValue(Attributes.NAME));
+        Assertions.assertEquals(featureModel.getName(), featureModel.getAttributeValue(FeatureModelAttributes.NAME));
         Assertions.assertEquals(
                 "@" + featureModel.getIdentifier(), featureModel.getName().get());
         Assertions.assertEquals(Result.empty(), featureModel.getDescription());

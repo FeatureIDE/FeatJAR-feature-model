@@ -23,7 +23,7 @@ package de.featjar.feature.model.transformer;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import de.featjar.base.FeatJAR;
-import de.featjar.base.data.Attribute;
+import de.featjar.base.data.Attributes;
 import de.featjar.base.data.IAttribute;
 import de.featjar.base.data.Name;
 import de.featjar.base.tree.Trees;
@@ -60,31 +60,31 @@ public class ReplaceAttributeAggregateTest {
         attributes.put(
                 Expressions.literal("cpu"),
                 Map.of(
-                        new Attribute<>("cost", Long.class),
+                        Attributes.get("cost", Long.class),
                         10L,
-                        new Attribute<>("required", Boolean.class),
+                        Attributes.get("required", Boolean.class),
                         true,
-                        new Attribute<>("power", Float.class),
+                        Attributes.get("power", Float.class),
                         104.5f));
         attributes.put(
                 Expressions.literal("gpu"),
                 Map.of(
-                        new Attribute<>("cost", Long.class),
+                        Attributes.get("cost", Long.class),
                         100L,
-                        new Attribute<>("required", Boolean.class),
+                        Attributes.get("required", Boolean.class),
                         false,
-                        new Attribute<>("power", Float.class),
+                        Attributes.get("power", Float.class),
                         200.5f));
         attributes.put(
                 Expressions.literal("ram"),
-                Map.of(new Attribute<>("cost", Long.class), 20L, new Attribute<>("required", Boolean.class), true));
+                Map.of(Attributes.get("cost", Long.class), 20L, Attributes.get("required", Boolean.class), true));
         attributes.put(
                 Expressions.literal("motherboard"),
-                Map.of(new Attribute<>("required", Boolean.class), true, new Attribute<>("power", Float.class), 3.5f));
+                Map.of(Attributes.get("required", Boolean.class), true, Attributes.get("power", Float.class), 3.5f));
         attributes.put(Expressions.literal("power_supply"), Collections.emptyMap());
         attributes.put(
                 new NotEquals(new Variable("refreshrate", Double.class), new Constant(0.0)),
-                Map.of(new Attribute<>("required", Boolean.class), true, new Attribute<>("power", Float.class), 1.0f));
+                Map.of(Attributes.get("required", Boolean.class), true, Attributes.get("power", Float.class), 1.0f));
     }
 
     @Test

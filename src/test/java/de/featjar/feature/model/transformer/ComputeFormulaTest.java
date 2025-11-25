@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import de.featjar.base.FeatJAR;
 import de.featjar.base.computation.ComputeConstant;
 import de.featjar.base.data.Attribute;
+import de.featjar.base.data.Attributes;
 import de.featjar.base.data.Name;
 import de.featjar.base.data.Range;
 import de.featjar.base.data.identifier.Identifiers;
@@ -581,10 +582,10 @@ class ComputeFormulaTest {
         executeTest();
     }
 
-    static Attribute<Boolean> cpuAttribute = new Attribute<>("cpu", Boolean.class);
-    static Attribute<Boolean> gpuAttribute = new Attribute<>("cpu", Boolean.class);
+    static Attribute<Boolean> cpuAttribute = Attributes.get("cpu", Boolean.class);
+    static Attribute<Boolean> gpuAttribute = Attributes.get("cpu", Boolean.class);
 
-    static Attribute<Double> costAttribute = new Attribute<>("cost", Double.class);
+    static Attribute<Double> costAttribute = Attributes.get("cost", Double.class);
 
     @Test
     void simpleOneFeatureAndAttributeAggregate() {

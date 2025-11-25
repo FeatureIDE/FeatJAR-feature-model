@@ -21,6 +21,7 @@
 package de.featjar.feature.model.io;
 
 import de.featjar.base.data.Attribute;
+import de.featjar.base.data.Attributes;
 import de.featjar.base.data.IAttributable;
 import de.featjar.base.data.Name;
 import de.featjar.base.data.Problem;
@@ -84,7 +85,7 @@ public class AttributeIO {
     }
 
     public static Result<Attribute<?>> parseAttribute(Name name, String typeString) {
-        return getType(typeString).map(type -> new Attribute<>(name, type));
+        return getType(typeString).map(type -> Attributes.get(name, type));
     }
 
     public static Result<Object> parseAttributeValue(Class<?> type, String valueString) {

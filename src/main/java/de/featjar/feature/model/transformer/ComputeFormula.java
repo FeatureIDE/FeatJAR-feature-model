@@ -26,6 +26,7 @@ import de.featjar.base.computation.Dependency;
 import de.featjar.base.computation.IComputation;
 import de.featjar.base.computation.Progress;
 import de.featjar.base.data.Attribute;
+import de.featjar.base.data.Attributes;
 import de.featjar.base.data.IAttribute;
 import de.featjar.base.data.Range;
 import de.featjar.base.data.Result;
@@ -58,7 +59,7 @@ public class ComputeFormula extends AComputation<IFormula> {
     protected static final Dependency<IFeatureModel> FEATURE_MODEL = Dependency.newDependency(IFeatureModel.class);
     protected static final Dependency<Boolean> SIMPLE_TRANSLATION = Dependency.newDependency(Boolean.class);
 
-    static Attribute<String> literalNameAttribute = new Attribute<>("literalName", String.class);
+    static Attribute<String> literalNameAttribute = Attributes.get("literalName", String.class);
     private Map<IFeature, List<IFeatureTree>> featureToCardinalityNames = new HashMap<>();
     private Map<IFeatureTree, Map<IFeature, List<IFeatureTree>>> featureToChildren = new HashMap<>();
     private Boolean hasCardinalityFeatures = Boolean.FALSE;
