@@ -22,11 +22,13 @@ package de.featjar.feature.model;
 
 import de.featjar.base.data.Result;
 import de.featjar.base.data.identifier.IIdentifier;
+import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.mixins.IHasCommonAttributes;
 import de.featjar.feature.model.mixins.IHasConstraints;
 import de.featjar.feature.model.mixins.IHasFeatureTree;
 import de.featjar.formula.structure.IFormula;
 import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * A feature model represents the configuration space of a software system.
@@ -54,6 +56,12 @@ public interface IFeatureModel extends IFeatureModelElement, IHasCommonAttribute
     IFeatureModel clone();
 
     Collection<IFeature> getFeatures();
+
+    FeatureTreeRoot getPseudoRoot();
+
+    default Stream<IFeatureTree> getFeatureTreeStream() {
+        return Trees.preOrderStream(getPseudoRoot()).skip(1);
+    }
 
     int getNumberOfFeatures();
 

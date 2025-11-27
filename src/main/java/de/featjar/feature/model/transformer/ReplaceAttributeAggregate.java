@@ -20,18 +20,14 @@
  */
 package de.featjar.feature.model.transformer;
 
-import de.featjar.base.data.IAttribute;
-import de.featjar.base.data.Name;
 import de.featjar.base.data.Result;
 import de.featjar.base.data.Void;
 import de.featjar.base.tree.visitor.ITreeVisitor;
+import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.constraints.IAttributeAggregate;
 import de.featjar.formula.structure.IExpression;
 import de.featjar.formula.structure.IFormula;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * Implements tree visitor {@link ITreeVisitor}.
@@ -40,15 +36,18 @@ import java.util.Optional;
  * @author Lara Merza
  * @author Felix Behme
  * @author Jonas Hanke
+ * @author Sebastian Krieter
  */
 public class ReplaceAttributeAggregate implements ITreeVisitor<IFormula, Void> {
 
-    private final Map<IFormula, Map<IAttribute<?>, Object>> attributes;
+    private final IFeatureModel featureModel;
+    private final FeatureToFormula featureToFormula;
     private final boolean hasCardinalityFeatures;
 
     public ReplaceAttributeAggregate(
-            Map<IFormula, Map<IAttribute<?>, Object>> attributes, Boolean hasCardinalityFeatures) {
-        this.attributes = attributes;
+            IFeatureModel featureModel, FeatureToFormula featureToFormula, Boolean hasCardinalityFeatures) {
+        this.featureModel = featureModel;
+        this.featureToFormula = featureToFormula;
         this.hasCardinalityFeatures = hasCardinalityFeatures;
     }
 
@@ -64,23 +63,8 @@ public class ReplaceAttributeAggregate implements ITreeVisitor<IFormula, Void> {
 
             final Result<IFormula> parent = ITreeVisitor.getParentNode(path);
             if (parent.isPresent()) {
-                ArrayList<IFormula> filteredFeatures = new ArrayList<>();
-                ArrayList<Object> values = new ArrayList<>();
-                Name attributeName = ((IAttributeAggregate) expression).getAttributeName();
-
-                // formula -> feature as a formula, value -> attribute map
-                attributes.forEach((formula, value) -> {
-                    Optional<Map.Entry<IAttribute<?>, Object>> attributeMatch = value.entrySet().stream()
-                            .filter(predicate -> predicate.getKey().getName().equals(attributeName))
-                            .findFirst();
-
-                    if (attributeMatch.isPresent()) {
-                        filteredFeatures.add(formula);
-                        values.add(attributeMatch.get().getValue());
-                    }
-                });
-
-                Result<IExpression> result = ((IAttributeAggregate) expression).translate(filteredFeatures, values);
+                Result<IExpression> result =
+                        ((IAttributeAggregate) expression).translate(featureModel.getFeatures(), featureToFormula);
                 if (result.isPresent()) {
                     parent.get().replaceChild(expression, result.get());
                 }

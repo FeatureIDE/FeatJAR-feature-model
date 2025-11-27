@@ -20,12 +20,12 @@
  */
 package de.featjar.feature.model.constraints;
 
-import de.featjar.base.data.Name;
 import de.featjar.base.data.Result;
+import de.featjar.feature.model.IFeature;
+import de.featjar.feature.model.transformer.FeatureToFormula;
 import de.featjar.formula.structure.IExpression;
-import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.term.ITerm;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Interface for modeling attribute aggregate functionality. Attribute aggregates are placeholders which
@@ -37,7 +37,5 @@ import java.util.List;
  */
 public interface IAttributeAggregate extends ITerm {
 
-    Name getAttributeName();
-
-    Result<IExpression> translate(List<IFormula> formulas, List<?> values);
+    Result<IExpression> translate(Collection<IFeature> elements, FeatureToFormula featureToFormula);
 }
