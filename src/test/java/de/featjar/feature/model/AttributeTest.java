@@ -33,6 +33,7 @@ import de.featjar.base.data.identifier.Identifiers;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +50,11 @@ public class AttributeTest {
     @BeforeEach
     public void createFeatureModel() {
         featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+    }
+
+    @AfterAll
+    public static void deinit() {
+        Attributes.clearAllAttributes();
     }
 
     @Test
@@ -87,7 +93,7 @@ public class AttributeTest {
     @Test
     public void attributableToggle() {
         Attribute<Boolean> booleanAttribute =
-                Attributes.get("test", Boolean.class).setDefaultValue(false);
+                Attributes.get("testBoolean", Boolean.class).setDefaultValue(false);
         Assertions.assertEquals(Result.of(false), featureModel.getAttributeValue(booleanAttribute));
         featureModel.mutate().toggleAttributeValue(booleanAttribute);
         Assertions.assertEquals(Result.of(true), featureModel.getAttributeValue(booleanAttribute));

@@ -28,6 +28,8 @@ import de.featjar.feature.model.mixins.IHasConstraints;
 import de.featjar.feature.model.mixins.IHasFeatureTree;
 import de.featjar.formula.structure.IFormula;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -57,7 +59,7 @@ public interface IFeatureModel extends IFeatureModelElement, IHasCommonAttribute
 
     Collection<IFeature> getFeatures();
 
-    FeatureTreeRoot getPseudoRoot();
+    PseudoFeatureTreeRoot getPseudoRoot();
 
     default Stream<IFeatureTree> getFeatureTreeStream() {
         return Trees.preOrderStream(getPseudoRoot()).skip(1);
@@ -68,6 +70,25 @@ public interface IFeatureModel extends IFeatureModelElement, IHasCommonAttribute
     Result<IFeature> getFeature(IIdentifier identifier);
 
     Result<IFeature> getFeature(String name);
+
+    default List<? extends IFeatureTree> getFeatureTreeNodes(IFeature feature) {
+        return getFeatureTreeNodeStream(feature).collect(Collectors.toList());
+    }
+
+    default List<? extends IFeatureTree> getFeatureTreeNodes(String name) {
+        return getFeatureTreeNodeStream(name).collect(Collectors.toList());
+    }
+
+    default Stream<? extends IFeatureTree> getFeatureTreeNodeStream(IFeature feature) {
+        Result<String> name = feature.getName();
+        return name.isPresent() ? getFeatureTreeNodeStream(name.get()) : Stream.of();
+    }
+
+    default Stream<? extends IFeatureTree> getFeatureTreeNodeStream(String name) {
+        return getPseudoRoot().preOrderStream().skip(1).filter(f -> f.getFeature()
+                .getName()
+                .valueEquals(name));
+    }
 
     boolean hasFeature(IIdentifier identifier);
 

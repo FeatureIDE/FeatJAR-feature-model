@@ -22,14 +22,17 @@ package de.featjar.feature.model.transformer;
 
 import de.featjar.feature.model.IFeature;
 import de.featjar.formula.structure.IFormula;
+import de.featjar.formula.structure.predicate.ILiteral;
 import de.featjar.formula.structure.predicate.Literal;
+import de.featjar.formula.structure.predicate.NonBooleanLiteral;
 import de.featjar.formula.structure.predicate.NotEquals;
-import de.featjar.formula.structure.term.value.Constant;
 import de.featjar.formula.structure.term.value.Variable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -45,51 +48,50 @@ import java.util.Map;
  */
 public class FeatureToFormula {
 
-    private final Map<String, IFormula> nameToFormula = new LinkedHashMap<>();
-    private final Map<String, LinkedHashSet<String>> featureNameToNames = new LinkedHashMap<>();
+    private final Map<String, ILiteral> nameToLiteral = new LinkedHashMap<>();
+    private final Map<String, List<String>> featureNameToNames = new LinkedHashMap<>();
     private final LinkedHashSet<Variable> variables = new LinkedHashSet<>();
 
-    public IFormula getFeatureFormula2(String featureName) {
-        return nameToFormula.get(featureName);
+    public ILiteral getFeatureFormula(String featureName) {
+        return nameToLiteral.get(featureName);
     }
 
-    public Collection<String> getNamesPerFeature(String featureName) {
-        return Collections.unmodifiableCollection(featureNameToNames.get(featureName));
+    public List<String> getNamesPerFeature(String featureName) {
+        List<String> names = featureNameToNames.get(featureName);
+        return names == null ? List.of(featureName) : Collections.unmodifiableList(names);
     }
 
-    public IFormula getOrCreateFeatureFormula(IFeature feature) {
-        return getOrCreateFeatureFormula(feature, feature.getName().orElse("???"));
+    public IFormula createFeatureFormula(IFeature feature) {
+        return createFeatureFormula(feature, feature.getName().orElse("???"));
     }
 
-    public IFormula getOrCreateFeatureFormula(IFeature feature, String featureName) {
-        IFormula formula = nameToFormula.get(featureName);
-        if (formula == null) {
-            formula = newFeatureFormula(feature, featureName);
-            nameToFormula.put(featureName, formula);
-            featureNameToNames
-                    .computeIfAbsent(feature.getName().orElse("???"), k -> new LinkedHashSet<>())
-                    .add(featureName);
+    public IFormula createFeatureFormula(IFeature feature, String featureName) {
+        if (nameToLiteral.containsKey(featureName)) {
+            throw new IllegalAccessError(String.format("Formula for feature %s already exists.", featureName));
         }
+        ILiteral formula = newFeatureFormula(feature, featureName);
+        nameToLiteral.put(featureName, formula);
+        featureNameToNames
+                .computeIfAbsent(feature.getName().orElse("???"), k -> new LinkedList<>())
+                .add(featureName);
         return formula;
     }
 
-    private IFormula newFeatureFormula(IFeature feature, String featureName) {
+    public void initFeatureNames(Collection<IFeature> features) {
+        for (IFeature feature : features) {
+            featureNameToNames.computeIfAbsent(feature.getName().orElse("???"), k -> new LinkedList<>());
+        }
+    }
+
+    private ILiteral newFeatureFormula(IFeature feature, String featureName) {
         Class<?> type = feature.getType();
         Variable variable = new Variable(featureName, type);
         variables.add(variable);
 
         if (type.equals(Boolean.class)) {
             return new Literal(variable);
-        } else if (type.equals(Integer.class)) {
-            return new NotEquals(variable, new Constant(0));
-        } else if (type.equals(Double.class)) {
-            return new NotEquals(variable, new Constant(0.0));
-        } else if (type.equals(Long.class)) {
-            return new NotEquals(variable, new Constant(0L));
-        } else if (type.equals(Float.class)) {
-            return new NotEquals(variable, new Constant(0.0f));
         } else {
-            return new NotEquals(variable, new Constant(null, type));
+            return new NonBooleanLiteral(variable);
         }
     }
 

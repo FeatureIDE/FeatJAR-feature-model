@@ -38,7 +38,6 @@ import de.featjar.formula.structure.term.value.Variable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -55,8 +54,8 @@ public class AttributeSum extends ATerminalExpression implements IAttributeAggre
 
     private final IAttribute<?> attribute;
 
-    public AttributeSum(IAttribute<?> attributeName) {
-        this.attribute = attributeName;
+    public AttributeSum(IAttribute<?> attribute) {
+        this.attribute = attribute;
     }
 
     @Override
@@ -99,14 +98,13 @@ public class AttributeSum extends ATerminalExpression implements IAttributeAggre
 
         List<ITerm> termList = new ArrayList<>();
         for (IFeature element : elements) {
-            Optional<Map<IAttribute<?>, Object>> optionalAttributes = element.getAttributes();
-            if (optionalAttributes.isPresent()) {
+            Optional<Object> optionalAttribute = element.getAttributes().map(list -> list.get(attribute));
+            if (optionalAttribute.isPresent()) {
+                Constant attributeValue = new Constant(type.cast(optionalAttribute.get()), type);
                 for (String name :
                         featureToFormula.getNamesPerFeature(element.getName().orElse("???"))) {
-                    termList.add(new IfThenElse(
-                            featureToFormula.getFeatureFormula2(name),
-                            new Constant(type.cast(optionalAttributes.get().get(attribute)), type),
-                            defaultValue));
+                    termList.add(
+                            new IfThenElse(featureToFormula.getFeatureFormula(name), attributeValue, defaultValue));
                 }
             }
         }

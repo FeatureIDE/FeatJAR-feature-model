@@ -22,23 +22,26 @@ package de.featjar.feature.model.transformer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import de.featjar.base.FeatJAR;
+import de.featjar.base.computation.Computations;
 import de.featjar.base.computation.ComputeConstant;
 import de.featjar.base.data.Attribute;
 import de.featjar.base.data.Attributes;
-import de.featjar.base.data.Name;
 import de.featjar.base.data.Range;
+import de.featjar.base.data.Result;
 import de.featjar.base.data.identifier.Identifiers;
-import de.featjar.base.tree.Trees;
-import de.featjar.base.tree.visitor.TreePrinter;
 import de.featjar.feature.model.FeatureModel;
+import de.featjar.feature.model.FeatureModelAttributes;
 import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureModel;
+import de.featjar.feature.model.IFeatureModel.IMutableFeatureModel;
 import de.featjar.feature.model.IFeatureTree;
+import de.featjar.feature.model.IFeatureTree.IMutableFeatureTree;
 import de.featjar.feature.model.constraints.AttributeSum;
-import de.featjar.formula.structure.IExpression;
+import de.featjar.formula.structure.Expressions;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.And;
 import de.featjar.formula.structure.connective.Between;
@@ -49,7 +52,7 @@ import de.featjar.formula.structure.connective.Or;
 import de.featjar.formula.structure.connective.Reference;
 import de.featjar.formula.structure.predicate.LessThan;
 import de.featjar.formula.structure.predicate.Literal;
-import de.featjar.formula.structure.predicate.NotEquals;
+import de.featjar.formula.structure.predicate.NonBooleanLiteral;
 import de.featjar.formula.structure.term.IfThenElse;
 import de.featjar.formula.structure.term.function.real.RealAdd;
 import de.featjar.formula.structure.term.value.Constant;
@@ -57,7 +60,6 @@ import de.featjar.formula.structure.term.value.Variable;
 import java.util.Arrays;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -72,8 +74,6 @@ import org.junit.jupiter.api.Test;
  * @author Malena Horstmann
  */
 class ComputeFormulaTest {
-    private IFeatureModel featureModel;
-    private IFormula expected;
 
     @BeforeAll
     public static void init() {
@@ -85,41 +85,46 @@ class ComputeFormulaTest {
         FeatJAR.deinitialize();
     }
 
-    @BeforeEach
-    public void createFeatureModel() {
-        featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
-    }
-
     @Test
     void simpleWithTwoCardinalies() {
-        IFeatureTree rootTree =
-                featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
-        rootTree.mutate().makeMandatory();
-        rootTree.mutate().toAndGroup();
+        IMutableFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier()).mutate();
+        IFormula expected;
+
+        IFeature rootFeature = featureModel.addFeature("root");
+        IFeature childFeature1 = featureModel.addFeature("A");
+        IFeature childFeature2 = featureModel.addFeature("B");
+
+        IMutableFeatureTree rootTree =
+                featureModel.addFeatureTreeRoot(rootFeature).mutate();
+        rootTree.makeMandatory();
+        rootTree.toAndGroup();
 
         // create and set cardinality for the child feature
-        IFeature childFeature1 = featureModel.mutate().addFeature("A");
-        IFeatureTree childFeature1Tree = rootTree.mutate().addFeatureBelow(childFeature1);
-        childFeature1Tree.mutate().setFeatureCardinality(Range.of(0, 2));
+        IMutableFeatureTree childFeature1Tree =
+                rootTree.addFeatureBelow(childFeature1).mutate();
+        childFeature1Tree.setFeatureCardinality(Range.of(0, 2));
 
-        IFeature childFeature2 = featureModel.mutate().addFeature("B");
-        IFeatureTree childFeature2Tree = childFeature1Tree.mutate().addFeatureBelow(childFeature2);
-        childFeature2Tree.mutate().setFeatureCardinality(Range.of(0, 2));
+        IMutableFeatureTree childFeature2Tree =
+                childFeature1Tree.addFeatureBelow(childFeature2).mutate();
+        childFeature2Tree.setFeatureCardinality(Range.of(0, 2));
 
         expected = new Reference(new And(
                 new Literal("root"),
                 new Implies(new Literal("A_1"), new Literal("root")),
-                new Implies(new Literal("A_2"), new Literal("root")),
+                new Implies(new Literal("B_1.A_1"), new Literal("A_1")),
+                new Implies(new Literal("B_2.A_1"), new Literal("B_1.A_1")),
                 new Implies(new Literal("A_2"), new Literal("A_1")),
-                new Implies(new Literal("B_1"), new Or(new Literal("A_1"), new Literal("A_2"))),
-                new Implies(new Literal("B_2"), new Or(new Literal("A_1"), new Literal("A_2"))),
-                new Implies(new Literal("B_2"), new Literal("B_1"))));
+                new Implies(new Literal("B_1.A_2"), new Literal("A_2")),
+                new Implies(new Literal("B_2.A_2"), new Literal("B_1.A_2"))));
 
-        executeSimpleTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void simpleWithTwoCardinalitiesNumericFeatures() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -138,30 +143,33 @@ class ComputeFormulaTest {
 
         expected = new Reference(new And(
                 new Literal("root"),
-                new Implies(new NotEquals(new Variable("A_1", Integer.class), new Constant(0)), new Literal("root")),
-                new Implies(new NotEquals(new Variable("A_2", Integer.class), new Constant(0)), new Literal("root")),
+                new Implies(new NonBooleanLiteral(new Variable("A_1", Integer.class)), new Literal("root")),
+                new Implies(new NonBooleanLiteral(new Variable("A_2", Integer.class)), new Literal("root")),
                 new Implies(
-                        new NotEquals(new Variable("A_2", Integer.class), new Constant(0)),
-                        new NotEquals(new Variable("A_1", Integer.class), new Constant(0))),
+                        new NonBooleanLiteral(new Variable("A_2", Integer.class)),
+                        new NonBooleanLiteral(new Variable("A_1", Integer.class))),
                 new Implies(
-                        new NotEquals(new Variable("B_1", Float.class), new Constant(0.0f)),
+                        new NonBooleanLiteral(new Variable("B_1", Float.class)),
                         new Or(
-                                new NotEquals(new Variable("A_1", Integer.class), new Constant(0)),
-                                new NotEquals(new Variable("A_2", Integer.class), new Constant(0)))),
+                                new NonBooleanLiteral(new Variable("A_1", Integer.class)),
+                                new NonBooleanLiteral(new Variable("A_2", Integer.class)))),
                 new Implies(
-                        new NotEquals(new Variable("B_2", Float.class), new Constant(0.0f)),
+                        new NonBooleanLiteral(new Variable("B_2", Float.class)),
                         new Or(
-                                new NotEquals(new Variable("A_1", Integer.class), new Constant(0)),
-                                new NotEquals(new Variable("A_2", Integer.class), new Constant(0)))),
+                                new NonBooleanLiteral(new Variable("A_1", Integer.class)),
+                                new NonBooleanLiteral(new Variable("A_2", Integer.class)))),
                 new Implies(
-                        new NotEquals(new Variable("B_2", Float.class), new Constant(0.0f)),
-                        new NotEquals(new Variable("B_1", Float.class), new Constant(0.0f)))));
+                        new NonBooleanLiteral(new Variable("B_2", Float.class)),
+                        new NonBooleanLiteral(new Variable("B_1", Float.class)))));
 
-        executeSimpleTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void withTwoCardinalies() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -188,11 +196,14 @@ class ComputeFormulaTest {
                 new Implies(new Literal("B_2.A_2"), new Literal("A_2")),
                 new Implies(new Literal("B_2.A_2"), new Literal("B_1.A_2"))));
 
-        executeTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void simpleWithCardinalityAndChildGroup() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -222,11 +233,14 @@ class ComputeFormulaTest {
                 new Implies(new Literal("B"), new Or(new Literal("A_1"), new Literal("A_2"))),
                 new Implies(new Literal("C"), new Or(new Literal("A_1"), new Literal("A_2")))));
 
-        executeSimpleTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void simpleWithCardinalityAndChildGroupNumericFeatures() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -249,36 +263,38 @@ class ComputeFormulaTest {
 
         expected = new Reference(new And(
                 new Literal("root"),
-                new Implies(new NotEquals(new Variable("A_1", Float.class), new Constant(0.0f)), new Literal("root")),
-                new Implies(new NotEquals(new Variable("A_2", Float.class), new Constant(0.0f)), new Literal("root")),
+                new Implies(new NonBooleanLiteral(new Variable("A_1", Float.class)), new Literal("root")),
+                new Implies(new NonBooleanLiteral(new Variable("A_2", Float.class)), new Literal("root")),
                 new Implies(
-                        new NotEquals(new Variable("A_2", Float.class), new Constant(0.0f)),
-                        new NotEquals(new Variable("A_1", Float.class), new Constant(0.0f))),
+                        new NonBooleanLiteral(new Variable("A_2", Float.class)),
+                        new NonBooleanLiteral(new Variable("A_1", Float.class))),
                 new Implies(
+                        new NonBooleanLiteral(new Variable("B", Integer.class)),
                         new Or(
-                                new NotEquals(new Variable("A_1", Float.class), new Constant(0.0f)),
-                                new NotEquals(new Variable("A_2", Float.class), new Constant(0.0f))),
-                        new Choose(
-                                1,
-                                Arrays.asList(
-                                        new NotEquals(new Variable("B", Integer.class), new Constant(0)),
-                                        new Literal("C")))),
-                new Implies(
-                        new NotEquals(new Variable("B", Integer.class), new Constant(0)),
-                        new Or(
-                                new NotEquals(new Variable("A_1", Float.class), new Constant(0.0f)),
-                                new NotEquals(new Variable("A_2", Float.class), new Constant(0.0f)))),
+                                new NonBooleanLiteral(new Variable("A_1", Float.class)),
+                                new NonBooleanLiteral(new Variable("A_2", Float.class)))),
                 new Implies(
                         new Literal("C"),
                         new Or(
-                                new NotEquals(new Variable("A_1", Float.class), new Constant(0.0f)),
-                                new NotEquals(new Variable("A_2", Float.class), new Constant(0.0f))))));
+                                new NonBooleanLiteral(new Variable("A_1", Float.class)),
+                                new NonBooleanLiteral(new Variable("A_2", Float.class)))),
+                new Implies(
+                        new Or(
+                                new NonBooleanLiteral(new Variable("A_1", Float.class)),
+                                new NonBooleanLiteral(new Variable("A_2", Float.class))),
+                        new Choose(
+                                1,
+                                Arrays.asList(
+                                        new NonBooleanLiteral(new Variable("B", Integer.class)), new Literal("C"))))));
 
-        executeSimpleTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void simpleCrosstreeConstraint() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -302,8 +318,8 @@ class ComputeFormulaTest {
         featureModel.mutate().addConstraint(new Implies(new Literal("A"), new Literal("B")));
 
         expected = new Reference(new And(
-                new Implies(new Literal("B"), new Literal("C")),
                 new Literal("root"),
+                new Implies(new Literal("B"), new Literal("C")),
                 new Implies(new Literal("A_1"), new Literal("root")),
                 new Implies(new Literal("A_2"), new Literal("root")),
                 new Implies(new Literal("A_2"), new Literal("A_1")),
@@ -319,11 +335,14 @@ class ComputeFormulaTest {
 
                 ));
 
-        executeSimpleTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void globalConstraintWithTwoContexts() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -360,30 +379,38 @@ class ComputeFormulaTest {
                 new Implies(new Literal("D_2"), new Literal("root")),
                 new Implies(new Literal("D_2"), new Literal("D_1")),
 
+                // TODO use for "for all"-test
                 // build constraints out of cross-tree-constraints
-                new Implies(
-                        new Literal("D_1"),
-                        new And(new Literal("D_1"), new Or(new Literal("C.A_1"), new Literal("C.A_2")))),
-                new Implies(
-                        new Literal("D_2"),
-                        new And(new Literal("D_2"), new Or(new Literal("C.A_1"), new Literal("C.A_2")))),
-                new Implies(
-                        new Literal("A_1"),
-                        new And(new Or(new Literal("D_1"), new Literal("D_2")), new Literal("C.A_1"))),
-                new Implies(
-                        new Literal("A_2"),
-                        new And(new Or(new Literal("D_1"), new Literal("D_2")), new Literal("C.A_2"))),
+                //                new Implies(
+                //                        new Literal("D_1"),
+                //                        new And(new Literal("D_1"), new Or(new Literal("C.A_1"), new
+                // Literal("C.A_2")))),
+                //                new Implies(
+                //                        new Literal("D_2"),
+                //                        new And(new Literal("D_2"), new Or(new Literal("C.A_1"), new
+                // Literal("C.A_2")))),
+                //                new Implies(
+                //                        new Literal("A_1"),
+                //                        new And(new Or(new Literal("D_1"), new Literal("D_2")), new
+                // Literal("C.A_1"))),
+                //                new Implies(
+                //                        new Literal("A_2"),
+                //                        new And(new Or(new Literal("D_1"), new Literal("D_2")), new
+                // Literal("C.A_2"))),
 
                 // for global cross tree constraint include everything in one big one
                 new And(
                         new Or(new Literal("D_1"), new Literal("D_2")),
                         new Or(new Literal("C.A_1"), new Literal("C.A_2")))));
 
-        executeTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void withCardinalityAndChildInbetween() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -405,21 +432,24 @@ class ComputeFormulaTest {
                 new Literal("root"),
                 new Implies(new Literal("A_1"), new Literal("root")),
                 new Implies(new Literal("B.A_1"), new Literal("A_1")),
-                new Implies(new Literal("C_1.B.A_1"), new Literal("B.A_1")),
-                new Implies(new Literal("C_2.B.A_1"), new Literal("B.A_1")),
-                new Implies(new Literal("C_2.B.A_1"), new Literal("C_1.B.A_1")),
+                new Implies(new Literal("C_1.A_1"), new Literal("B.A_1")),
+                new Implies(new Literal("C_2.A_1"), new Literal("B.A_1")),
+                new Implies(new Literal("C_2.A_1"), new Literal("C_1.A_1")),
                 new Implies(new Literal("A_2"), new Literal("root")),
                 new Implies(new Literal("A_2"), new Literal("A_1")),
                 new Implies(new Literal("B.A_2"), new Literal("A_2")),
-                new Implies(new Literal("C_1.B.A_2"), new Literal("B.A_2")),
-                new Implies(new Literal("C_2.B.A_2"), new Literal("B.A_2")),
-                new Implies(new Literal("C_2.B.A_2"), new Literal("C_1.B.A_2"))));
+                new Implies(new Literal("C_1.A_2"), new Literal("B.A_2")),
+                new Implies(new Literal("C_2.A_2"), new Literal("B.A_2")),
+                new Implies(new Literal("C_2.A_2"), new Literal("C_1.A_2"))));
 
-        executeTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void withTwoGroups() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -444,18 +474,21 @@ class ComputeFormulaTest {
 
         expected = new Reference(new And(
                 new Literal("root"),
-                new Implies(new Literal("root"), new Choose(1, Arrays.asList(new Literal("A"), new Literal("B")))),
-                new Implies(new Literal("root"), new Or(Arrays.asList(new Literal("C"), new Literal("D")))),
                 new Implies(new Literal("A"), new Literal("root")),
                 new Implies(new Literal("B"), new Literal("root")),
                 new Implies(new Literal("C"), new Literal("root")),
-                new Implies(new Literal("D"), new Literal("root"))));
+                new Implies(new Literal("D"), new Literal("root")),
+                new Implies(new Literal("root"), new Choose(1, Arrays.asList(new Literal("A"), new Literal("B")))),
+                new Implies(new Literal("root"), new Or(Arrays.asList(new Literal("C"), new Literal("D"))))));
 
-        executeTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void withCardinalityAndChildGroup() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -477,22 +510,25 @@ class ComputeFormulaTest {
         expected = new Reference(new And(
                 new Literal("root"),
                 new Implies(new Literal("A_1"), new Literal("root")),
-                new Implies(
-                        new Literal("A_1"), new Choose(1, Arrays.asList(new Literal("B.A_1"), new Literal("C.A_1")))),
                 new Implies(new Literal("B.A_1"), new Literal("A_1")),
                 new Implies(new Literal("C.A_1"), new Literal("A_1")),
+                new Implies(
+                        new Literal("A_1"), new Choose(1, Arrays.asList(new Literal("B.A_1"), new Literal("C.A_1")))),
                 new Implies(new Literal("A_2"), new Literal("root")),
                 new Implies(new Literal("A_2"), new Literal("A_1")),
-                new Implies(
-                        new Literal("A_2"), new Choose(1, Arrays.asList(new Literal("B.A_2"), new Literal("C.A_2")))),
                 new Implies(new Literal("B.A_2"), new Literal("A_2")),
-                new Implies(new Literal("C.A_2"), new Literal("A_2"))));
+                new Implies(new Literal("C.A_2"), new Literal("A_2")),
+                new Implies(
+                        new Literal("A_2"), new Choose(1, Arrays.asList(new Literal("B.A_2"), new Literal("C.A_2"))))));
 
-        executeTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void withCardinalityAndChildChildGroup() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -545,11 +581,13 @@ class ComputeFormulaTest {
                 new Implies(new Literal("D.C.A_2"), new Literal("C.A_2")),
                 new Implies(new Literal("E.C.A_2"), new Literal("C.A_2"))));
 
-        executeTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void onlyRoot() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
 
         // root and nothing else
         featureModel
@@ -561,11 +599,13 @@ class ComputeFormulaTest {
         // root must be selected
         expected = new Reference(new And(new Literal("root")));
 
-        executeTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void oneFeature() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
 
         // root
         IFeatureTree rootTree =
@@ -579,7 +619,7 @@ class ComputeFormulaTest {
 
         expected = new Reference(new And(new Literal("root"), new Implies(new Literal("Test1"), new Literal("root"))));
 
-        executeTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     static Attribute<Boolean> cpuAttribute = Attributes.get("cpu", Boolean.class);
@@ -589,6 +629,8 @@ class ComputeFormulaTest {
 
     @Test
     void simpleOneFeatureAndAttributeAggregate() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
 
         // root
         IFeatureTree rootTree =
@@ -604,8 +646,7 @@ class ComputeFormulaTest {
         childFeature.mutate().setAttributeValue(costAttribute, 10.0);
 
         // cross-tree constraint for aggregate testing
-        IFormula aggregateConstraint =
-                new LessThan(new AttributeSum(new Name("cost")), new Constant(200.0, Double.class));
+        IFormula aggregateConstraint = new LessThan(new AttributeSum(costAttribute), new Constant(200.0, Double.class));
         featureModel.mutate().addConstraint(aggregateConstraint);
 
         expected = new Reference(new And(
@@ -616,11 +657,14 @@ class ComputeFormulaTest {
                                 new Literal("A"), new Constant(10.0, Double.class), new Constant(0.0, Double.class))),
                         new Constant(200.0, Double.class))));
 
-        executeSimpleTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void cardinalityAndAttributeAggregate() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -635,15 +679,18 @@ class ComputeFormulaTest {
         childFeature.mutate().setAttributeValue(costAttribute, 10.0);
 
         // cross-tree constraint for aggregate testing
-        IFormula aggregateConstraint =
-                new LessThan(new AttributeSum(new Name("cost")), new Constant(200.0, Double.class));
+        IFormula aggregateConstraint = new LessThan(
+                new AttributeSum(FeatureModelAttributes.get("cost", Double.class)), new Constant(200.0, Double.class));
         featureModel.mutate().addConstraint(aggregateConstraint);
 
-        executeExpectedException();
+        executeExpectedException(featureModel);
     }
 
     @Test
     void simpleCardinalityAndAttributeAggregate() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -658,15 +705,18 @@ class ComputeFormulaTest {
         childFeature.mutate().setAttributeValue(costAttribute, 10.0);
 
         // cross-tree constraint for aggregate testing
-        IFormula aggregateConstraint =
-                new LessThan(new AttributeSum(new Name("cost")), new Constant(200.0, Double.class));
+        IFormula aggregateConstraint = new LessThan(
+                new AttributeSum(FeatureModelAttributes.get("cost", Double.class)), new Constant(200.0, Double.class));
         featureModel.mutate().addConstraint(aggregateConstraint);
 
-        executeSimpleExpectedException();
+        executeSimpleExpectedException(featureModel);
     }
 
     @Test
     void withCardinalityGroup() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -684,18 +734,21 @@ class ComputeFormulaTest {
 
         expected = new Reference(new And(
                 new Literal("root"),
-                new Implies(
-                        new Literal("root"),
-                        new Between(2, 3, Arrays.asList(new Literal("A"), new Literal("B"), new Literal("C")))),
                 new Implies(new Literal("A"), new Literal("root")),
                 new Implies(new Literal("B"), new Literal("root")),
-                new Implies(new Literal("C"), new Literal("root"))));
+                new Implies(new Literal("C"), new Literal("root")),
+                new Implies(
+                        new Literal("root"),
+                        new Between(2, 3, Arrays.asList(new Literal("A"), new Literal("B"), new Literal("C"))))));
 
-        executeTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void withOneCardinalityFeature() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -718,11 +771,14 @@ class ComputeFormulaTest {
                 new Implies(new Literal("A_2"), new Literal("A_1")),
                 new Implies(new Literal("B.A_2"), new Literal("A_2"))));
 
-        executeTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void bImpliesCWithNestedCardinality() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -894,6 +950,9 @@ class ComputeFormulaTest {
 
     @Test
     void bImpliesCWithCardinality() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -931,23 +990,20 @@ class ComputeFormulaTest {
                 new Implies(new Literal("C.A_2"), new Literal("A_2")),
                 new Implies(new Literal("B.A_2"), new Literal("A_2")),
                 new Implies(new Literal("D"), new Literal("root")),
-                new Implies(
-                        new Literal("A_1"),
-                        new Or(new Not(new Literal("D")), new And(new Literal("C.A_1"), new Literal("B.A_1")))),
-                new Implies(
-                        new Literal("A_2"),
-                        new Or(new Not(new Literal("D")), new And(new Literal("C.A_2"), new Literal("B.A_2")))),
                 new Or(
                         new Not(new Literal("D")),
                         new And(
                                 new Or(new Literal("C.A_1"), new Literal("C.A_2")),
                                 new Or(new Literal("B.A_1"), new Literal("B.A_2"))))));
 
-        executeTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void cardinalitiesOverCrossTreeConstraints() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -986,106 +1042,121 @@ class ComputeFormulaTest {
                 new Literal("root"),
                 new Implies(new Literal("A_1"), new Literal("root")),
                 new Implies(new Literal("B.A_1"), new Literal("A_1")),
-                new Implies(new Literal("D_1.B.A_1"), new Literal("B.A_1")),
-                new Implies(new Literal("D_2.B.A_1"), new Literal("B.A_1")),
-                new Implies(new Literal("D_2.B.A_1"), new Literal("D_1.B.A_1")),
+                new Implies(new Literal("D_1.A_1"), new Literal("B.A_1")),
+                new Implies(new Literal("D_2.A_1"), new Literal("B.A_1")),
+                new Implies(new Literal("D_2.A_1"), new Literal("D_1.A_1")),
                 new Implies(new Literal("C.A_1"), new Literal("A_1")),
                 new Implies(new Literal("A_2"), new Literal("root")),
                 new Implies(new Literal("A_2"), new Literal("A_1")),
                 new Implies(new Literal("B.A_2"), new Literal("A_2")),
-                new Implies(new Literal("D_1.B.A_2"), new Literal("B.A_2")),
-                new Implies(new Literal("D_2.B.A_2"), new Literal("B.A_2")),
-                new Implies(new Literal("D_2.B.A_2"), new Literal("D_1.B.A_2")),
+                new Implies(new Literal("D_1.A_2"), new Literal("B.A_2")),
+                new Implies(new Literal("D_2.A_2"), new Literal("B.A_2")),
+                new Implies(new Literal("D_2.A_2"), new Literal("D_1.A_2")),
                 new Implies(new Literal("C.A_2"), new Literal("A_2")),
                 new Implies(new Literal("E_1"), new Literal("root")),
                 new Implies(new Literal("E_2"), new Literal("root")),
                 new Implies(new Literal("E_2"), new Literal("E_1")),
                 new Implies(new Literal("F"), new Literal("root")),
-                new Implies(
-                        new Literal("E_1"),
-                        new Implies(new Or(new Literal("A_1"), new Literal("A_2")), new Literal("E_1"))),
-                new Implies(
-                        new Literal("E_2"),
-                        new Implies(new Or(new Literal("A_1"), new Literal("A_2")), new Literal("E_2"))),
-                new Implies(
-                        new Literal("E_1"),
-                        new Implies(
-                                new Literal("E_1"),
-                                new And(
-                                        new Or(new Literal("B.A_1"), new Literal("B.A_2")),
-                                        new Or(new Literal("C.A_1"), new Literal("C.A_2"))))),
-                new Implies(
-                        new Literal("E_2"),
-                        new Implies(
-                                new Literal("E_2"),
-                                new And(
-                                        new Or(new Literal("B.A_1"), new Literal("B.A_2")),
-                                        new Or(new Literal("C.A_1"), new Literal("C.A_2"))))),
-                new Implies(
-                        new Literal("A_1"),
-                        new Implies(new Literal("A_1"), new Or(new Literal("E_1"), new Literal("E_2")))),
-                new Implies(
-                        new Literal("A_2"),
-                        new Implies(new Literal("A_2"), new Or(new Literal("E_1"), new Literal("E_2")))),
-                new Implies(
-                        new Literal("A_1"),
-                        new Implies(
-                                new Or(new Literal("E_1"), new Literal("E_2")),
-                                new And(new Literal("B.A_1"), new Literal("C.A_1")))),
-                new Implies(
-                        new Literal("A_2"),
-                        new Implies(
-                                new Or(new Literal("E_1"), new Literal("E_2")),
-                                new And(new Literal("B.A_2"), new Literal("C.A_2")))),
-                new Implies(
-                        new Literal("A_1"),
-                        new Implies(new Literal("B.A_1"), new Or(new Literal("D_1.B.A_1"), new Literal("D_2.B.A_1")))),
-                new Implies(
-                        new Literal("A_2"),
-                        new Implies(new Literal("B.A_2"), new Or(new Literal("D_1.B.A_2"), new Literal("D_2.B.A_2")))),
-                new Implies(
-                        new Literal("D_1.B.A_1"),
-                        new Implies(new Or(new Literal("B.A_1"), new Literal("B.A_2")), new Literal("D_1.B.A_1"))),
-                new Implies(
-                        new Literal("D_2.B.A_1"),
-                        new Implies(new Or(new Literal("B.A_1"), new Literal("B.A_2")), new Literal("D_2.B.A_1"))),
-                new Implies(
-                        new Literal("D_1.B.A_2"),
-                        new Implies(new Or(new Literal("B.A_1"), new Literal("B.A_2")), new Literal("D_1.B.A_2"))),
-                new Implies(
-                        new Literal("D_2.B.A_2"),
-                        new Implies(new Or(new Literal("B.A_1"), new Literal("B.A_2")), new Literal("D_2.B.A_2"))),
-                new Implies(
-                        new Literal("A_1"),
-                        new Implies(new Literal("F"), new And(new Literal("B.A_1"), new Literal("C.A_1")))),
-                new Implies(
-                        new Literal("A_2"),
-                        new Implies(new Literal("F"), new And(new Literal("B.A_2"), new Literal("C.A_2")))),
-                new Implies(
-                        new Or(new Literal("A_1"), new Literal("A_2")), new Or(new Literal("E_1"), new Literal("E_2"))),
-                new Implies(
-                        new Or(new Literal("B.A_1"), new Literal("B.A_2")),
-                        new Or(
-                                new Literal("D_1.B.A_1"),
-                                new Literal("D_2.B.A_1"),
-                                new Literal("D_1.B.A_2"),
-                                new Literal("D_2.B.A_2"))),
+                //                new Implies(
+                //                        new Literal("E_1"),
+                //                        new Implies(new Or(new Literal("A_1"), new Literal("A_2")), new
+                // Literal("E_1"))),
+                //                new Implies(
+                //                        new Literal("E_2"),
+                //                        new Implies(new Or(new Literal("A_1"), new Literal("A_2")), new
+                // Literal("E_2"))),
+                //                new Implies(
+                //                        new Literal("E_1"),
+                //                        new Implies(
+                //                                new Literal("E_1"),
+                //                                new And(
+                //                                        new Or(new Literal("B.A_1"), new Literal("B.A_2")),
+                //                                        new Or(new Literal("C.A_1"), new Literal("C.A_2"))))),
+                //                new Implies(
+                //                        new Literal("E_2"),
+                //                        new Implies(
+                //                                new Literal("E_2"),
+                //                                new And(
+                //                                        new Or(new Literal("B.A_1"), new Literal("B.A_2")),
+                //                                        new Or(new Literal("C.A_1"), new Literal("C.A_2"))))),
+                //                new Implies(
+                //                        new Literal("A_1"),
+                //                        new Implies(new Literal("A_1"), new Or(new Literal("E_1"), new
+                // Literal("E_2")))),
+                //                new Implies(
+                //                        new Literal("A_2"),
+                //                        new Implies(new Literal("A_2"), new Or(new Literal("E_1"), new
+                // Literal("E_2")))),
+                //                new Implies(
+                //                        new Literal("A_1"),
+                //                        new Implies(
+                //                                new Or(new Literal("E_1"), new Literal("E_2")),
+                //                                new And(new Literal("B.A_1"), new Literal("C.A_1")))),
+                //                new Implies(
+                //                        new Literal("A_2"),
+                //                        new Implies(
+                //                                new Or(new Literal("E_1"), new Literal("E_2")),
+                //                                new And(new Literal("B.A_2"), new Literal("C.A_2")))),
+                //                new Implies(
+                //                        new Literal("A_1"),
+                //                        new Implies(new Literal("B.A_1"), new Or(new Literal("D_1.B.A_1"), new
+                // Literal("D_2.B.A_1")))),
+                //                new Implies(
+                //                        new Literal("A_2"),
+                //                        new Implies(new Literal("B.A_2"), new Or(new Literal("D_1.B.A_2"), new
+                // Literal("D_2.B.A_2")))),
+                //                new Implies(
+                //                        new Literal("D_1.B.A_1"),
+                //                        new Implies(new Or(new Literal("B.A_1"), new Literal("B.A_2")), new
+                // Literal("D_1.B.A_1"))),
+                //                new Implies(
+                //                        new Literal("D_2.B.A_1"),
+                //                        new Implies(new Or(new Literal("B.A_1"), new Literal("B.A_2")), new
+                // Literal("D_2.B.A_1"))),
+                //                new Implies(
+                //                        new Literal("D_1.B.A_2"),
+                //                        new Implies(new Or(new Literal("B.A_1"), new Literal("B.A_2")), new
+                // Literal("D_1.B.A_2"))),
+                //                new Implies(
+                //                        new Literal("D_2.B.A_2"),
+                //                        new Implies(new Or(new Literal("B.A_1"), new Literal("B.A_2")), new
+                // Literal("D_2.B.A_2"))),
+                //                new Implies(
+                //                        new Literal("A_1"),
+                //                        new Implies(new Literal("F"), new And(new Literal("B.A_1"), new
+                // Literal("C.A_1")))),
+                //                new Implies(
+                //                        new Literal("A_2"),
+                //                        new Implies(new Literal("F"), new And(new Literal("B.A_2"), new
+                // Literal("C.A_2")))),
                 new Implies(
                         new Literal("F"),
                         new And(
                                 new Or(new Literal("B.A_1"), new Literal("B.A_2")),
                                 new Or(new Literal("C.A_1"), new Literal("C.A_2")))),
                 new Implies(
+                        new Or(new Literal("A_1"), new Literal("A_2")), new Or(new Literal("E_1"), new Literal("E_2"))),
+                new Implies(
                         new Or(new Literal("E_1"), new Literal("E_2")),
                         new And(
                                 new Or(new Literal("B.A_1"), new Literal("B.A_2")),
-                                new Or(new Literal("C.A_1"), new Literal("C.A_2"))))));
+                                new Or(new Literal("C.A_1"), new Literal("C.A_2")))),
+                new Implies(
+                        new Or(new Literal("B.A_1"), new Literal("B.A_2")),
+                        new Or(
+                                new Literal("D_1.A_1"),
+                                new Literal("D_2.A_1"),
+                                new Literal("D_1.A_2"),
+                                new Literal("D_2.A_2")))));
 
-        executeTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void globalConstraintsWithOneContext() {
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
         IFeatureTree rootTree =
                 featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
         rootTree.mutate().makeMandatory();
@@ -1109,138 +1180,90 @@ class ComputeFormulaTest {
                 new Implies(new Literal("A_2"), new Literal("root")),
                 new Implies(new Literal("A_2"), new Literal("A_1")),
                 new Implies(new Literal("F"), new Literal("root")),
-                new Implies(new Literal("A_1"), new Implies(new Literal("F"), new Literal("A_1"))),
-                new Implies(new Literal("A_2"), new Implies(new Literal("F"), new Literal("A_2"))),
                 new Implies(new Literal("F"), new Or(new Literal("A_1"), new Literal("A_2")))));
 
-        executeTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
     @Test
     void globalConstraintsWithNestedContexts() {
-        IFeatureTree rootTree =
-                featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
+        IFeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+        IFormula expected;
+
+        IMutableFeatureModel mutate = featureModel.mutate();
+        IFeatureTree rootTree = mutate.addFeatureTreeRoot(mutate.addFeature("root"));
         rootTree.mutate().makeMandatory();
         rootTree.mutate().toAndGroup();
 
         // feature A with cardinality [0,...,2] is a child of root
-        IFeature featureA = featureModel.mutate().addFeature("A");
+        IFeature featureA = mutate.addFeature("A");
         IFeatureTree treeA = rootTree.mutate().addFeatureBelow(featureA);
         treeA.mutate().setFeatureCardinality(Range.of(0, 2));
 
         // feature B with cardinality [0,...,2] is a child of A
-        IFeature featureB = featureModel.mutate().addFeature("B");
+        IFeature featureB = mutate.addFeature("B");
         IFeatureTree treeB = treeA.mutate().addFeatureBelow(featureB);
         treeB.mutate().setFeatureCardinality(Range.of(0, 2));
 
         // cross-tree constraints
-        featureModel.mutate().addConstraint(new Implies(new Literal("A"), new Literal("B")));
+        mutate.addConstraint(new Implies(new Literal("A"), new Literal("B")));
 
         expected = new Reference(new And(
                 new Literal("root"),
                 new Implies(new Literal("A_1"), new Literal("root")),
                 new Implies(new Literal("B_1.A_1"), new Literal("A_1")),
-                new Implies(new Literal("B_2.A_1"), new Literal("A_1")),
                 new Implies(new Literal("B_2.A_1"), new Literal("B_1.A_1")),
-                new Implies(new Literal("A_2"), new Literal("root")),
                 new Implies(new Literal("A_2"), new Literal("A_1")),
                 new Implies(new Literal("B_1.A_2"), new Literal("A_2")),
-                new Implies(new Literal("B_2.A_2"), new Literal("A_2")),
                 new Implies(new Literal("B_2.A_2"), new Literal("B_1.A_2")),
-                new Implies(
-                        new Literal("A_1"),
-                        new Implies(new Literal("A_1"), new Or(new Literal("B_1.A_1"), new Literal("B_2.A_1")))),
-                new Implies(
-                        new Literal("A_2"),
-                        new Implies(new Literal("A_2"), new Or(new Literal("B_1.A_2"), new Literal("B_2.A_2")))),
-                new Implies(
-                        new Literal("B_1.A_1"),
-                        new Implies(new Or(new Literal("A_1"), new Literal("A_2")), new Literal("B_1.A_1"))),
-                new Implies(
-                        new Literal("B_2.A_1"),
-                        new Implies(new Or(new Literal("A_1"), new Literal("A_2")), new Literal("B_2.A_1"))),
-                new Implies(
-                        new Literal("B_1.A_2"),
-                        new Implies(new Or(new Literal("A_1"), new Literal("A_2")), new Literal("B_1.A_2"))),
-                new Implies(
-                        new Literal("B_2.A_2"),
-                        new Implies(new Or(new Literal("A_1"), new Literal("A_2")), new Literal("B_2.A_2"))),
-                new Implies(
-                        new Or(new Literal("A_1"), new Literal("A_2")),
-                        new Or(
-                                new Literal("B_1.A_1"),
-                                new Literal("B_2.A_1"),
-                                new Literal("B_1.A_2"),
-                                new Literal("B_2.A_2")))));
+                new Or(
+                        new Implies(new Literal("A_1"), new Literal("B_1.A_1")),
+                        new Implies(new Literal("A_1"), new Literal("B_2.A_1")),
+                        new Implies(new Literal("A_2"), new Literal("B_1.A_2")),
+                        new Implies(new Literal("A_2"), new Literal("B_2.A_2")))));
 
-        executeTest();
+        translateAndCompareFeatureModel(featureModel, expected);
     }
 
-    private void executeTest() {
+    private void translateAndCompareFeatureModel(IFeatureModel featureModel, IFormula expected) {
+        Result<IFormula> resultFormula =
+                Computations.of(featureModel).map(ComputeFormula::new).computeResult();
 
-        ComputeConstant<IFeatureModel> computeConstant = new ComputeConstant<IFeatureModel>(featureModel);
-        ComputeFormula computeFormula = new ComputeFormula(computeConstant);
-
-        IFormula resultFormula = computeFormula.computeResult().orElseThrow();
-
-        // not the same amount of constraints in both formulas
-        assertEquals(
-                expected.getFirstChild().get().getChildrenCount(),
-                resultFormula.getFirstChild().get().getChildrenCount());
-
-        TreePrinter visitor = new TreePrinter();
-        visitor.setFilter(n -> !(n instanceof Variable));
-
-        FeatJAR.log().message("********************************************************************");
-        FeatJAR.log().message(Trees.traverse(resultFormula, visitor));
-
-        for (IExpression expr : expected.getFirstChild().get().getChildren()) {
-            try {
-                resultFormula.getFirstChild().get().removeChild(expr);
-            } catch (Exception e) {
-                fail(e);
-            }
-        }
-
-        // assert
-        assertEquals(resultFormula.getFirstChild().get().getChildrenCount(), 0);
+        assertTrue(resultFormula.isPresent(), resultFormula.printProblems());
+        assertEquals(Expressions.print(expected), Expressions.print(resultFormula.get()));
     }
 
-    private void executeSimpleTest() {
+    //    private void executeSimpleTest(IFeatureModel featureModel, IFormula expected) {
+    //        ComputeConstant<IFeatureModel> computeConstant = new ComputeConstant<IFeatureModel>(featureModel);
+    //        ComputeFormula computeFormula = new ComputeFormula(computeConstant);
+    //
+    //        IFormula resultFormula = computeFormula.computeResult().orElseThrow();
+    //
+    //        // not the same amount of constraints in both formulas
+    //        assertEquals(
+    //                expected.getFirstChild().get().getChildrenCount(),
+    //                resultFormula.getFirstChild().get().getChildrenCount());
+    //
+    //        TreePrinter visitor = new TreePrinter();
+    //        visitor.setFilter(n -> !(n instanceof Variable));
+    //
+    //        FeatJAR.log().message("********************************************************************");
+    //        FeatJAR.log().message(Trees.traverse(resultFormula, visitor));
+    //
+    //        for (IExpression expr : expected.getFirstChild().get().getChildren()) {
+    //            try {
+    //                resultFormula.getFirstChild().get().removeChild(expr);
+    //            } catch (Exception e) {
+    //                fail(e);
+    //            }
+    //        }
+    //
+    //        // assert
+    //        assertEquals(resultFormula.getFirstChild().get().getChildrenCount(), 0);
+    //    }
 
-        ComputeConstant<IFeatureModel> computeConstant = new ComputeConstant<IFeatureModel>(featureModel);
-        ComputeFormula computeFormula = new ComputeFormula(computeConstant);
-
-        IFormula resultFormula = computeFormula
-                .set(ComputeFormula.SIMPLE_TRANSLATION, Boolean.TRUE)
-                .computeResult()
-                .orElseThrow();
-
-        // not the same amount of constraints in both formulas
-        assertEquals(
-                expected.getFirstChild().get().getChildrenCount(),
-                resultFormula.getFirstChild().get().getChildrenCount());
-
-        TreePrinter visitor = new TreePrinter();
-        visitor.setFilter(n -> !(n instanceof Variable));
-
-        FeatJAR.log().message("********************************************************************");
-        FeatJAR.log().message(Trees.traverse(resultFormula, visitor));
-
-        for (IExpression expr : expected.getFirstChild().get().getChildren()) {
-            try {
-                resultFormula.getFirstChild().get().removeChild(expr);
-            } catch (Exception e) {
-                fail(e);
-            }
-        }
-
-        // assert
-        assertEquals(resultFormula.getFirstChild().get().getChildrenCount(), 0);
-    }
-
-    private void executeExpectedException() {
-        ComputeConstant<IFeatureModel> computeConstant = new ComputeConstant<IFeatureModel>(featureModel);
+    private void executeExpectedException(IFeatureModel featureModel) {
+        ComputeConstant<IFeatureModel> computeConstant = new ComputeConstant<>(featureModel);
         ComputeFormula computeFormula = new ComputeFormula(computeConstant);
 
         assertThrows(
@@ -1248,13 +1271,12 @@ class ComputeFormulaTest {
                 () -> computeFormula.computeResult().orElseThrow());
     }
 
-    private void executeSimpleExpectedException() {
-        ComputeConstant<IFeatureModel> computeConstant = new ComputeConstant<IFeatureModel>(featureModel);
+    private void executeSimpleExpectedException(IFeatureModel featureModel) {
+        ComputeConstant<IFeatureModel> computeConstant = new ComputeConstant<>(featureModel);
         ComputeFormula computeFormula = new ComputeFormula(computeConstant);
 
-        assertThrows(UnsupportedOperationException.class, () -> computeFormula
-                .set(ComputeFormula.SIMPLE_TRANSLATION, Boolean.TRUE)
-                .computeResult()
-                .orElseThrow());
+        assertThrows(
+                UnsupportedOperationException.class,
+                () -> computeFormula.computeResult().orElseThrow());
     }
 }

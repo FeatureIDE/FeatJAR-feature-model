@@ -39,7 +39,6 @@ import de.featjar.formula.structure.term.value.Constant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -83,15 +82,15 @@ public class AttributeAverage extends ATerminalExpression implements IAttributeA
 
     @Override
     public Result<IExpression> translate(Collection<IFeature> elements, FeatureToFormula featureToFormula) {
-        Constant zero;
+        Constant emptyValue;
         Class<?> type;
         AAdd addNode;
         if (attribute.getClassType() == Double.class || attribute.getClassType() == Float.class) {
-            zero = new Constant(0.0, Double.class);
+            emptyValue = new Constant(0.0, Double.class);
             type = Double.class;
             addNode = new RealAdd();
         } else if (attribute.getClassType() == Integer.class || attribute.getClassType() == Long.class) {
-            zero = new Constant(0L, Long.class);
+            emptyValue = new Constant(0L, Long.class);
             type = Long.class;
             addNode = new IntegerAdd();
         } else {
@@ -101,17 +100,17 @@ public class AttributeAverage extends ATerminalExpression implements IAttributeA
 
         List<ITerm> termListSum = new ArrayList<>();
         List<ITerm> termListCount = new ArrayList<>();
+        Constant zero = new Constant(0L);
+        Constant one = new Constant(1L);
         for (IFeature element : elements) {
-            Optional<Map<IAttribute<?>, Object>> optionalAttributes = element.getAttributes();
-            if (optionalAttributes.isPresent()) {
+            Optional<Object> optionalAttribute = element.getAttributes().map(list -> list.get(attribute));
+            if (optionalAttribute.isPresent()) {
+                Constant attributeValue = new Constant(type.cast(optionalAttribute.get()), type);
                 for (String name :
                         featureToFormula.getNamesPerFeature(element.getName().orElse("???"))) {
-                    IFormula formula = featureToFormula.getFeatureFormula2(name);
-                    termListSum.add(new IfThenElse(
-                            formula,
-                            new Constant(type.cast(optionalAttributes.get().get(attribute)), type),
-                            zero));
-                    termListCount.add(new IfThenElse(formula, new Constant(1L), new Constant(0L)));
+                    IFormula formula = featureToFormula.getFeatureFormula(name);
+                    termListSum.add(new IfThenElse(formula, attributeValue, emptyValue));
+                    termListCount.add(new IfThenElse(formula, one, zero));
                 }
             }
         }

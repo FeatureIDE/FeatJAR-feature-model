@@ -20,10 +20,11 @@
  */
 package de.featjar.feature.model.io.tikz;
 
+import de.featjar.base.data.Attribute;
 import de.featjar.base.data.IAttribute;
-import de.featjar.base.data.Name;
 import de.featjar.base.tree.Trees;
 import de.featjar.base.tree.visitor.ITreeVisitor;
+import de.featjar.feature.model.FeatureModelAttributes;
 import de.featjar.feature.model.FeatureTree;
 import de.featjar.feature.model.IConstraint;
 import de.featjar.feature.model.IFeature;
@@ -33,11 +34,12 @@ import de.featjar.formula.io.textual.ExpressionSerializer;
 import de.featjar.formula.io.textual.LaTexSymbols;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * This class generates the Tikz representation of a {@link IFeatureModel},
@@ -104,9 +106,8 @@ public class TikzFeatureModelSerializer {
 
             Map<IAttribute<?>, Object> filteredAttributes = new LinkedHashMap<>();
             feature.getAttributes().ifPresent(m -> m.entrySet().stream()
-                    .filter(e ->
-                            (include.isEmpty() || include.contains(e.getKey().getName()))
-                                    && !exclude.contains(e.getKey().getName()))
+                    .filter(e -> include.test((Attribute<?>) e.getKey()))
+                    .filter(e -> !exclude.test((Attribute<?>) e.getKey()))
                     .sorted(Comparator.comparing(e -> e.getKey().getName()))
                     .forEach(e -> filteredAttributes.put(e.getKey(), e.getValue())));
             if (filteredAttributes.isEmpty()) {
@@ -122,7 +123,7 @@ public class TikzFeatureModelSerializer {
                     stringBuilder
                             .append("\t".repeat(depth + 1))
                             .append("\\small\\texttt{")
-                            .append(attribute.getKey().getName())
+                            .append(attribute.getKey().getSimpleName())
                             .append(" (")
                             .append(attribute.getKey().getClassType().getSimpleName())
                             .append(")} &\\small\\texttt{= ")
@@ -197,26 +198,25 @@ public class TikzFeatureModelSerializer {
         }
     }
 
-    private final HashSet<Name> include = new HashSet<>();
-    private final HashSet<Name> exclude = new HashSet<>(List.of(new Name("abstract"), new Name("name")));
+    private Predicate<Attribute<?>> include = a -> true;
+    private Predicate<Attribute<?>> exclude =
+            a -> FeatureModelAttributes.FM_PROPERTY_NAMESPACE.equals(a.getNamespace());
 
     /**
      * Set the list of attributes that are shown in the Tikz output.
      * If no inclusion list is provided, all attributes will be shown that are not explicitly {@link #setAttributeExclusionList(List) excluded}.
      * @param attributeNames the list of attribute names
      */
-    public void setAttributeInclusionList(List<Name> attributeNames) {
-        include.clear();
-        include.addAll(attributeNames);
+    public void setAttributeInclusion(Predicate<Attribute<?>> include) {
+        this.include = Objects.requireNonNull(include);
     }
 
     /**
      * Set the list of attributes that are **not** shown in the Tikz output.
      * @param attributeNames the list of attribute names
      */
-    public void setAttributeExclusionList(List<Name> attributeNames) {
-        exclude.clear();
-        exclude.addAll(attributeNames);
+    public void setAttributeExclusionList(Predicate<Attribute<?>> exclude) {
+        this.exclude = Objects.requireNonNull(exclude);
     }
 
     /**

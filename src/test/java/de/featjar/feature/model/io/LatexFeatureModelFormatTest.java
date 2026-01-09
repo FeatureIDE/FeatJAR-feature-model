@@ -109,6 +109,7 @@ public class LatexFeatureModelFormatTest {
 
         // first tree
         IFeatureTree rootTree = featureModel.mutate().addFeatureTreeRoot(featureRootS);
+        rootTree.mutate().makeMandatory();
         rootTree.mutate().toAndGroup();
 
         IFeatureTree firstFeatureTree = rootTree.mutate().addFeatureBelow(feature);

@@ -90,6 +90,20 @@ public interface IFeatureTree extends IRootedTree<IFeatureTree>, IAttributable, 
                 .collect(Collectors.toList());
     }
 
+    default IFeatureTree getFeatureTreeRoot() {
+        IFeatureTree currentTree = null;
+        IFeatureTree parentTree = (IFeatureTree) this;
+        while (!(parentTree instanceof PseudoFeatureTreeRoot)) {
+            currentTree = parentTree;
+            if (currentTree.hasParent()) {
+                parentTree = currentTree.getParent().get();
+            } else {
+                break;
+            }
+        }
+        return currentTree;
+    }
+
     /**
      * {@return the group of this feature. (The group of this feature's parent, in which this feature is contained.)}
      * @see #getParentGroupID()
@@ -106,12 +120,16 @@ public interface IFeatureTree extends IRootedTree<IFeatureTree>, IAttributable, 
 
     int getFeatureCardinalityUpperBound();
 
+    default boolean isOptional() {
+        return getFeatureCardinalityLowerBound() <= 0;
+    }
+
     default boolean isMandatory() {
         return getFeatureCardinalityLowerBound() > 0;
     }
 
-    default boolean isOptional() {
-        return getFeatureCardinalityLowerBound() <= 0;
+    default boolean isMultiple() {
+        return getFeatureCardinalityUpperBound() > 1;
     }
 
     default IMutableFeatureTree mutate() {

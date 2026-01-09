@@ -64,4 +64,17 @@ public class FeatureModelAttributes {
 
     public static final Attribute<Boolean> ABSTRACT =
             Attributes.get(FM_PROPERTY_NAMESPACE, "abstract", Boolean.class).setDefaultValue(false);
+
+    /**
+     * Convenience method to get a feature model attribute with the appropriate name space.
+     * Equivalent to: {@code Attributes.get(FeatureModelAttributes.ATTRIBUTE_NAMESPACE, name, type);}
+     *
+     * @param <T> the attribute class type
+     * @param name the name of the attribute
+     * @param type the value type of the attribute
+     * @return the attribute instance
+     */
+    public static <T> Attribute<T> get(String name, Class<T> type) {
+        return Attributes.get(ATTRIBUTE_NAMESPACE, name, type);
+    }
 }

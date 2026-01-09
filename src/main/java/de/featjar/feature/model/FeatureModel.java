@@ -42,7 +42,7 @@ public class FeatureModel implements IMutableFeatureModel, IMutatableAttributabl
 
     protected final IIdentifier identifier;
 
-    protected final FeatureTreeRoot featureTreeRoot;
+    protected final PseudoFeatureTreeRoot pseudoFeatureTreeRoot;
     protected final LinkedHashMap<IIdentifier, IFeature> features;
     protected final LinkedHashMap<IIdentifier, IConstraint> constraints;
 
@@ -54,7 +54,7 @@ public class FeatureModel implements IMutableFeatureModel, IMutatableAttributabl
 
     public FeatureModel(IIdentifier identifier) {
         this.identifier = Objects.requireNonNull(identifier);
-        featureTreeRoot = new FeatureTreeRoot();
+        pseudoFeatureTreeRoot = new PseudoFeatureTreeRoot(this);
         features = Maps.empty();
         constraints = Maps.empty();
         attributeValues = new LinkedHashMap<>(4);
@@ -63,7 +63,7 @@ public class FeatureModel implements IMutableFeatureModel, IMutatableAttributabl
     protected FeatureModel(FeatureModel otherFeatureModel) {
         identifier = otherFeatureModel.getNewIdentifier();
 
-        featureTreeRoot = Trees.clone(otherFeatureModel.featureTreeRoot);
+        pseudoFeatureTreeRoot = Trees.clone(otherFeatureModel.pseudoFeatureTreeRoot);
 
         features = new LinkedHashMap<>((int) (otherFeatureModel.features.size() * 1.5));
         otherFeatureModel.features.entrySet().stream()
@@ -90,12 +90,12 @@ public class FeatureModel implements IMutableFeatureModel, IMutatableAttributabl
 
     @Override
     public List<? extends IFeatureTree> getRoots() {
-        return featureTreeRoot.getChildren();
+        return pseudoFeatureTreeRoot.getChildren();
     }
 
     @Override
-    public FeatureTreeRoot getPseudoRoot() {
-        return featureTreeRoot;
+    public PseudoFeatureTreeRoot getPseudoRoot() {
+        return pseudoFeatureTreeRoot;
     }
 
     @Override
@@ -175,7 +175,7 @@ public class FeatureModel implements IMutableFeatureModel, IMutatableAttributabl
     @Override
     public String toString() {
         return String.format(
-                "FeatureModel{features=%s, constraints=%s}", featureTreeRoot.print(), constraints.toString());
+                "FeatureModel{features=%s, constraints=%s}", pseudoFeatureTreeRoot.print(), constraints.toString());
     }
 
     @Override
@@ -191,20 +191,20 @@ public class FeatureModel implements IMutableFeatureModel, IMutatableAttributabl
     @Override
     public IFeatureTree addFeatureTreeRoot(IFeature feature) {
         FeatureTree newTree = new FeatureTree(feature);
-        featureTreeRoot.addChild(newTree);
+        pseudoFeatureTreeRoot.addChild(newTree);
         return newTree;
     }
 
     @Override
     public void addFeatureTreeRoot(IFeatureTree featureTree) {
-        featureTreeRoot.addChild(featureTree);
+        pseudoFeatureTreeRoot.addChild(featureTree);
     }
 
     @Override
     public void removeFeatureTreeRoot(IFeature feature) {
         int index = 0;
         int removeIndex = -1;
-        for (IFeatureTree child : featureTreeRoot.getChildren()) {
+        for (IFeatureTree child : pseudoFeatureTreeRoot.getChildren()) {
             if (child.getFeature().equals(feature)) {
                 removeIndex = index;
                 break;
@@ -212,13 +212,13 @@ public class FeatureModel implements IMutableFeatureModel, IMutatableAttributabl
             index++;
         }
         if (removeIndex >= 0) {
-            featureTreeRoot.removeChild(removeIndex);
+            pseudoFeatureTreeRoot.removeChild(removeIndex);
         }
     }
 
     @Override
     public void removeFeatureTreeRoot(IFeatureTree featureTree) {
-        featureTreeRoot.removeChild(featureTree);
+        pseudoFeatureTreeRoot.removeChild(featureTree);
     }
 
     @Override
